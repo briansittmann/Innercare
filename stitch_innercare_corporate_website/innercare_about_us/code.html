@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>InnerCare - About Us</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&amp;family=Source+Sans+3:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "outline": "#727781",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#ceedfd",
+                        "on-surface-variant": "#424750",
+                        "on-error-container": "#93000a",
+                        "secondary": "#4f6169",
+                        "inverse-on-surface": "#e0f4ff",
+                        "on-secondary-fixed": "#0b1e24",
+                        "tertiary-fixed-dim": "#96ccff",
+                        "primary-container": "#0b5394",
+                        "secondary-fixed-dim": "#b6cad2",
+                        "on-background": "#001f2a",
+                        "primary-fixed": "#d4e3ff",
+                        "surface-tint": "#2260a1",
+                        "surface-bright": "#f4faff",
+                        "primary": "#003c6f",
+                        "surface-container-low": "#e6f6ff",
+                        "surface": "#f4faff",
+                        "tertiary-fixed": "#cee5ff",
+                        "inverse-primary": "#a4c9ff",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed-variant": "#004883",
+                        "surface-container-highest": "#c9e7f7",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#005687",
+                        "secondary-fixed": "#d2e6ef",
+                        "tertiary": "#003e63",
+                        "on-tertiary-fixed": "#001d32",
+                        "surface-variant": "#c9e7f7",
+                        "background": "#f4faff",
+                        "surface-container": "#d9f2ff",
+                        "outline-variant": "#c2c6d2",
+                        "on-secondary-container": "#55676f",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed-variant": "#374951",
+                        "on-surface": "#001f2a",
+                        "on-primary-fixed": "#001c39",
+                        "surface-dim": "#c0dfee",
+                        "inverse-surface": "#163440",
+                        "primary-fixed-dim": "#a4c9ff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#004a75",
+                        "on-primary-container": "#a2c8ff",
+                        "on-tertiary-container": "#93cbff",
+                        "secondary-container": "#d2e6ef",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "xs": "4px",
+                        "container-max": "1280px",
+                        "unit": "4px",
+                        "md": "16px",
+                        "section": "80px",
+                        "sm": "8px",
+                        "gutter": "24px",
+                        "xl": "48px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-md": ["\"Source Sans 3\""],
+                        "body-sm": ["\"Source Sans 3\""],
+                        "data-mono": ["\"Source Sans 3\""],
+                        "headline-md": ["Hanken Grotesk"],
+                        "headline-sm": ["Hanken Grotesk"],
+                        "body-lg": ["\"Source Sans 3\""]
+                    }
+                }
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .font-label-md { @apply font-[Hanken_Grotesk] text-[14px] leading-[16px] tracking-[0.05em] font-semibold; }
+            .font-display-lg { @apply font-[Hanken_Grotesk] text-[48px] leading-[56px] tracking-[-0.02em] font-bold; }
+            .font-headline-lg { @apply font-[Hanken_Grotesk] text-[32px] leading-[40px] tracking-[-0.01em] font-semibold; }
+            .font-body-md { @apply font-["Source_Sans_3"] text-[16px] leading-[24px] font-normal; }
+            .font-body-sm { @apply font-["Source_Sans_3"] text-[14px] leading-[20px] font-normal; }
+            .font-data-mono { @apply font-["Source_Sans_3"] text-[14px] leading-[20px] font-medium; }
+            .font-headline-md { @apply font-[Hanken_Grotesk] text-[24px] leading-[32px] font-semibold; }
+            .font-headline-sm { @apply font-[Hanken_Grotesk] text-[20px] leading-[28px] font-semibold; }
+            .font-body-lg { @apply font-["Source_Sans_3"] text-[18px] leading-[28px] font-normal; }
+            
+            .text-label-md { @apply text-[14px] leading-[16px] tracking-[0.05em] font-semibold; }
+            .text-display-lg { @apply text-[48px] leading-[56px] tracking-[-0.02em] font-bold; }
+            .text-headline-lg { @apply text-[32px] leading-[40px] tracking-[-0.01em] font-semibold; }
+            .text-body-md { @apply text-[16px] leading-[24px] font-normal; }
+            .text-body-sm { @apply text-[14px] leading-[20px] font-normal; }
+            .text-data-mono { @apply text-[14px] leading-[20px] font-medium; }
+            .text-headline-md { @apply text-[24px] leading-[32px] font-semibold; }
+            .text-headline-sm { @apply text-[20px] leading-[28px] font-semibold; }
+            .text-body-lg { @apply text-[18px] leading-[28px] font-normal; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col antialiased">
+<!-- TopNavBar -->
+<header class="bg-surface dark:bg-surface-container-low docked full-width top-0 h-20 border-b border-outline-variant dark:border-outline flat no shadows sticky z-50">
+<div class="flex justify-between items-center h-20 px-gutter max-w-container-max mx-auto w-full">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">
+                InnerCare
+            </div>
+<nav class="hidden md:flex gap-lg items-center">
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 cursor-pointer active:opacity-80 transition-opacity" href="#">Home</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 cursor-pointer active:opacity-80 transition-opacity" href="#">Products</a>
+<a aria-current="page" class="font-label-md text-label-md text-primary dark:text-primary-fixed-dim border-b-2 border-primary pb-1 hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 cursor-pointer active:opacity-80 transition-opacity" href="#">About Us</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 cursor-pointer active:opacity-80 transition-opacity" href="#">Contact</a>
+</nav>
+<div class="flex items-center gap-md">
+<button class="hidden md:block px-md py-sm bg-primary-container text-on-primary-container rounded font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors">
+                    Contact Sales
+                </button>
+<button class="md:hidden text-primary">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-grow">
+<!-- Hero Section -->
+<section class="py-section px-gutter bg-surface-container-low border-b border-outline-variant relative overflow-hidden">
+<div class="max-w-container-max mx-auto grid md:grid-cols-12 gap-lg items-center relative z-10">
+<div class="md:col-span-7">
+<h1 class="font-display-lg text-display-lg text-primary mb-md">Advancing Orthopedics Through Precision</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+                        At InnerCare, our mission is to dramatically improve patient outcomes by pioneering high-precision, technologically advanced orthopedic solutions. We bridge the gap between clinical necessity and engineering excellence.
+                    </p>
+</div>
+<div class="md:col-span-5 h-[400px] rounded-lg overflow-hidden border border-outline-variant/30 shadow-[0_4px_8px_rgba(0,0,0,0.04)] bg-surface relative">
+<div class="absolute inset-0 bg-gradient-to-tr from-primary-container/10 to-transparent z-10 pointer-events-none"></div>
+<img class="w-full h-full object-cover" data-alt="A macro photography shot of a highly polished, precision-machined titanium orthopedic implant resting on a sterile, bright white clinical surface. The lighting is crisp, cold, and high-key, emphasizing the flawless manufacturing and metallic texture of the medical device. The aesthetic is extremely clean, professional, and high-tech, fitting a premium medical brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqOE9TmfHW8uDBnnWiBS3Bw9qfUclgls3DjAbLrzBTFRn8NhTG21lvOxVzM6r_02mcxkwJbn25EfA7ZdqV8aGyZZqkPapCEEjY9RWoaJUNgHeS6Cwhk2GdNQrffiCUIB6OWYTvRq3MLb5nS8GmCjKm8Gltl3pulHZ4ah12CJluz0-VextgFlNPyekiKiirY-attF_hYoRqr9ZOSCcI274qhwDaUL81JpHn4l9S7I-cBOMLAYbqv5FztQ"/>
+</div>
+</div>
+</section>
+<!-- Our Technology (Bento Grid) -->
+<section class="py-section px-gutter">
+<div class="max-w-container-max mx-auto">
+<div class="mb-xl text-center">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-sm">Our Technology</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl mx-auto">
+                        We leverage cutting-edge materials science and biomechanical engineering to create implants that integrate seamlessly with the human body.
+                    </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<!-- Tech Feature 1 -->
+<div class="col-span-1 md:col-span-2 bg-surface border border-[#E2E8F0] shadow-[0_4px_8px_rgba(0,0,0,0.04)] rounded-lg p-lg hover:shadow-[0_8px_16px_rgba(0,0,0,0.06)] transition-shadow">
+<div class="flex items-start gap-md mb-md">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="biotech">biotech</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Bio-Integrated Materials</h3>
+<p class="font-body-sm text-body-sm text-primary uppercase tracking-widest mt-1">Proprietary Titanium Alloys</p>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-md">
+                            Our proprietary titanium-based alloys are engineered for optimal osteointegration, reducing rejection rates and promoting faster healing times compared to standard industry materials.
+                        </p>
+<div class="h-[200px] rounded bg-surface-variant border border-outline-variant/30 overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="A conceptual rendering of a porous titanium surface at a microscopic level, showing a complex, organic-looking lattice structure designed for bone ingrowth. The image uses a clean, light color palette with cool blues and silvers, rendered with extremely high clarity and depth of field to emphasize precision engineering in a medical context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKZI6xI57l5KB040iq7g6obbKhvtIsfl0PhmE7_dOU_bGLHoCX5sj_2OESoEyF80Wml46V8Rmd0BlGHN9Pp5PyujrY-OajZV7WMfa8Jyo6Kp0TK5s8T7xGBoXyPko1h2_YtkHTQhpqna-MUjr2ywCr0GdBtBiaLOnLglIRz4-1Kp_DsuecnCWbv73TMERZJcy-0D8oWq0fMwQUB6hMB374IfT0mErJwl5dS5hyR_Na4_VoSqufIfq9_w"/>
+</div>
+</div>
+<!-- Tech Feature 2 -->
+<div class="col-span-1 bg-surface border border-[#E2E8F0] shadow-[0_4px_8px_rgba(0,0,0,0.04)] rounded-lg p-lg flex flex-col hover:shadow-[0_8px_16px_rgba(0,0,0,0.06)] transition-shadow">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary mb-md">
+<span class="material-symbols-outlined" data-icon="precision_manufacturing">precision_manufacturing</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-sm">Micron-Level Precision</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex-grow mb-md">
+                            Every component is machined to sub-micron tolerances, ensuring perfect articulation and minimal wear over the lifetime of the implant.
+                        </p>
+<div class="bg-surface-container-lowest p-sm rounded border border-outline-variant/20">
+<div class="font-data-mono text-data-mono text-primary flex justify-between">
+<span>Tolerance</span>
+<span>±0.001mm</span>
+</div>
+</div>
+</div>
+<!-- Tech Feature 3 -->
+<div class="col-span-1 bg-surface border border-[#E2E8F0] shadow-[0_4px_8px_rgba(0,0,0,0.04)] rounded-lg p-lg hover:shadow-[0_8px_16px_rgba(0,0,0,0.06)] transition-shadow">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary mb-md">
+<span class="material-symbols-outlined" data-icon="3d_rotation">3d_rotation</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-sm">Patient-Specific Geometries</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                            Utilizing advanced imaging and 3D printing, we can deliver custom-fit solutions for complex orthopedic reconstructions.
+                        </p>
+</div>
+<!-- Quality Standards Data Callout -->
+<div class="col-span-1 md:col-span-2 bg-primary text-on-primary rounded-lg p-lg flex flex-col justify-center items-center text-center shadow-[0_4px_12px_rgba(0,60,111,0.2)]">
+<h3 class="font-headline-md text-headline-md mb-sm">Uncompromising Quality</h3>
+<div class="flex gap-lg mt-md">
+<div class="flex flex-col items-center">
+<span class="font-display-lg text-display-lg">ISO</span>
+<span class="font-label-md text-label-md">13485:2016 Certified</span>
+</div>
+<div class="w-px bg-on-primary/30 h-full"></div>
+<div class="flex flex-col items-center">
+<span class="font-display-lg text-display-lg">CE</span>
+<span class="font-label-md text-label-md">MDR Compliant</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Innovation in Orthopedics (Content & Stats) -->
+<section class="py-section px-gutter bg-surface-container-lowest border-t border-[#E2E8F0]">
+<div class="max-w-container-max mx-auto grid md:grid-cols-2 gap-xl items-center">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-md">Innovation in Orthopedics</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-md">
+                        The future of orthopedics demands more than just replacing joints; it requires restoring natural movement and improving long-term quality of life. InnerCare is dedicated to continuous research and development.
+                    </p>
+<p class="font-body-md text-body-md text-on-surface-variant mb-lg">
+                        Our cross-functional teams of surgeons, engineers, and data scientists collaborate daily to push the boundaries of what is possible in reconstructive surgery and trauma care.
+                    </p>
+<button class="font-label-md text-label-md text-primary border border-primary px-md py-sm rounded hover:bg-surface-container transition-colors inline-flex items-center gap-sm">
+                        Read Our Research Papers
+                        <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<div class="bg-surface border border-[#E2E8F0] p-md rounded text-center shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+<div class="font-display-lg text-display-lg text-primary mb-xs">25+</div>
+<div class="font-label-md text-label-md text-on-surface-variant">Active Patents</div>
+</div>
+<div class="bg-surface border border-[#E2E8F0] p-md rounded text-center shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+<div class="font-display-lg text-display-lg text-primary mb-xs">15</div>
+<div class="font-label-md text-label-md text-on-surface-variant">Years of Clinical Data</div>
+</div>
+<div class="bg-surface border border-[#E2E8F0] p-md rounded text-center shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+<div class="font-display-lg text-display-lg text-primary mb-xs">98%</div>
+<div class="font-label-md text-label-md text-on-surface-variant">Success Rate (10yr)</div>
+</div>
+<div class="bg-surface border border-[#E2E8F0] p-md rounded text-center shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+<div class="font-display-lg text-display-lg text-primary mb-xs">40</div>
+<div class="font-label-md text-label-md text-on-surface-variant">Countries Served</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-inverse-surface dark:bg-surface-container-lowest full-width">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter py-xl px-gutter max-w-container-max mx-auto">
+<!-- Brand -->
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-surface dark:text-primary mb-md">
+                    InnerCare
+                </div>
+<p class="font-body-sm text-body-sm text-surface-variant dark:text-outline mb-md">
+                    Advancing orthopedics through precision engineering and clinical excellence.
+                </p>
+<div class="font-body-sm text-body-sm text-surface-variant dark:text-outline">
+                    © 2024 InnerCare Medical. All rights reserved.
+                </div>
+</div>
+<!-- Links Column 1 -->
+<div>
+<h4 class="font-label-md text-label-md text-surface-bright dark:text-primary mb-sm">Categories</h4>
+<ul class="flex flex-col gap-sm">
+<li><a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Product Categories</a></li>
+</ul>
+</div>
+<!-- Links Column 2 -->
+<div>
+<h4 class="font-label-md text-label-md text-surface-bright dark:text-primary mb-sm">Legal &amp; Compliance</h4>
+<ul class="flex flex-col gap-sm">
+<li><a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Regulatory/Compliance</a></li>
+<li><a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Privacy Policy</a></li>
+</ul>
+</div>
+<!-- Links Column 3 -->
+<div>
+<h4 class="font-label-md text-label-md text-surface-bright dark:text-primary mb-sm">Support</h4>
+<ul class="flex flex-col gap-sm">
+<li><a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Contact Support</a></li>
+</ul>
+</div>
+</div>
+</footer>
+</body></html>

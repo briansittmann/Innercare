@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>InnerCare - Modular Femoral Endoprosthesis</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Source+Sans+3:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "outline": "#727781",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#ceedfd",
+                        "on-surface-variant": "#424750",
+                        "on-error-container": "#93000a",
+                        "secondary": "#4f6169",
+                        "inverse-on-surface": "#e0f4ff",
+                        "on-secondary-fixed": "#0b1e24",
+                        "tertiary-fixed-dim": "#96ccff",
+                        "primary-container": "#0b5394",
+                        "secondary-fixed-dim": "#b6cad2",
+                        "on-background": "#001f2a",
+                        "primary-fixed": "#d4e3ff",
+                        "surface-tint": "#2260a1",
+                        "surface-bright": "#f4faff",
+                        "primary": "#003c6f",
+                        "surface-container-low": "#e6f6ff",
+                        "surface": "#f4faff",
+                        "tertiary-fixed": "#cee5ff",
+                        "inverse-primary": "#a4c9ff",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed-variant": "#004883",
+                        "surface-container-highest": "#c9e7f7",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#005687",
+                        "secondary-fixed": "#d2e6ef",
+                        "tertiary": "#003e63",
+                        "on-tertiary-fixed": "#001d32",
+                        "surface-variant": "#c9e7f7",
+                        "background": "#f4faff",
+                        "surface-container": "#d9f2ff",
+                        "outline-variant": "#c2c6d2",
+                        "on-secondary-container": "#55676f",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed-variant": "#374951",
+                        "on-surface": "#001f2a",
+                        "on-primary-fixed": "#001c39",
+                        "surface-dim": "#c0dfee",
+                        "inverse-surface": "#163440",
+                        "primary-fixed-dim": "#a4c9ff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#004a75",
+                        "on-primary-container": "#a2c8ff",
+                        "on-tertiary-container": "#93cbff",
+                        "secondary-container": "#d2e6ef",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "xs": "4px",
+                        "container-max": "1280px",
+                        "unit": "4px",
+                        "md": "16px",
+                        "section": "80px",
+                        "sm": "8px",
+                        "gutter": "24px",
+                        "xl": "48px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-md": ["\"Source Sans 3\""],
+                        "body-sm": ["\"Source Sans 3\""],
+                        "data-mono": ["\"Source Sans 3\""],
+                        "headline-md": ["Hanken Grotesk"],
+                        "headline-sm": ["Hanken Grotesk"],
+                        "body-lg": ["\"Source Sans 3\""]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "data-mono": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background antialiased selection:bg-primary selection:text-on-primary">
+<!-- TopNavBar -->
+<nav class="bg-surface dark:bg-surface-container-low border-b border-outline-variant dark:border-outline docked full-width top-0 h-20 z-50 sticky">
+<div class="flex justify-between items-center h-20 px-gutter max-w-container-max mx-auto">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim cursor-pointer">
+                InnerCare
+            </div>
+<div class="hidden md:flex gap-lg items-center">
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300" href="#">Home</a>
+<a class="font-label-md text-label-md text-primary dark:text-primary-fixed-dim border-b-2 border-primary pb-1 transition-colors duration-300 cursor-pointer active:opacity-80" href="#">Products</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300" href="#">About Us</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300" href="#">Contact</a>
+</div>
+<div class="flex items-center gap-md">
+<button class="bg-primary-container text-on-primary font-label-md text-label-md px-lg py-sm rounded hover:opacity-90 transition-opacity">Contact Sales</button>
+</div>
+</div>
+</nav>
+<main class="w-full">
+<!-- Hero Section -->
+<section class="max-w-container-max mx-auto px-gutter py-section grid grid-cols-1 md:grid-cols-12 gap-gutter items-center">
+<div class="md:col-span-5 flex flex-col gap-md">
+<span class="bg-surface-container-high text-primary font-label-md text-label-md px-sm py-xs rounded w-fit">Orthopedic Systems</span>
+<h1 class="font-display-lg text-display-lg text-primary">Modular Femoral Endoprosthesis</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                    Advanced modular implant system designed for precision, durability, and optimal patient outcomes in complex joint reconstruction.
+                </p>
+<div class="flex gap-md mt-sm">
+<button class="bg-primary text-on-primary font-label-md text-label-md px-lg py-md rounded hover:bg-primary-container transition-colors">Download Datasheet</button>
+<button class="border border-outline font-label-md text-label-md px-lg py-md rounded text-primary hover:bg-surface-variant transition-colors">View Clinical Data</button>
+</div>
+</div>
+<div class="md:col-span-7">
+<div class="rounded-xl overflow-hidden shadow-[0_4px_8px_rgba(0,0,0,0.04)] border border-[#E2E8F0]">
+<img alt="Modular Femoral Endoprosthesis" class="w-full h-auto object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_cq3pUPccjk_gW8wdbTa-p0H0i5SJ-yb-SFU3z3rji7nEYKKn_mCYyS2T1UipzA4YhRJayuX5Xb6EDZteUg2QS9rEwGn6gVes-JwHXsF26ed3lsTHVijieIcbwn9qyS-TcqaeQphSDlMMxUdNxMpXAUrdLPNYB0sHgBdODZ5eaYF17BU1DjeV9GDhzxP88F7I-ZFiv03Wtj9_ggUv5avYXD1rOv9dDjpUn-3iodseAtKk_CS5cOt0vA"/>
+</div>
+</div>
+</section>
+<!-- Technical Specifications & Specs Grid -->
+<section class="bg-surface-container-lowest py-section border-t border-outline-variant/30">
+<div class="max-w-container-max mx-auto px-gutter">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-lg">Technical Specifications</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-section">
+<div class="bg-surface p-lg rounded-xl border border-[#E2E8F0] shadow-[0_4px_8px_rgba(0,0,0,0.04)]">
+<span class="material-symbols-outlined text-primary mb-sm text-[32px]">science</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-sm">Core Material</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Titanium Alloy (Ti-6Al-4V ELI) conforming to ISO 5832-3 standards for superior strength-to-weight ratio and fatigue resistance.</p>
+</div>
+<div class="bg-surface p-lg rounded-xl border border-[#E2E8F0] shadow-[0_4px_8px_rgba(0,0,0,0.04)]">
+<span class="material-symbols-outlined text-primary mb-sm text-[32px]">layers</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-sm">Bio-Coating</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Hydroxyapatite (HA) plasma spray over porous titanium coating to facilitate osseointegration and long-term stability.</p>
+</div>
+<div class="bg-surface p-lg rounded-xl border border-[#E2E8F0] shadow-[0_4px_8px_rgba(0,0,0,0.04)]">
+<span class="material-symbols-outlined text-primary mb-sm text-[32px]">precision_manufacturing</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-sm">Taper Junction</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Precision-machined 12/14 morse taper ensuring a secure, cold-welded micro-connection between modular components.</p>
+</div>
+</div>
+<!-- Detailed Data Table -->
+<div class="overflow-x-auto rounded-lg border border-[#E2E8F0] shadow-[0_4px_8px_rgba(0,0,0,0.04)]">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#F8FAFC]">
+<th class="p-md font-label-md text-label-md text-on-surface border-b border-[#E2E8F0]">Component</th>
+<th class="p-md font-label-md text-label-md text-on-surface border-b border-[#E2E8F0]">Material</th>
+<th class="p-md font-label-md text-label-md text-on-surface border-b border-[#E2E8F0]">Size Range</th>
+<th class="p-md font-label-md text-label-md text-on-surface border-b border-[#E2E8F0]">Modularity</th>
+</tr>
+</thead>
+<tbody class="bg-surface-container-lowest">
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="p-md font-body-md text-body-md border-b border-[#E2E8F0]">Femoral Stem</td>
+<td class="p-md font-body-md text-body-md border-b border-[#E2E8F0]">Ti-6Al-4V + HA Coating</td>
+<td class="p-md font-data-mono text-data-mono border-b border-[#E2E8F0]">120mm - 200mm</td>
+<td class="p-md font-body-md text-body-md border-b border-[#E2E8F0]">Distal/Proximal split</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="p-md font-body-md text-body-md border-b border-[#E2E8F0]">Modular Neck</td>
+<td class="p-md font-body-md text-body-md border-b border-[#E2E8F0]">Ti-6Al-4V</td>
+<td class="p-md font-data-mono text-data-mono border-b border-[#E2E8F0]">Neutral, +8mm, -4mm offset</td>
+<td class="p-md font-body-md text-body-md border-b border-[#E2E8F0]">Adjustable anteversion</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="p-md font-body-md text-body-md border-b border-[#E2E8F0]">Femoral Head</td>
+<td class="p-md font-body-md text-body-md border-b border-[#E2E8F0]">Biolox Delta Ceramic / CoCr</td>
+<td class="p-md font-data-mono text-data-mono border-b border-[#E2E8F0]">28mm, 32mm, 36mm</td>
+<td class="p-md font-body-md text-body-md border-b border-[#E2E8F0]">12/14 Taper fit</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-inverse-surface dark:bg-surface-container-lowest grid grid-cols-1 md:grid-cols-4 gap-gutter py-xl px-gutter max-w-container-max mx-auto full-width">
+<div class="flex flex-col gap-sm">
+<span class="font-headline-sm text-headline-sm font-bold text-surface dark:text-primary">InnerCare</span>
+<span class="font-body-sm text-body-sm text-surface-variant dark:text-outline">© 2024 InnerCare Medical. All rights reserved.</span>
+</div>
+<div class="flex flex-col gap-sm">
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Product Categories</a>
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Regulatory/Compliance</a>
+</div>
+<div class="flex flex-col gap-sm">
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Contact Support</a>
+</div>
+<div>
+<!-- Empty column for grid alignment based on JSON structure -->
+</div>
+</footer>
+</body></html>

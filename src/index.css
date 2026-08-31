@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors — InnerCare Design System */
+  --color-surface: #f4faff;
+  --color-surface-dim: #c0dfee;
+  --color-surface-bright: #f4faff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #e6f6ff;
+  --color-surface-container: #d9f2ff;
+  --color-surface-container-high: #ceedfd;
+  --color-surface-container-highest: #c9e7f7;
+  --color-on-surface: #001f2a;
+  --color-on-surface-variant: #424750;
+  --color-inverse-surface: #163440;
+  --color-inverse-on-surface: #e0f4ff;
+  --color-outline: #727781;
+  --color-outline-variant: #c2c6d2;
+  --color-surface-tint: #2260a1;
+  --color-primary: #003c6f;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #0b5394;
+  --color-on-primary-container: #a2c8ff;
+  --color-inverse-primary: #a4c9ff;
+  --color-secondary: #4f6169;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #d2e6ef;
+  --color-on-secondary-container: #55676f;
+  --color-tertiary: #003e63;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #005687;
+  --color-on-tertiary-container: #93cbff;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-primary-fixed: #d4e3ff;
+  --color-primary-fixed-dim: #a4c9ff;
+  --color-on-primary-fixed: #001c39;
+  --color-on-primary-fixed-variant: #004883;
+  --color-secondary-fixed: #d2e6ef;
+  --color-secondary-fixed-dim: #b6cad2;
+  --color-on-secondary-fixed: #0b1e24;
+  --color-on-secondary-fixed-variant: #374951;
+  --color-tertiary-fixed: #cee5ff;
+  --color-tertiary-fixed-dim: #96ccff;
+  --color-on-tertiary-fixed: #001d32;
+  --color-on-tertiary-fixed-variant: #004a75;
+  --color-background: #f4faff;
+  --color-on-background: #001f2a;
+  --color-surface-variant: #c9e7f7;
+
+  /* Spacing scale used across the mockups (px-gutter, py-section, etc.) */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 48px;
+  --spacing-section: 80px;
+  --spacing-gutter: 24px;
+  --spacing-container-max: 1280px;
+
+  /* Border radius */
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+
+  /* Font families */
+  --font-label-md: "Hanken Grotesk", sans-serif;
+  --font-display-lg: "Hanken Grotesk", sans-serif;
+  --font-headline-lg: "Hanken Grotesk", sans-serif;
+  --font-headline-md: "Hanken Grotesk", sans-serif;
+  --font-headline-sm: "Hanken Grotesk", sans-serif;
+  --font-body-lg: "Source Sans 3", sans-serif;
+  --font-body-md: "Source Sans 3", sans-serif;
+  --font-body-sm: "Source Sans 3", sans-serif;
+  --font-data-mono: "Source Sans 3", monospace;
+
+  /* Type scale — size + line-height + letter-spacing + weight per key */
+  --text-label-md: 14px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--letter-spacing: 0.05em;
+  --text-label-md--font-weight: 600;
+
+  --text-display-lg: 48px;
+  --text-display-lg--line-height: 56px;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-display-lg--font-weight: 700;
+
+  --text-headline-lg: 32px;
+  --text-headline-lg--line-height: 40px;
+  --text-headline-lg--letter-spacing: -0.01em;
+  --text-headline-lg--font-weight: 600;
+
+  --text-headline-md: 24px;
+  --text-headline-md--line-height: 32px;
+  --text-headline-md--font-weight: 600;
+
+  --text-headline-sm: 20px;
+  --text-headline-sm--line-height: 28px;
+  --text-headline-sm--font-weight: 600;
+
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+  --text-body-lg--font-weight: 400;
+
+  --text-body-md: 16px;
+  --text-body-md--line-height: 24px;
+  --text-body-md--font-weight: 400;
+
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 20px;
+  --text-body-sm--font-weight: 400;
+
+  --text-data-mono: 14px;
+  --text-data-mono--line-height: 20px;
+  --text-data-mono--font-weight: 500;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+.material-symbols-outlined.fill-icon {
+  font-variation-settings:
+    "FILL" 1,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}

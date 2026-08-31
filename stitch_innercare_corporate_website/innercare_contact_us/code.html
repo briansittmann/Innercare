@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>InnerCare - Contact Us</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;family=Source+Sans+3:ital,wght@0,200..900;1,200..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "outline": "#727781",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#ceedfd",
+                        "on-surface-variant": "#424750",
+                        "on-error-container": "#93000a",
+                        "secondary": "#4f6169",
+                        "inverse-on-surface": "#e0f4ff",
+                        "on-secondary-fixed": "#0b1e24",
+                        "tertiary-fixed-dim": "#96ccff",
+                        "primary-container": "#0b5394",
+                        "secondary-fixed-dim": "#b6cad2",
+                        "on-background": "#001f2a",
+                        "primary-fixed": "#d4e3ff",
+                        "surface-tint": "#2260a1",
+                        "surface-bright": "#f4faff",
+                        "primary": "#003c6f",
+                        "surface-container-low": "#e6f6ff",
+                        "surface": "#f4faff",
+                        "tertiary-fixed": "#cee5ff",
+                        "inverse-primary": "#a4c9ff",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed-variant": "#004883",
+                        "surface-container-highest": "#c9e7f7",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#005687",
+                        "secondary-fixed": "#d2e6ef",
+                        "tertiary": "#003e63",
+                        "on-tertiary-fixed": "#001d32",
+                        "surface-variant": "#c9e7f7",
+                        "background": "#f4faff",
+                        "surface-container": "#d9f2ff",
+                        "outline-variant": "#c2c6d2",
+                        "on-secondary-container": "#55676f",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed-variant": "#374951",
+                        "on-surface": "#001f2a",
+                        "on-primary-fixed": "#001c39",
+                        "surface-dim": "#c0dfee",
+                        "inverse-surface": "#163440",
+                        "primary-fixed-dim": "#a4c9ff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#004a75",
+                        "on-primary-container": "#a2c8ff",
+                        "on-tertiary-container": "#93cbff",
+                        "secondary-container": "#d2e6ef",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "xs": "4px",
+                        "container-max": "1280px",
+                        "unit": "4px",
+                        "md": "16px",
+                        "section": "80px",
+                        "sm": "8px",
+                        "gutter": "24px",
+                        "xl": "48px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-md": ["\"Source Sans 3\""],
+                        "body-sm": ["\"Source Sans 3\""],
+                        "data-mono": ["\"Source Sans 3\""],
+                        "headline-md": ["Hanken Grotesk"],
+                        "headline-sm": ["Hanken Grotesk"],
+                        "body-lg": ["\"Source Sans 3\""]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "data-mono": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-surface');
+        }
+        .surface-1 {
+            background-color: #ffffff;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-surface dark:bg-surface-container-low docked full-width top-0 h-20 border-b border-outline-variant dark:border-outline flat no shadows sticky z-50">
+<div class="flex justify-between items-center h-20 px-gutter max-w-container-max mx-auto">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">
+                InnerCare
+            </div>
+<!-- Desktop Nav -->
+<nav class="hidden md:flex items-center gap-gutter">
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 cursor-pointer active:opacity-80" href="#">Home</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 cursor-pointer active:opacity-80" href="#">Products</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 cursor-pointer active:opacity-80" href="#">About Us</a>
+<a class="font-label-md text-label-md text-primary dark:text-primary-fixed-dim border-b-2 border-primary pb-1 hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 cursor-pointer active:opacity-80" href="#">Contact</a>
+</nav>
+<div class="flex items-center gap-md">
+<button class="hidden md:inline-flex items-center justify-center px-lg h-12 bg-primary text-on-primary font-label-md text-label-md rounded-DEFAULT hover:bg-surface-tint transition-colors cursor-pointer active:opacity-80">
+                    Contact Sales
+                </button>
+<button class="md:hidden text-primary">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-gutter py-section md:py-section">
+<div class="mb-xl text-center md:text-left">
+<h1 class="font-display-lg text-display-lg text-on-surface mb-sm">Get in Touch</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">Connect with our specialized medical teams. Whether you require technical specifications, sales inquiries, or compliance documentation, we are here to assist.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-xl">
+<!-- Contact Form (Left) -->
+<div class="lg:col-span-7">
+<div class="surface-1 rounded-lg p-lg md:p-xl">
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-lg">Send a Message</h2>
+<form action="#" class="space-y-md" method="POST">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-xs" for="name">Full Name</label>
+<input class="w-full h-12 px-sm border border-outline-variant rounded-DEFAULT font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all" id="name" name="name" placeholder="Dr. Jane Doe" required="" type="text"/>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-xs" for="email">Professional Email</label>
+<input class="w-full h-12 px-sm border border-outline-variant rounded-DEFAULT font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all" id="email" name="email" placeholder="jane.doe@hospital.org" required="" type="email"/>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-xs" for="subject">Subject / Department</label>
+<select class="w-full h-12 px-sm border border-outline-variant rounded-DEFAULT font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all bg-white" id="subject" name="subject">
+<option disabled="" selected="" value="">Select an inquiry type...</option>
+<option value="sales">Product Sales &amp; Demos</option>
+<option value="support">Technical Support</option>
+<option value="regulatory">Regulatory &amp; Compliance</option>
+<option value="other">Other Inquiry</option>
+</select>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-xs" for="message">Message</label>
+<textarea class="w-full p-sm border border-outline-variant rounded-DEFAULT font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all resize-y" id="message" name="message" placeholder="Please provide detailed information regarding your inquiry..." required="" rows="5"></textarea>
+</div>
+<div class="pt-sm">
+<button class="w-full md:w-auto px-xl h-12 bg-primary-container text-on-primary font-label-md text-label-md rounded-DEFAULT hover:bg-surface-tint transition-colors cursor-pointer active:opacity-80" type="submit">
+                                Submit Inquiry
+                            </button>
+</div>
+</form>
+</div>
+</div>
+<!-- Contact Details & Map (Right) -->
+<div class="lg:col-span-5 flex flex-col gap-lg">
+<div class="surface-1 rounded-lg p-lg">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-md border-b border-outline-variant pb-sm">Global Headquarters</h3>
+<div class="space-y-md">
+<div class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-surface-tint" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Address</p>
+<p class="font-body-md text-body-md text-on-surface-variant">100 Innovation Drive<br/>Cambridge, MA 02142<br/>United States</p>
+</div>
+</div>
+<div class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-surface-tint" style="font-variation-settings: 'FILL' 1;">call</span>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Direct Lines</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Sales: +1 (800) 555-0199<br/>Support: +1 (800) 555-0188</p>
+</div>
+</div>
+<div class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-surface-tint" style="font-variation-settings: 'FILL' 1;">mail</span>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Email Contacts</p>
+<p class="font-body-md text-body-md text-on-surface-variant">sales@innercare.medical<br/>support@innercare.medical</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Map Placeholder -->
+<div class="surface-1 rounded-lg overflow-hidden h-64 relative group">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A high-resolution satellite view or stylized digital map centered on Cambridge, Massachusetts. The map uses a sophisticated, light clinical color palette with soft blues, grays, and whites, matching the InnerCare brand aesthetic. A distinct, precise marker indicates a high-tech corporate campus." data-location="Cambridge, MA" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1ko0-3SmxXLi9rQpYHIYhRkSUNkGgz2vrXQHNwYh2x8klhxM1vlZx7im3W3lkke91OPit_ZQ6KnS_CB291MRUHCEYpFgdgTTC70BxQ8ww5bskgBL7g-xmGcmnyb0d-GDvjhvLYvglGtC0JqX7YHnxiMGzs8Oq1shUm8DD88wsr5TF5wJSPIvEG0-sW8jKgZWtrvMWKJER39TjrXZW3Jkcf6jAjKky1H9SRHz1S9iLzVJsNmWsvM8UXw"/>
+<div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-inverse-surface dark:bg-surface-container-lowest full-width flat no shadows mt-auto border-t border-outline-variant">
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-gutter py-xl px-gutter max-w-container-max mx-auto">
+<div class="col-span-1 sm:col-span-2 md:col-span-1 flex flex-col gap-md">
+<div class="font-headline-sm text-headline-sm font-bold text-surface dark:text-primary">
+                    InnerCare
+                </div>
+<p class="font-body-sm text-body-sm text-surface-variant dark:text-outline">
+                    © 2024 InnerCare Medical. All rights reserved.
+                </p>
+</div>
+<div class="flex flex-col gap-sm">
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Product Categories</a>
+</div>
+<div class="flex flex-col gap-sm">
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Regulatory/Compliance</a>
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Privacy Policy</a>
+</div>
+<div class="flex flex-col gap-sm">
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Contact Support</a>
+</div>
+</div>
+</footer>
+</body></html>

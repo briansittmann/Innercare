@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>InnerCare - Products</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&amp;family=Source+Sans+3:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "error-container": "#ffdad6",
+                      "outline": "#727781",
+                      "on-secondary": "#ffffff",
+                      "surface-container-high": "#ceedfd",
+                      "on-surface-variant": "#424750",
+                      "on-error-container": "#93000a",
+                      "secondary": "#4f6169",
+                      "inverse-on-surface": "#e0f4ff",
+                      "on-secondary-fixed": "#0b1e24",
+                      "tertiary-fixed-dim": "#96ccff",
+                      "primary-container": "#0b5394",
+                      "secondary-fixed-dim": "#b6cad2",
+                      "on-background": "#001f2a",
+                      "primary-fixed": "#d4e3ff",
+                      "surface-tint": "#2260a1",
+                      "surface-bright": "#f4faff",
+                      "primary": "#003c6f",
+                      "surface-container-low": "#e6f6ff",
+                      "surface": "#f4faff",
+                      "tertiary-fixed": "#cee5ff",
+                      "inverse-primary": "#a4c9ff",
+                      "on-error": "#ffffff",
+                      "on-primary-fixed-variant": "#004883",
+                      "surface-container-highest": "#c9e7f7",
+                      "on-tertiary": "#ffffff",
+                      "tertiary-container": "#005687",
+                      "secondary-fixed": "#d2e6ef",
+                      "tertiary": "#003e63",
+                      "on-tertiary-fixed": "#001d32",
+                      "surface-variant": "#c9e7f7",
+                      "background": "#f4faff",
+                      "surface-container": "#d9f2ff",
+                      "outline-variant": "#c2c6d2",
+                      "on-secondary-container": "#55676f",
+                      "on-primary": "#ffffff",
+                      "on-secondary-fixed-variant": "#374951",
+                      "on-surface": "#001f2a",
+                      "on-primary-fixed": "#001c39",
+                      "surface-dim": "#c0dfee",
+                      "inverse-surface": "#163440",
+                      "primary-fixed-dim": "#a4c9ff",
+                      "error": "#ba1a1a",
+                      "on-tertiary-fixed-variant": "#004a75",
+                      "on-primary-container": "#a2c8ff",
+                      "on-tertiary-container": "#93cbff",
+                      "secondary-container": "#d2e6ef",
+                      "surface-container-lowest": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "lg": "24px",
+                      "xs": "4px",
+                      "container-max": "1280px",
+                      "unit": "4px",
+                      "md": "16px",
+                      "section": "80px",
+                      "sm": "8px",
+                      "gutter": "24px",
+                      "xl": "48px"
+              },
+              "fontFamily": {
+                      "label-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "display-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-md": [
+                              "\"Source Sans 3\""
+                      ],
+                      "body-sm": [
+                              "\"Source Sans 3\""
+                      ],
+                      "data-mono": [
+                              "\"Source Sans 3\""
+                      ],
+                      "headline-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-sm": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-lg": [
+                              "\"Source Sans 3\""
+                      ]
+              },
+              "fontSize": {
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "data-mono": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .clinical-shadow {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-surface dark:bg-surface-container-low border-b border-outline-variant dark:border-outline docked full-width top-0 h-20 flex justify-between items-center px-gutter max-w-container-max mx-auto w-full z-50 fixed left-0 right-0 shadow-none">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">
+            InnerCare
+        </div>
+<nav class="hidden md:flex gap-lg items-center">
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 cursor-pointer active:opacity-80 transition-opacity" href="#">Home</a>
+<a class="font-label-md text-label-md text-primary dark:text-primary-fixed-dim border-b-2 border-primary pb-1 hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 cursor-pointer active:opacity-80 transition-opacity" href="#">Products</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 cursor-pointer active:opacity-80 transition-opacity" href="#">About Us</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-300 cursor-pointer active:opacity-80 transition-opacity" href="#">Contact</a>
+</nav>
+<div class="flex items-center gap-md">
+<button class="bg-primary-container text-on-primary-container font-label-md text-label-md px-md py-sm rounded-lg hover:bg-surface-tint hover:text-on-primary transition-colors h-12 flex items-center justify-center border border-transparent">
+                Contact Sales
+            </button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow pt-[104px] pb-section px-gutter max-w-container-max mx-auto w-full">
+<!-- Page Header -->
+<div class="mb-xl text-center md:text-left">
+<h1 class="font-display-lg text-display-lg text-primary mb-sm">Clinical Product Catalog</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">Precision-engineered medical devices for advanced orthopedic and trauma care.</p>
+</div>
+<div class="flex flex-col md:flex-row gap-xl">
+<!-- Filters Sidebar -->
+<aside class="w-full md:w-64 shrink-0">
+<div class="bg-surface border border-outline-variant rounded-lg p-md clinical-shadow sticky top-[104px]">
+<h2 class="font-headline-sm text-headline-sm text-primary mb-md flex items-center gap-sm border-b border-outline-variant pb-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">filter_list</span>
+                        Filters
+                    </h2>
+<div class="space-y-md">
+<div>
+<h3 class="font-label-md text-label-md text-on-surface-variant mb-sm uppercase tracking-wider">Category</h3>
+<div class="space-y-sm">
+<label class="flex items-center gap-sm cursor-pointer group">
+<input checked="" class="w-4 h-4 rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-primary transition-colors">Hip Systems</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="w-4 h-4 rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-primary transition-colors">Knee Systems</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="w-4 h-4 rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-primary transition-colors">Trauma Fixation</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="w-4 h-4 rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-primary transition-colors">Surgical Instruments</span>
+</label>
+</div>
+</div>
+<div>
+<h3 class="font-label-md text-label-md text-on-surface-variant mb-sm uppercase tracking-wider mt-md border-t border-outline-variant pt-md">Material</h3>
+<div class="space-y-sm">
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="w-4 h-4 rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-primary transition-colors">Titanium Alloy</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="w-4 h-4 rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-primary transition-colors">Cobalt Chrome</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="w-4 h-4 rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-primary transition-colors">Highly Crosslinked PE</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Product Grid -->
+<div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg h-fit">
+<!-- Product Card 1 -->
+<article class="bg-surface border border-outline-variant rounded-lg overflow-hidden clinical-shadow hover:border-primary-container transition-all duration-300 group flex flex-col">
+<div class="aspect-square bg-surface-container-lowest p-md flex items-center justify-center relative overflow-hidden border-b border-outline-variant">
+<img class="object-contain w-full h-full transform group-hover:scale-105 transition-transform duration-500" data-alt="A highly detailed, sterile studio macro shot of a sleek titanium medical modular femoral stem implant. The object is resting on a pure white clinical surface. Lighting is bright, diffused, and cool-toned to emphasize the metallic precision and high-end engineering. The background is completely white and shadowless, reflecting a premium medical device catalog aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpN-Z_hVvV35rK11qqWqVoO5j8gtG7bvZFR9sXx8dwjD5z137jC_fIT0QuZ8yt5I3vFCyuEOKKGBnStJjPFURfLRcTF3XZOJkgE505zYJ5dqpSv8bmigL6t1CQ-5ql9BQaquSK_SCSWKyqD4hRdztrkFdyDuIzQm-9Tg4XuJjbrHQxv0s8DhwgBPEARMG4zE3ZMhHdcOYcky-HlXsm5TotJ2sIDXd41QP_NPvl5HeTRcEY_c-AsbNZQA"/>
+<span class="absolute top-sm right-sm bg-surface-container-low text-primary font-label-md text-[10px] px-2 py-1 rounded border border-primary-fixed uppercase tracking-widest">FDA Approved</span>
+</div>
+<div class="p-lg flex flex-col flex-grow">
+<h3 class="font-headline-sm text-headline-sm text-primary mb-xs">Modular Femoral Stem</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md flex-grow">Advanced titanium alloy stem designed for optimized load transfer and primary stability in complex revisions.</p>
+<div class="bg-surface-container-low p-sm rounded border border-outline-variant mb-md">
+<h4 class="font-label-md text-[10px] text-on-surface-variant uppercase tracking-wider mb-xs">Quick Specs</h4>
+<div class="grid grid-cols-2 gap-x-sm gap-y-xs">
+<span class="font-body-sm text-[12px] text-on-surface-variant">Material:</span>
+<span class="font-data-mono text-[12px] text-on-surface text-right">Ti-6Al-4V</span>
+<span class="font-body-sm text-[12px] text-on-surface-variant">Coating:</span>
+<span class="font-data-mono text-[12px] text-on-surface text-right">Hydroxyapatite</span>
+</div>
+</div>
+<button class="w-full bg-surface-container border border-primary-container text-primary-container font-label-md text-label-md h-12 rounded-lg hover:bg-primary-container hover:text-on-primary transition-colors flex items-center justify-center gap-sm">
+                            View Details
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</article>
+<!-- Product Card 2 -->
+<article class="bg-surface border border-outline-variant rounded-lg overflow-hidden clinical-shadow hover:border-primary-container transition-all duration-300 group flex flex-col">
+<div class="aspect-square bg-surface-container-lowest p-md flex items-center justify-center relative overflow-hidden border-b border-outline-variant">
+<img class="object-contain w-full h-full transform group-hover:scale-105 transition-transform duration-500" data-alt="A pristine, high-resolution product photography shot of an acetabular cup medical implant. The hemispherical shell is made of textured porous titanium, paired with a smooth, white highly crosslinked polyethylene liner. The lighting is sterile, cold, and high-key, casting a very soft shadow on a pure white surface to convey clinical precision and top-tier medical manufacturing." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfKeW05ogCl4IsuoOQFHGS-_mT4I9F6HmZ_cTc-7CSOFFE7ODxlSMt49ILAlDRB9hOpQvfMe3lk2iX8rtVj6KuqJhIhsiPJBZZgJdLRxv_maY_PmZmkp3QmnABzv1L-kw0LgPmuqAs9UdxEA_dScYiTkUArCFet6ODqirkKgwmS48S-wUklYS5bKGbWGEz-k-Qeiz0ZJ23Y_UscVeCoD8EMRyc7ly_8fGp8GG_G-rfWzBaB8aZhq1GGg"/>
+</div>
+<div class="p-lg flex flex-col flex-grow">
+<h3 class="font-headline-sm text-headline-sm text-primary mb-xs">Acetabular Cup System</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md flex-grow">Highly porous titanium shell with vitamin E blended crosslinked polyethylene liner for maximum longevity.</p>
+<div class="bg-surface-container-low p-sm rounded border border-outline-variant mb-md">
+<h4 class="font-label-md text-[10px] text-on-surface-variant uppercase tracking-wider mb-xs">Quick Specs</h4>
+<div class="grid grid-cols-2 gap-x-sm gap-y-xs">
+<span class="font-body-sm text-[12px] text-on-surface-variant">Shell:</span>
+<span class="font-data-mono text-[12px] text-on-surface text-right">Porous Ti</span>
+<span class="font-body-sm text-[12px] text-on-surface-variant">Liner:</span>
+<span class="font-data-mono text-[12px] text-on-surface text-right">Vit-E HXLPE</span>
+</div>
+</div>
+<button class="w-full bg-surface-container border border-primary-container text-primary-container font-label-md text-label-md h-12 rounded-lg hover:bg-primary-container hover:text-on-primary transition-colors flex items-center justify-center gap-sm">
+                            View Details
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</article>
+<!-- Product Card 3 -->
+<article class="bg-surface border border-outline-variant rounded-lg overflow-hidden clinical-shadow hover:border-primary-container transition-all duration-300 group flex flex-col">
+<div class="aspect-square bg-surface-container-lowest p-md flex items-center justify-center relative overflow-hidden border-b border-outline-variant">
+<img class="object-contain w-full h-full transform group-hover:scale-105 transition-transform duration-500" data-alt="A clean, clinical studio shot of a total knee arthroplasty implant system. The image features highly polished cobalt chrome femoral and tibial components reflecting bright, white studio lights. The components rest perfectly aligned on a pure white, shadowless background. The aesthetic is sharp, precise, and highly professional, typical of a luxury medical device brochure." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU-raFH8wTqm9Q-os5FqfgGHSFRvoIFTIFYt7PPqwcZzVjiFbBSZ3Fs1m0pwSxoUJaCEJdVD2aOPPnhi3ksAb1sdE1AI1OfwJEj1NyjeEP-_G5-NiJHOQ7v8QElKK2agZP9LvNe8CnQX8eRXiX4DRqYMeV-FDOES5njGgHDF0f9zTOWPbTM1iHSXIiAUfM4UckxZNxiwrPS68v2Olm2o4-D0lQquqVMACRT3u-CMJYwj3mg3j2zCPTFA"/>
+<span class="absolute top-sm right-sm bg-surface-container-highest text-tertiary-container font-label-md text-[10px] px-2 py-1 rounded border border-tertiary-fixed-dim uppercase tracking-widest">New Tech</span>
+</div>
+<div class="p-lg flex flex-col flex-grow">
+<h3 class="font-headline-sm text-headline-sm text-primary mb-xs">Kinematic Knee System</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md flex-grow">Designed to restore natural joint kinematics with advanced articulating surface geometry.</p>
+<div class="bg-surface-container-low p-sm rounded border border-outline-variant mb-md">
+<h4 class="font-label-md text-[10px] text-on-surface-variant uppercase tracking-wider mb-xs">Quick Specs</h4>
+<div class="grid grid-cols-2 gap-x-sm gap-y-xs">
+<span class="font-body-sm text-[12px] text-on-surface-variant">Femoral:</span>
+<span class="font-data-mono text-[12px] text-on-surface text-right">CoCrMo</span>
+<span class="font-body-sm text-[12px] text-on-surface-variant">Flexion:</span>
+<span class="font-data-mono text-[12px] text-on-surface text-right">Up to 155°</span>
+</div>
+</div>
+<button class="w-full bg-surface-container border border-primary-container text-primary-container font-label-md text-label-md h-12 rounded-lg hover:bg-primary-container hover:text-on-primary transition-colors flex items-center justify-center gap-sm">
+                            View Details
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</article>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-inverse-surface dark:bg-surface-container-lowest grid grid-cols-4 gap-gutter py-xl px-gutter max-w-container-max mx-auto full-width mt-auto">
+<div class="col-span-4 md:col-span-1 flex flex-col gap-sm">
+<div class="font-headline-sm text-headline-sm font-bold text-surface dark:text-primary mb-md">
+                InnerCare
+            </div>
+<p class="font-body-sm text-body-sm text-surface-variant dark:text-outline">
+                © 2024 InnerCare Medical. All rights reserved.
+            </p>
+</div>
+<div class="col-span-4 md:col-span-1 flex flex-col gap-sm">
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Product Categories</a>
+</div>
+<div class="col-span-4 md:col-span-1 flex flex-col gap-sm">
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Regulatory/Compliance</a>
+</div>
+<div class="col-span-4 md:col-span-1 flex flex-col gap-sm">
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-surface-variant dark:text-outline hover:text-primary-fixed-dim dark:hover:text-primary transition-colors" href="#">Contact Support</a>
+</div>
+</footer>
+</body></html>
