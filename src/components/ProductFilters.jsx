@@ -32,13 +32,19 @@ function FilterGroup({ title, options, selected, onToggle, withDivider }) {
 export default function ProductFilters({
   categories,
   materials,
+  techniques,
   selectedCategories,
   selectedMaterials,
+  selectedTechniques,
   onToggleCategory,
   onToggleMaterial,
+  onToggleTechnique,
   onClear,
 }) {
-  const hasActiveFilters = selectedCategories.length > 0 || selectedMaterials.length > 0
+  const hasActiveFilters =
+    selectedCategories.length > 0 ||
+    selectedMaterials.length > 0 ||
+    selectedTechniques.length > 0
 
   return (
     <aside className="w-full md:w-64 shrink-0">
@@ -61,6 +67,13 @@ export default function ProductFilters({
             options={materials}
             selected={selectedMaterials}
             onToggle={onToggleMaterial}
+            withDivider
+          />
+          <FilterGroup
+            title="Técnica"
+            options={techniques}
+            selected={selectedTechniques}
+            onToggle={onToggleTechnique}
             withDivider
           />
         </div>

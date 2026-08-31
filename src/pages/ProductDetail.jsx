@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getProductBySlug } from '../data/products.js'
 import Reveal from '../components/Reveal.jsx'
@@ -26,15 +27,24 @@ export default function ProductDetail() {
     )
   }
 
+  return <ProductView product={product} />
+}
+
+function ProductView({ product }) {
+  const [activeImage, setActiveImage] = useState(0)
+  const image = product.images[activeImage]
+
   return (
     <main className="w-full flex-grow">
       <section className="max-w-container-max mx-auto px-gutter py-section grid grid-cols-1 md:grid-cols-12 gap-gutter items-center">
         <div className="md:col-span-5 flex flex-col gap-md">
-          <Reveal
-            as="span"
-            className="bg-surface-container-high text-primary font-label-md text-label-md px-sm py-xs rounded w-fit"
-          >
-            Sistemas Ortopédicos
+          <Reveal className="flex flex-wrap gap-sm">
+            <span className="bg-surface-container-high text-primary font-label-md text-label-md px-sm py-xs rounded w-fit">
+              {product.category}
+            </span>
+            <span className="bg-primary-fixed text-on-primary-fixed font-label-md text-label-md px-sm py-xs rounded w-fit">
+              {product.manufacturing}
+            </span>
           </Reveal>
           <Reveal as="h1" delay={step(1)} className="font-display-lg text-display-lg text-primary">
             {product.name}
@@ -53,16 +63,48 @@ export default function ProductDetail() {
             >
               Solicitar Este Producto a Medida
             </Link>
+            {product.datasheetUrl && (
+              <a
+                href={product.datasheetUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-sm bg-surface text-primary border border-outline font-label-md text-label-md px-lg py-md rounded hover:bg-surface-container hover:border-primary transition-colors"
+              >
+                <span className="material-symbols-outlined text-[18px]">download</span>
+                Descargar Ficha Técnica
+              </a>
+            )}
           </Reveal>
         </div>
         <Reveal delay={step(4)} className="md:col-span-7">
-          <div className="rounded-xl overflow-hidden shadow-sm border border-outline-variant/30">
-            <img
-              alt={product.name}
-              className="w-full h-auto object-cover"
-              src={product.images[0]}
-            />
+          <div className="rounded-xl overflow-hidden shadow-sm border border-outline-variant/30 bg-surface-container-lowest">
+            <img alt={image.alt} className="w-full h-auto object-cover" src={image.src} />
           </div>
+          {product.images.length > 1 && (
+            <div className="flex gap-sm mt-md flex-wrap">
+              {product.images.map((item, i) => (
+                <button
+                  key={item.src}
+                  type="button"
+                  onClick={() => setActiveImage(i)}
+                  aria-label={`Ver imagen ${i + 1}: ${item.alt}`}
+                  aria-current={i === activeImage}
+                  className={`w-20 h-20 rounded-lg overflow-hidden border transition-all bg-surface-container-lowest ${
+                    i === activeImage
+                      ? 'border-primary ring-2 ring-primary/30'
+                      : 'border-outline-variant hover:border-primary-container'
+                  }`}
+                >
+                  <img
+                    alt=""
+                    className="w-full h-full object-cover"
+                    src={item.src}
+                    loading="lazy"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </Reveal>
       </section>
 
@@ -72,29 +114,22 @@ export default function ProductDetail() {
             Especificaciones Técnicas
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-section">
-            <Reveal className="bg-surface p-lg rounded-xl border border-outline-variant shadow-sm">
-              <span className="material-symbols-outlined text-primary mb-sm text-[32px]">
-                science
-              </span>
-              <h3 className="font-headline-sm text-headline-sm text-on-surface mb-sm">Material</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant">
-                {product.material}
-              </p>
-            </Reveal>
-            <Reveal
-              delay={step(1)}
-              className="bg-surface p-lg rounded-xl border border-outline-variant shadow-sm"
-            >
-              <span className="material-symbols-outlined text-primary mb-sm text-[32px]">
-                precision_manufacturing
-              </span>
-              <h3 className="font-headline-sm text-headline-sm text-on-surface mb-sm">
-                Compatibilidad
-              </h3>
-              <p className="font-body-md text-body-md text-on-surface-variant">
+            <SpecCard icon="science" title="Material" delay={0}>
+              {product.material}
+            </SpecCard>
+            {product.compatibility && (
+              <SpecCard icon="precision_manufacturing" title="Compatibilidad" delay={step(1)}>
                 {product.compatibility}
-              </p>
-            </Reveal>
+              </SpecCard>
+            )}
+            {product.indications && (
+              <SpecCard icon="clinical_notes" title="Indicaciones" delay={step(2)}>
+                {product.indications}
+              </SpecCard>
+            )}
+            <SpecCard icon="factory" title="Técnica de fabricación" delay={step(3)}>
+              {product.technique} en titanio biocompatible
+            </SpecCard>
           </div>
 
           <Reveal className="overflow-x-auto rounded-lg border border-outline-variant shadow-sm mb-lg">
@@ -118,21 +153,23 @@ export default function ProductDetail() {
             </table>
           </Reveal>
 
-          <Reveal>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface mb-sm">
-              Medidas Disponibles
-            </h3>
-            <div className="flex flex-wrap gap-sm">
-              {product.availableSizes.map((size) => (
-                <span
-                  key={size}
-                  className="font-data-mono text-data-mono bg-surface-container-low text-on-surface px-sm py-xs rounded border border-outline-variant"
-                >
-                  {size}
-                </span>
-              ))}
-            </div>
-          </Reveal>
+          {product.availableSizes && (
+            <Reveal>
+              <h3 className="font-headline-sm text-headline-sm text-on-surface mb-sm">
+                Medidas Disponibles
+              </h3>
+              <div className="flex flex-wrap gap-sm">
+                {product.availableSizes.map((size) => (
+                  <span
+                    key={size}
+                    className="font-data-mono text-data-mono bg-surface-container-low text-on-surface px-sm py-xs rounded border border-outline-variant"
+                  >
+                    {size}
+                  </span>
+                ))}
+              </div>
+            </Reveal>
+          )}
         </div>
       </section>
 
@@ -142,7 +179,7 @@ export default function ProductDetail() {
             ¿Necesitás este producto a medida?
           </h2>
           <p className="font-body-md text-body-md mb-lg max-w-2xl mx-auto opacity-90">
-            Todos nuestros productos son customizables y se fabrican a pedido. Contactanos para
+            Nuestros sistemas modulares son customizables y se fabrican a pedido. Contactanos para
             coordinar las especificaciones exactas que necesita tu paciente.
           </p>
           <Link
@@ -155,5 +192,18 @@ export default function ProductDetail() {
         </Reveal>
       </section>
     </main>
+  )
+}
+
+function SpecCard({ icon, title, delay, children }) {
+  return (
+    <Reveal
+      delay={delay}
+      className="bg-surface p-lg rounded-xl border border-outline-variant shadow-sm"
+    >
+      <span className="material-symbols-outlined text-primary mb-sm text-[32px]">{icon}</span>
+      <h3 className="font-headline-sm text-headline-sm text-on-surface mb-sm">{title}</h3>
+      <p className="font-body-md text-body-md text-on-surface-variant">{children}</p>
+    </Reveal>
   )
 }

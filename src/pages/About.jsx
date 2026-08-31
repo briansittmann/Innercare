@@ -1,14 +1,7 @@
 import Reveal from '../components/Reveal.jsx'
 import WordReveal from '../components/WordReveal.jsx'
 import { step } from '../lib/motion.js'
-import CountUp from '../components/CountUp.jsx'
-
-const stats = [
-  { value: '25+', label: 'Patentes Activas' },
-  { value: '15', label: 'Años de Datos Clínicos' },
-  { value: '98%', label: 'Tasa de Éxito (10 años)' },
-  { value: '40', label: 'Países Atendidos' },
-]
+import { capacidades, habilitaciones, manufactura, trayectoria } from '../data/company.js'
 
 export default function About() {
   return (
@@ -25,10 +18,7 @@ export default function About() {
             />
             <Reveal delay={step(2)}>
               <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
-                En Innercare, nuestra misión es mejorar drásticamente los resultados de los
-                pacientes desarrollando soluciones ortopédicas de alta precisión y tecnología
-                avanzada. Somos el puente entre la necesidad clínica y la excelencia en
-                ingeniería.
+                {trayectoria}
               </p>
             </Reveal>
           </div>
@@ -40,141 +30,111 @@ export default function About() {
           >
             <img
               className="w-full h-full object-cover"
-              alt="Implante ortopédico de titanio de precisión"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqOE9TmfHW8uDBnnWiBS3Bw9qfUclgls3DjAbLrzBTFRn8NhTG21lvOxVzM6r_02mcxkwJbn25EfA7ZdqV8aGyZZqkPapCEEjY9RWoaJUNgHeS6Cwhk2GdNQrffiCUIB6OWYTvRq3MLb5nS8GmCjKm8Gltl3pulHZ4ah12CJluz0-VextgFlNPyekiKiirY-attF_hYoRqr9ZOSCcI274qhwDaUL81JpHn4l9S7I-cBOMLAYbqv5FztQ"
+              alt="Centro de mecanizado CNC en la planta industrial de Innercare"
+              src="/img/fabricacion-cnc-maquina.jpg"
             />
           </Reveal>
         </div>
       </section>
 
-      <section className="py-section px-gutter">
+      <section id="fabricacion" className="py-section px-gutter scroll-mt-20">
         <div className="max-w-container-max mx-auto">
-          <Reveal className="mb-xl text-center">
+          <Reveal className="mb-xl">
             <h2 className="font-headline-lg text-headline-lg text-on-surface mb-sm">
-              Nuestra Tecnología
+              Fabricación propia
             </h2>
-            <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl mx-auto">
-              Aprovechamos la ciencia de materiales de vanguardia y la ingeniería biomecánica
-              para crear implantes que se integran perfectamente con el cuerpo humano.
+            <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+              Producimos implantes en titanio biocompatible con las dos tecnologías, lo que nos
+              permite resolver tanto series modulares como piezas únicas para un paciente.
             </p>
           </Reveal>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
-            <Reveal className="col-span-1 md:col-span-2 bg-surface border border-outline-variant shadow-sm rounded-lg p-lg hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-md mb-md">
-                <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
-                  <span className="material-symbols-outlined">biotech</span>
-                </div>
-                <div>
-                  <h3 className="font-headline-md text-headline-md text-on-surface">
-                    Materiales Bio-Integrados
-                  </h3>
-                  <p className="font-body-sm text-body-sm text-primary uppercase tracking-widest mt-1">
-                    Aleaciones de Titanio Propietarias
-                  </p>
-                </div>
-              </div>
-              <p className="font-body-md text-body-md text-on-surface-variant mb-md">
-                Nuestras aleaciones a base de titanio propietarias están diseñadas para una
-                osteointegración óptima, reduciendo el rechazo y promoviendo tiempos de curación
-                más rápidos que los materiales estándar de la industria.
-              </p>
-              <div className="h-[200px] rounded bg-surface-variant border border-outline-variant/30 overflow-hidden relative">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-lg">
+            {manufactura.map((item, i) => (
+              <Reveal
+                key={item.id}
+                delay={step(i)}
+                className="bg-surface border border-outline-variant rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+              >
                 <img
-                  className="w-full h-full object-cover"
-                  alt="Superficie de titanio poroso a nivel microscópico"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKZI6xI57l5KB040iq7g6obbKhvtIsfl0PhmE7_dOU_bGLHoCX5sj_2OESoEyF80Wml46V8Rmd0BlGHN9Pp5PyujrY-OajZV7WMfa8Jyo6Kp0TK5s8T7xGBoXyPko1h2_YtkHTQhpqna-MUjr2ywCr0GdBtBiaLOnLglIRz4-1Kp_DsuecnCWbv73TMERZJcy-0D8oWq0fMwQUB6hMB374IfT0mErJwl5dS5hyR_Na4_VoSqufIfq9_w"
+                  className="w-full h-[260px] object-cover border-b border-outline-variant"
+                  alt={item.imageAlt}
+                  src={item.image}
                 />
-              </div>
-            </Reveal>
-            <Reveal
-              delay={step(1)}
-              className="col-span-1 bg-surface border border-outline-variant shadow-sm rounded-lg p-lg flex flex-col hover:shadow-md transition-shadow"
-            >
-              <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary mb-md">
-                <span className="material-symbols-outlined">precision_manufacturing</span>
-              </div>
-              <h3 className="font-headline-sm text-headline-sm text-on-surface mb-sm">
-                Precisión Micrónica
-              </h3>
-              <p className="font-body-sm text-body-sm text-on-surface-variant flex-grow mb-md">
-                Cada componente se mecaniza con tolerancias submicrónicas, garantizando una
-                articulación perfecta y un desgaste mínimo durante toda la vida útil del
-                implante.
-              </p>
-              <div className="bg-surface-container-lowest p-sm rounded border border-outline-variant/20">
-                <div className="font-data-mono text-data-mono text-primary flex justify-between">
-                  <span>Tolerancia</span>
-                  <span>±0.001mm</span>
+                <div className="p-lg">
+                  <p className="font-body-sm text-body-sm text-primary uppercase tracking-widest mb-xs">
+                    {item.kicker}
+                  </p>
+                  <h3 className="font-headline-md text-headline-md text-on-surface">
+                    {item.title}
+                  </h3>
                 </div>
-              </div>
-            </Reveal>
-            <Reveal
-              delay={step(2)}
-              className="col-span-1 bg-surface border border-outline-variant shadow-sm rounded-lg p-lg hover:shadow-md transition-shadow"
-            >
-              <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary mb-md">
-                <span className="material-symbols-outlined">3d_rotation</span>
-              </div>
-              <h3 className="font-headline-sm text-headline-sm text-on-surface mb-sm">
-                Geometrías Específicas del Paciente
-              </h3>
-              <p className="font-body-sm text-body-sm text-on-surface-variant">
-                Utilizando imágenes avanzadas e impresión 3D, entregamos soluciones a medida
-                para reconstrucciones ortopédicas complejas.
-              </p>
-            </Reveal>
-            <Reveal
-              delay={step(1)}
-              className="col-span-1 md:col-span-2 bg-primary text-on-primary rounded-lg p-lg flex flex-col justify-center items-center text-center shadow-sm"
-            >
-              <h3 className="font-headline-md text-headline-md mb-sm">Calidad Inclaudicable</h3>
-              <div className="flex gap-lg mt-md">
-                <div className="flex flex-col items-center">
-                  <span className="font-display-lg text-display-lg">ISO</span>
-                  <span className="font-label-md text-label-md">Certificado 13485:2016</span>
-                </div>
-                <div className="w-px bg-on-primary/30 h-full" />
-                <div className="flex flex-col items-center">
-                  <span className="font-display-lg text-display-lg">CE</span>
-                  <span className="font-label-md text-label-md">Cumplimiento MDR</span>
-                </div>
-              </div>
-            </Reveal>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="py-section px-gutter bg-surface-container-lowest border-t border-outline-variant">
-        <div className="max-w-container-max mx-auto grid md:grid-cols-2 gap-xl items-center">
-          <Reveal>
-            <h2 className="font-headline-lg text-headline-lg text-on-surface mb-md">
-              Innovación en Ortopedia
+      <section className="py-section px-gutter bg-surface-container-lowest border-y border-outline-variant">
+        <div className="max-w-container-max mx-auto">
+          <Reveal className="mb-xl">
+            <h2 className="font-headline-lg text-headline-lg text-on-surface mb-sm">
+              Capacidades
             </h2>
-            <p className="font-body-md text-body-md text-on-surface-variant mb-md">
-              El futuro de la ortopedia exige más que reemplazar articulaciones; requiere
-              restaurar el movimiento natural y mejorar la calidad de vida a largo plazo.
-              Innercare está dedicada a la investigación y desarrollo continuos.
-            </p>
-            <p className="font-body-md text-body-md text-on-surface-variant mb-lg">
-              Nuestros equipos multidisciplinarios de cirujanos, ingenieros y científicos de
-              datos colaboran a diario para expandir los límites de lo posible en cirugía
-              reconstructiva y traumatología.
+            <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+              Cubrimos el circuito completo: desde la planificación del caso hasta la entrega
+              trazada del producto en cualquier punto del país.
             </p>
           </Reveal>
-          <div className="grid grid-cols-2 gap-sm">
-            {stats.map((stat, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg">
+            {capacidades.map((item, i) => (
               <Reveal
-                key={stat.label}
+                key={item.title}
                 delay={step(i)}
-                className="bg-surface border border-outline-variant p-md rounded text-center shadow-sm"
+                className="bg-surface border border-outline-variant rounded-lg p-lg shadow-sm flex flex-col"
               >
-                <CountUp
-                  value={stat.value}
-                  className="block font-display-lg text-display-lg text-primary mb-xs"
-                />
-                <div className="font-label-md text-label-md text-on-surface-variant">
-                  {stat.label}
+                <div className="w-12 h-12 rounded-lg bg-primary-fixed text-on-primary-fixed flex items-center justify-center mb-md">
+                  <span className="material-symbols-outlined fill-icon">{item.icon}</span>
                 </div>
+                <h3 className="font-headline-sm text-headline-sm text-primary mb-sm">
+                  {item.title}
+                </h3>
+                <p className="font-body-sm text-body-sm text-on-surface-variant">
+                  {item.description}
+                </p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="habilitaciones" className="py-section px-gutter scroll-mt-20">
+        <div className="max-w-container-max mx-auto grid md:grid-cols-12 gap-xl">
+          <Reveal className="md:col-span-4">
+            <h2 className="font-headline-lg text-headline-lg text-on-surface mb-md">
+              Habilitaciones
+            </h2>
+            <p className="font-body-md text-body-md text-on-surface-variant">
+              Operamos bajo habilitación de la ANMAT para fabricar, importar y distribuir
+              productos médicos, y cada unidad se registra en el Sistema Nacional de
+              Trazabilidad.
+            </p>
+          </Reveal>
+          <div className="md:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-md">
+            {habilitaciones.map((item, i) => (
+              <Reveal
+                key={item.id}
+                delay={step(i)}
+                className="bg-surface border border-outline-variant rounded-lg p-lg shadow-sm flex flex-col"
+              >
+                <span className="font-label-md text-label-md text-primary uppercase tracking-widest mb-sm">
+                  {item.organismo}
+                </span>
+                <p className="font-body-md text-body-md text-on-surface flex-grow mb-md">
+                  {item.detalle}
+                </p>
+                <p className="font-data-mono text-data-mono text-on-surface-variant bg-surface-container-low border border-outline-variant/60 rounded px-sm py-xs">
+                  {item.referencia}
+                </p>
               </Reveal>
             ))}
           </div>

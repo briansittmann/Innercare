@@ -5,6 +5,7 @@ import { prefersReducedMotion } from '../hooks/useInView.js'
 const navLinks = [
   { to: '/', label: 'Inicio' },
   { to: '/productos', label: 'Productos' },
+  { to: '/casos-a-medida', label: 'Casos a Medida' },
   { to: '/nosotros', label: 'Nosotros' },
   { to: '/contacto', label: 'Contacto' },
 ]
@@ -53,12 +54,12 @@ export default function Header() {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [open])
 
-  // El panel es md:hidden, así que al pasar a desktop desaparece de la vista pero el
+  // El panel es lg:hidden, así que al pasar a desktop desaparece de la vista pero el
   // estado quedaría abierto y reaparecería al volver a angostar la ventana.
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') return
 
-    const query = window.matchMedia('(min-width: 768px)')
+    const query = window.matchMedia('(min-width: 1024px)')
     const onChange = (event) => {
       if (event.matches) setOpen(false)
     }
@@ -81,14 +82,10 @@ export default function Header() {
   return (
     <header className="bg-surface top-0 h-20 border-b border-outline-variant sticky z-50">
       <div className="flex justify-between items-center h-20 px-gutter max-w-container-max mx-auto w-full">
-        <NavLink
-          to="/"
-          onClick={onLogoClick}
-          className="font-headline-md text-headline-md font-bold text-primary"
-        >
-          Innercare
+        <NavLink to="/" onClick={onLogoClick} className="shrink-0" aria-label="Innercare — Inicio">
+          <img src="/logo.png" alt="Innercare" className="h-11 w-auto" />
         </NavLink>
-        <nav className="hidden md:flex items-center gap-lg">
+        <nav className="hidden lg:flex items-center gap-lg">
           {navLinks.map((link) => (
             <NavLink key={link.to} to={link.to} end={link.to === '/'} className={navLinkClasses}>
               {link.label}
@@ -98,13 +95,13 @@ export default function Header() {
         <div className="flex items-center gap-md">
           <NavLink
             to="/contacto"
-            className="hidden md:inline-flex bg-primary-container text-on-primary px-lg py-sm rounded font-label-md text-label-md hover:bg-surface-tint transition-colors"
+            className="hidden lg:inline-flex bg-primary-container text-on-primary px-lg py-sm rounded font-label-md text-label-md hover:bg-surface-tint transition-colors"
           >
             Contactar
           </NavLink>
           <button
             type="button"
-            className="md:hidden w-12 h-12 flex items-center justify-center text-primary rounded-full hover:bg-surface-container transition-colors"
+            className="lg:hidden w-12 h-12 flex items-center justify-center text-primary rounded-full hover:bg-surface-container transition-colors"
             aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
             aria-expanded={open}
             aria-controls="mobile-nav"
@@ -120,7 +117,7 @@ export default function Header() {
       <div
         id="mobile-nav"
         className={[
-          'md:hidden absolute top-20 inset-x-0 bg-surface border-b border-outline-variant shadow-lg',
+          'lg:hidden absolute top-20 inset-x-0 bg-surface border-b border-outline-variant shadow-lg',
           'transition-[opacity,transform] duration-300 ease-out',
           open
             ? 'opacity-100 translate-y-0'

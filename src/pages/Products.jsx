@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { gsap } from 'gsap'
 import products from '../data/products.js'
 import ProductCard from '../components/ProductCard.jsx'
@@ -19,9 +19,11 @@ export default function Products() {
 
   const categories = useMemo(() => unique(products.map((product) => product.category)), [])
   const materials = useMemo(() => unique(products.map((product) => product.material)), [])
+  const techniques = useMemo(() => unique(products.map((product) => product.technique)), [])
 
   const [selectedCategories, setSelectedCategories] = useState([])
   const [selectedMaterials, setSelectedMaterials] = useState([])
+  const [selectedTechniques, setSelectedTechniques] = useState([])
 
   const filteredProducts = useMemo(
     () =>
@@ -29,9 +31,10 @@ export default function Products() {
         (product) =>
           (selectedCategories.length === 0 ||
             selectedCategories.includes(product.category)) &&
-          (selectedMaterials.length === 0 || selectedMaterials.includes(product.material)),
+          (selectedMaterials.length === 0 || selectedMaterials.includes(product.material)) &&
+          (selectedTechniques.length === 0 || selectedTechniques.includes(product.technique)),
       ),
-    [selectedCategories, selectedMaterials],
+    [selectedCategories, selectedMaterials, selectedTechniques],
   )
 
   useLayoutEffect(() => {
@@ -60,22 +63,30 @@ export default function Products() {
           delay={step(1)}
           className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl"
         >
-          Dispositivos médicos de precisión para cuidado ortopédico y traumatológico avanzado.
-          Todos nuestros productos se fabrican a medida: contactanos para coordinar tu pedido
-          customizado.
+          Sistemas modulares de fabricación propia en titanio biocompatible, customizables para
+          adaptarse a la patología de cada paciente. Para reconstrucciones que requieren una
+          pieza única, trabajamos por{' '}
+          <Link to="/casos-a-medida" className="text-primary underline hover:no-underline">
+            caso a medida
+          </Link>
+          .
         </Reveal>
       </div>
       <div className="flex flex-col md:flex-row gap-xl">
         <ProductFilters
           categories={categories}
           materials={materials}
+          techniques={techniques}
           selectedCategories={selectedCategories}
           selectedMaterials={selectedMaterials}
+          selectedTechniques={selectedTechniques}
           onToggleCategory={(value) => setSelectedCategories((prev) => toggle(prev, value))}
           onToggleMaterial={(value) => setSelectedMaterials((prev) => toggle(prev, value))}
+          onToggleTechnique={(value) => setSelectedTechniques((prev) => toggle(prev, value))}
           onClear={() => {
             setSelectedCategories([])
             setSelectedMaterials([])
+            setSelectedTechniques([])
           }}
         />
         <div className="flex-grow">

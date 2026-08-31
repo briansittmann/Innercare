@@ -6,9 +6,13 @@ export default function ProductCard({ product }) {
       <div className="aspect-square bg-surface-container-lowest p-md flex items-center justify-center relative overflow-hidden border-b border-outline-variant">
         <img
           className="object-contain w-full h-full transform group-hover:scale-105 transition-transform duration-500"
-          alt={product.name}
-          src={product.images[0]}
+          alt={product.images[0].alt}
+          src={product.images[0].src}
+          loading="lazy"
         />
+        <span className="absolute top-sm left-sm bg-surface/90 backdrop-blur-sm text-primary font-label-md text-[10px] uppercase tracking-wider px-sm py-xs rounded border border-outline-variant">
+          {product.manufacturing}
+        </span>
       </div>
       <div className="p-lg flex flex-col flex-grow">
         <h3 className="font-headline-sm text-headline-sm text-primary mb-xs">{product.name}</h3>
@@ -23,6 +27,10 @@ export default function ProductCard({ product }) {
             <span className="font-body-sm text-[12px] text-on-surface-variant">Material:</span>
             <span className="font-data-mono text-[12px] text-on-surface text-right">
               {product.material}
+            </span>
+            <span className="font-body-sm text-[12px] text-on-surface-variant">Técnica:</span>
+            <span className="font-data-mono text-[12px] text-on-surface text-right">
+              {product.technique}
             </span>
           </div>
         </div>

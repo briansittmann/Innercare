@@ -2,19 +2,23 @@ import ContactForm from '../components/ContactForm.jsx'
 import Reveal from '../components/Reveal.jsx'
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx'
 import { step } from '../lib/motion.js'
+import {
+  direccionCompleta,
+  sedePrincipal,
+  sedes,
+  whatsappDisplay,
+  whatsappNumber,
+} from '../data/company.js'
 
-// Single source of truth for the office location — the card text below and the
-// map embed both derive from it.
-const address = 'Av. Corrientes 1234, Ciudad Autónoma de Buenos Aires, Argentina'
+// El mapa apunta al laboratorio, que es la sede con atención telefónica.
+const address = direccionCompleta(sedePrincipal)
 const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(address)}&hl=es&z=16&output=embed`
 const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
 
-// Sales line from the "Casa Central" card. wa.me needs the number with no
-// spaces, plus sign or dashes, so the display and link forms are kept apart.
-const whatsappNumber = '541140000000'
-const whatsappDisplay = '+54 11 4000-0000'
 const whatsappMessage = 'Hola Innercare, quisiera hacer una consulta.'
 const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`
+
+const otrasSedes = sedes.filter((sede) => !sede.principal)
 
 export default function Contact() {
   return (
@@ -28,13 +32,12 @@ export default function Contact() {
           delay={step(1)}
           className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl"
         >
-          Conectate con nuestro equipo médico especializado. Ya sea que necesites
-          especificaciones técnicas, consultas comerciales o documentación regulatoria, estamos
-          para ayudarte.
+          Conectate con nuestro equipo. Ya sea que necesites especificaciones técnicas,
+          documentación regulatoria o plantear un caso a medida, estamos para ayudarte.
         </Reveal>
       </div>
-      {/* Two flex columns, each stacking its own cards to their natural
-          height — left: form + WhatsApp CTA, right: info card + map. */}
+      {/* Dos columnas flex, cada una apilando sus tarjetas a su altura natural —
+          izquierda: formulario + CTA de WhatsApp, derecha: sedes + mapa. */}
       <div className="flex flex-col lg:flex-row gap-lg lg:gap-xl items-stretch">
         <div className="flex flex-col gap-lg lg:w-7/12">
           <Reveal delay={step(2)}>
@@ -57,8 +60,8 @@ export default function Contact() {
                 </span>
                 <span className="block font-body-md text-body-md text-on-surface-variant">
                   Respuesta inmediata
-                  {/* The number only fits alongside the label from `sm` up; it is
-                      still announced through the link's aria-label. */}
+                  {/* El número sólo entra al lado del texto de `sm` para arriba;
+                      igual se anuncia en el aria-label del link. */}
                   <span className="hidden sm:inline"> · {whatsappDisplay}</span>
                 </span>
               </span>
@@ -73,9 +76,9 @@ export default function Contact() {
             delay={step(4)}
             className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-sm"
           >
-            <h3 className="font-headline-sm text-headline-sm text-on-surface mb-md border-b border-outline-variant pb-sm">
-              Casa Central
-            </h3>
+            <h2 className="font-headline-sm text-headline-sm text-on-surface mb-md border-b border-outline-variant pb-sm">
+              {sedePrincipal.tipo}
+            </h2>
             <div className="space-y-md">
               <div className="flex items-start gap-sm">
                 <span className="material-symbols-outlined fill-icon text-surface-tint">
@@ -83,48 +86,70 @@ export default function Contact() {
                 </span>
                 <div>
                   <p className="font-label-md text-label-md text-on-surface">Dirección</p>
-                  <p className="font-body-md text-body-md text-on-surface-variant">
-                    Av. Corrientes 1234
+                  <address className="not-italic font-body-md text-body-md text-on-surface-variant">
+                    {sedePrincipal.calle}
                     <br />
-                    Ciudad Autónoma de Buenos Aires
+                    {sedePrincipal.localidad}
                     <br />
-                    Argentina
-                  </p>
+                    {sedePrincipal.provincia}
+                  </address>
                 </div>
               </div>
               <div className="flex items-start gap-sm">
                 <span className="material-symbols-outlined fill-icon text-surface-tint">call</span>
                 <div>
-                  <p className="font-label-md text-label-md text-on-surface">Líneas Directas</p>
+                  <p className="font-label-md text-label-md text-on-surface">Teléfonos</p>
                   <p className="font-body-md text-body-md text-on-surface-variant">
-                    Ventas: {whatsappDisplay}
-                    <br />
-                    Soporte: +54 11 4000-0001
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-sm">
-                <span className="material-symbols-outlined fill-icon text-surface-tint">mail</span>
-                <div>
-                  <p className="font-label-md text-label-md text-on-surface">Emails de Contacto</p>
-                  <p className="font-body-md text-body-md text-on-surface-variant">
-                    ventas@innercare.com.ar
-                    <br />
-                    soporte@innercare.com.ar
+                    {sedePrincipal.phones.map((phone) => (
+                      <a
+                        key={phone}
+                        href={`tel:${phone.replace(/\D/g, '')}`}
+                        className="block hover:text-primary transition-colors"
+                      >
+                        {phone}
+                      </a>
+                    ))}
                   </p>
                 </div>
               </div>
             </div>
           </Reveal>
+
           <Reveal
             delay={step(5)}
+            className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-sm"
+          >
+            <h2 className="font-headline-sm text-headline-sm text-on-surface mb-md border-b border-outline-variant pb-sm">
+              Otras sedes
+            </h2>
+            <ul className="space-y-md">
+              {otrasSedes.map((sede) => (
+                <li key={sede.id} className="flex items-start gap-sm">
+                  <span className="material-symbols-outlined fill-icon text-surface-tint">
+                    {sede.id === 'planta' ? 'factory' : 'store'}
+                  </span>
+                  <div>
+                    <p className="font-label-md text-label-md text-on-surface">{sede.tipo}</p>
+                    <address className="not-italic font-body-sm text-body-sm text-on-surface-variant">
+                      {sede.calle}
+                      <br />
+                      {sede.localidad}, {sede.provincia}
+                    </address>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+
+          <Reveal
+            delay={step(6)}
             className="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-sm"
           >
             <div className="p-lg pb-md border-b border-outline-variant">
-              <h3 className="font-headline-sm text-headline-sm text-on-surface">Cómo Llegar</h3>
+              <h2 className="font-headline-sm text-headline-sm text-on-surface">Cómo Llegar</h2>
             </div>
             <iframe
-              title="Ubicación de la casa central de Innercare"
+              title={`Ubicación del ${sedePrincipal.tipo.toLowerCase()} de Innercare`}
               src={mapSrc}
               className="w-full h-[272px] block border-0"
               loading="lazy"
