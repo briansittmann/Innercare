@@ -149,7 +149,7 @@ export default function ProductDetail() {
             to="/contacto"
             className="inline-flex items-center gap-sm bg-surface text-primary px-xl py-md rounded-lg font-label-md text-label-md hover:bg-surface-container transition-colors"
           >
-            Contactar a InnerCare
+            Contactar a Innercare
             <span className="material-symbols-outlined">arrow_forward</span>
           </Link>
         </Reveal>

@@ -82,7 +82,7 @@ export default function Contact() {
               <h3 className="font-headline-sm text-headline-sm text-on-surface">Cómo Llegar</h3>
             </div>
             <iframe
-              title="Ubicación de la casa central de InnerCare"
+              title="Ubicación de la casa central de Innercare"
               src={mapSrc}
               className="w-full h-[320px] block border-0"
               loading="lazy"

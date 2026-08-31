@@ -1,15 +1,38 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { gsap } from 'gsap'
 import products from '../data/products.js'
 import ProductCard from '../components/ProductCard.jsx'
+import ProductFilters from '../components/ProductFilters.jsx'
 import Reveal from '../components/Reveal.jsx'
 import { step } from '../lib/motion.js'
 import { prefersReducedMotion } from '../hooks/useInView.js'
 
+const unique = (values) => [...new Set(values.filter(Boolean))].sort()
+
+const toggle = (list, value) =>
+  list.includes(value) ? list.filter((item) => item !== value) : [...list, value]
+
 export default function Products() {
   const location = useLocation()
   const mainRef = useRef(null)
+
+  const categories = useMemo(() => unique(products.map((product) => product.category)), [])
+  const materials = useMemo(() => unique(products.map((product) => product.material)), [])
+
+  const [selectedCategories, setSelectedCategories] = useState([])
+  const [selectedMaterials, setSelectedMaterials] = useState([])
+
+  const filteredProducts = useMemo(
+    () =>
+      products.filter(
+        (product) =>
+          (selectedCategories.length === 0 ||
+            selectedCategories.includes(product.category)) &&
+          (selectedMaterials.length === 0 || selectedMaterials.includes(product.material)),
+      ),
+    [selectedCategories, selectedMaterials],
+  )
 
   useLayoutEffect(() => {
     if (!location.state?.slideIn || prefersReducedMotion() || !mainRef.current) return
@@ -42,12 +65,34 @@ export default function Products() {
           customizado.
         </Reveal>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
-        {products.map((product, i) => (
-          <Reveal key={product.id} delay={step(2 + (i % 3))} className="h-full">
-            <ProductCard product={product} />
-          </Reveal>
-        ))}
+      <div className="flex flex-col md:flex-row gap-xl">
+        <ProductFilters
+          categories={categories}
+          materials={materials}
+          selectedCategories={selectedCategories}
+          selectedMaterials={selectedMaterials}
+          onToggleCategory={(value) => setSelectedCategories((prev) => toggle(prev, value))}
+          onToggleMaterial={(value) => setSelectedMaterials((prev) => toggle(prev, value))}
+          onClear={() => {
+            setSelectedCategories([])
+            setSelectedMaterials([])
+          }}
+        />
+        <div className="flex-grow">
+          {filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg h-fit">
+              {filteredProducts.map((product, i) => (
+                <Reveal key={product.id} delay={step(2 + (i % 3))} className="h-full">
+                  <ProductCard product={product} />
+                </Reveal>
+              ))}
+            </div>
+          ) : (
+            <p className="font-body-md text-body-md text-on-surface-variant">
+              No hay productos que coincidan con los filtros seleccionados.
+            </p>
+          )}
+        </div>
       </div>
     </main>
   )

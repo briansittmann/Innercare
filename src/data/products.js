@@ -5,6 +5,7 @@ const products = [
     name: 'Endoprótesis no convencional modular para fémur customizable',
     shortDescription:
       'Sistema modular customizable a medida para adaptarse a patologías específicas de cada paciente.',
+    category: 'Reconstrucción Oncológica',
     material: 'Titanio Ti-6Al-4V',
     compatibility: 'Cabezas de Cerámica Biolox o Cr-Co con cono morse 12-14',
     specifications: [

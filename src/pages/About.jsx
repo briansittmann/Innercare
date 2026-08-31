@@ -1,4 +1,5 @@
 import Reveal from '../components/Reveal.jsx'
+import WordReveal from '../components/WordReveal.jsx'
 import { step } from '../lib/motion.js'
 import CountUp from '../components/CountUp.jsx'
 
@@ -15,14 +16,16 @@ export default function About() {
       <section className="py-section px-gutter bg-surface-container-low border-b border-outline-variant relative overflow-hidden">
         <div className="max-w-container-max mx-auto grid md:grid-cols-12 gap-lg items-center relative z-10">
           <div className="md:col-span-7">
-            <Reveal>
-              <h1 className="font-display-lg text-display-lg text-primary mb-md">
-                Impulsando la Ortopedia a través de la Precisión
-              </h1>
-            </Reveal>
-            <Reveal delay={step(1)}>
+            <WordReveal
+              as="h1"
+              text="Impulsando la Ortopedia a través de la Precisión"
+              delay={0.12}
+              stagger={0.06}
+              className="font-display-lg text-display-lg text-primary mb-md"
+            />
+            <Reveal delay={step(2)}>
               <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
-                En InnerCare, nuestra misión es mejorar drásticamente los resultados de los
+                En Innercare, nuestra misión es mejorar drásticamente los resultados de los
                 pacientes desarrollando soluciones ortopédicas de alta precisión y tecnología
                 avanzada. Somos el puente entre la necesidad clínica y la excelencia en
                 ingeniería.
@@ -30,7 +33,7 @@ export default function About() {
             </Reveal>
           </div>
           <Reveal
-            delay={step(2)}
+            delay={step(3)}
             x={48}
             y={0}
             className="md:col-span-5 h-[400px] rounded-lg overflow-hidden border border-outline-variant/30 shadow-sm bg-surface relative"
@@ -150,7 +153,7 @@ export default function About() {
             <p className="font-body-md text-body-md text-on-surface-variant mb-md">
               El futuro de la ortopedia exige más que reemplazar articulaciones; requiere
               restaurar el movimiento natural y mejorar la calidad de vida a largo plazo.
-              InnerCare está dedicada a la investigación y desarrollo continuos.
+              Innercare está dedicada a la investigación y desarrollo continuos.
             </p>
             <p className="font-body-md text-body-md text-on-surface-variant mb-lg">
               Nuestros equipos multidisciplinarios de cirujanos, ingenieros y científicos de

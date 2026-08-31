@@ -28,7 +28,7 @@ export default function Hero() {
             delay={step(2)}
             className="font-body-lg text-body-lg text-on-surface-variant max-w-[34rem]"
           >
-            InnerCare desarrolla endoprótesis modulares avanzadas e instrumental
+            Innercare desarrolla endoprótesis modulares avanzadas e instrumental
             quirúrgico de precisión. Trabajamos junto a cirujanos ortopédicos para
             restaurar la movilidad y mejorar los resultados de cada paciente con
             excelencia clínica inclaudicable.

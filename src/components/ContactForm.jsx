@@ -31,7 +31,7 @@ export default function ContactForm() {
           ¡Gracias por tu consulta!
         </h2>
         <p className="font-body-md text-body-md text-on-surface-variant">
-          Recibimos tu mensaje. Un especialista de InnerCare se pondrá en contacto a la brevedad.
+          Recibimos tu mensaje. Un especialista de Innercare se pondrá en contacto a la brevedad.
         </p>
       </div>
     )
