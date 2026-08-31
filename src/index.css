@@ -50,6 +50,10 @@
   --color-on-background: #001f2a;
   --color-surface-variant: #c9e7f7;
 
+  /* WhatsApp brand accent — used only by the contact CTA card */
+  --color-whatsapp: #25d366;
+  --color-whatsapp-dark: #128c7e;
+
   /* Spacing scale used across the mockups (px-gutter, py-section, etc.) */
   --spacing-xs: 4px;
   --spacing-sm: 8px;

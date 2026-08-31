@@ -1,5 +1,6 @@
 import ContactForm from '../components/ContactForm.jsx'
 import Reveal from '../components/Reveal.jsx'
+import WhatsAppIcon from '../components/WhatsAppIcon.jsx'
 import { step } from '../lib/motion.js'
 
 // Single source of truth for the office location — the card text below and the
@@ -7,6 +8,13 @@ import { step } from '../lib/motion.js'
 const address = 'Av. Corrientes 1234, Ciudad Autónoma de Buenos Aires, Argentina'
 const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(address)}&hl=es&z=16&output=embed`
 const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+
+// Sales line from the "Casa Central" card. wa.me needs the number with no
+// spaces, plus sign or dashes, so the display and link forms are kept apart.
+const whatsappNumber = '541140000000'
+const whatsappDisplay = '+54 11 4000-0000'
+const whatsappMessage = 'Hola Innercare, quisiera hacer una consulta.'
+const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`
 
 export default function Contact() {
   return (
@@ -25,12 +33,46 @@ export default function Contact() {
           para ayudarte.
         </Reveal>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-xl">
-        <Reveal delay={step(2)} className="lg:col-span-7">
-          <ContactForm />
-        </Reveal>
-        <div className="lg:col-span-5 flex flex-col gap-lg">
-          <Reveal delay={step(3)} className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-sm">
+      {/* Two flex columns, each stacking its own cards to their natural
+          height — left: form + WhatsApp CTA, right: info card + map. */}
+      <div className="flex flex-col lg:flex-row gap-lg lg:gap-xl items-stretch">
+        <div className="flex flex-col gap-lg lg:w-7/12">
+          <Reveal delay={step(2)}>
+            <ContactForm />
+          </Reveal>
+          <Reveal delay={step(3)}>
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Escribinos por WhatsApp al ${whatsappDisplay}`}
+              className="group flex items-center gap-md bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-sm transition-all duration-300 hover:shadow-md hover:border-whatsapp focus:outline-none focus-visible:ring-2 focus-visible:ring-whatsapp"
+            >
+              <span className="shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-whatsapp/10 text-whatsapp-dark transition-colors duration-300 group-hover:bg-whatsapp group-hover:text-white">
+                <WhatsAppIcon className="w-6 h-6" />
+              </span>
+              <span className="min-w-0">
+                <span className="block font-headline-sm text-headline-sm text-on-surface">
+                  Escribinos por WhatsApp
+                </span>
+                <span className="block font-body-md text-body-md text-on-surface-variant">
+                  Respuesta inmediata
+                  {/* The number only fits alongside the label from `sm` up; it is
+                      still announced through the link's aria-label. */}
+                  <span className="hidden sm:inline"> · {whatsappDisplay}</span>
+                </span>
+              </span>
+              <span className="material-symbols-outlined ml-auto shrink-0 text-on-surface-variant transition-all duration-300 group-hover:translate-x-1 group-hover:text-whatsapp-dark">
+                arrow_forward
+              </span>
+            </a>
+          </Reveal>
+        </div>
+        <div className="flex flex-col gap-lg lg:w-5/12">
+          <Reveal
+            delay={step(4)}
+            className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-sm"
+          >
             <h3 className="font-headline-sm text-headline-sm text-on-surface mb-md border-b border-outline-variant pb-sm">
               Casa Central
             </h3>
@@ -55,7 +97,7 @@ export default function Contact() {
                 <div>
                   <p className="font-label-md text-label-md text-on-surface">Líneas Directas</p>
                   <p className="font-body-md text-body-md text-on-surface-variant">
-                    Ventas: +54 11 4000-0000
+                    Ventas: {whatsappDisplay}
                     <br />
                     Soporte: +54 11 4000-0001
                   </p>
@@ -75,7 +117,7 @@ export default function Contact() {
             </div>
           </Reveal>
           <Reveal
-            delay={step(4)}
+            delay={step(5)}
             className="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-sm"
           >
             <div className="p-lg pb-md border-b border-outline-variant">
@@ -84,7 +126,7 @@ export default function Contact() {
             <iframe
               title="Ubicación de la casa central de Innercare"
               src={mapSrc}
-              className="w-full h-[320px] block border-0"
+              className="w-full h-[272px] block border-0"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               allowFullScreen
