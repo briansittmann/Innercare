@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
+import { prefersReducedMotion } from '../hooks/useInView.js'
 
 const navLinks = [
   { to: '/', label: 'Inicio' },
@@ -68,10 +69,23 @@ export default function Header() {
 
   const closeMenu = () => setOpen(false)
 
+  const onLogoClick = () => {
+    setOpen(false)
+    // Desde otra ruta, ScrollToTop (App.jsx) ya sube al cambiar el pathname. Estando
+    // en home no hay cambio de ruta, así que el salto al inicio lo hacemos acá.
+    if (pathname === '/') {
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
+    }
+  }
+
   return (
     <header className="bg-surface top-0 h-20 border-b border-outline-variant sticky z-50">
       <div className="flex justify-between items-center h-20 px-gutter max-w-container-max mx-auto w-full">
-        <NavLink to="/" className="font-headline-md text-headline-md font-bold text-primary">
+        <NavLink
+          to="/"
+          onClick={onLogoClick}
+          className="font-headline-md text-headline-md font-bold text-primary"
+        >
           Innercare
         </NavLink>
         <nav className="hidden md:flex items-center gap-lg">
