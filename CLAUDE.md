@@ -79,7 +79,7 @@ Antes de dar algo por terminado: el build y el lint tienen que pasar sin errores
 - [x] MCP de shadcn configurado con el registro `@react-bits`.
 - [x] Porteado desde `legacy`: `src/data` → `content/` (TS tipado), `public/` y los tokens `@theme`.
 - [x] Build y lint pasan.
-- [ ] Vercel (Production Branch → `main`, preset Next.js): lo hace el usuario con Claude en el navegador. GitHub ya tiene `main` como rama por defecto.
+- [x] Vercel despliega `main` en producción y GitHub tiene `main` como rama por defecto.
 
 ### Fase 1: diseño visual (en curso)
 
