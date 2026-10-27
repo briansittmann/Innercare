@@ -1,25 +1,13 @@
-# InnerCare — Corporate Website
+# Innercare — web corporativa
 
-Corporate website for InnerCare, a manufacturer of customizable orthopedic prostheses and endoprostheses.
+Web institucional de Innercare, fabricante de implantes ortopédicos modulares y a medida del paciente.
 
-## About the project
-Institutional platform showcasing InnerCare's line of medical products, 
-including modular femoral endoprostheses made of Titanium Ti-6Al-4V, 
-with technical information, specifications, and contact details.
+- Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4
+- Node 24 (`nvm use` lee `.nvmrc`)
 
-## Features
-- Medical product catalog
-- Endoprosthesis technical sheets
-- Responsive design
-- [Add as needed: contact form, etc.]
-
-## Stack
-- [Next.js / React / etc.]
-- [Database if applicable]
-- Deployed on Vercel
-
-## Installation
-\`\`\`bash
+```bash
 npm install
 npm run dev
-\`\`\`
+```
+
+La web anterior (Vite) se conserva en la rama `legacy`.
