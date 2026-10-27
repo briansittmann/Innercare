@@ -10,7 +10,7 @@
 
 import type { Product } from './types'
 
-export const products: readonly Product[] = [
+const products: readonly Product[] = [
   {
     id: 1,
     slug: 'endoprotesis-modular-femur-customizable',
@@ -96,6 +96,13 @@ export const products: readonly Product[] = [
   },
 ]
 
-export function getProductBySlug(slug: string): Product | undefined {
+// Las vistas leen los productos solo a través de estas funciones: así el
+// origen de los datos (hoy este archivo, mañana un CMS) puede cambiar sin
+// tocar las páginas. Son asíncronas por esa misma razón.
+export async function getProducts(): Promise<readonly Product[]> {
+  return products
+}
+
+export async function getProductBySlug(slug: string): Promise<Product | undefined> {
   return products.find((product) => product.slug === slug)
 }

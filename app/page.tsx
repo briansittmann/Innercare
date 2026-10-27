@@ -1,4 +1,4 @@
-import { ContactCta } from '@/components/home/contact-cta'
+import { ContactCta } from '@/components/contact-cta'
 import { Credentials } from '@/components/home/credentials'
 import { CustomCasesTeaser } from '@/components/home/custom-cases'
 import { Hero } from '@/components/home/hero'

@@ -1,17 +1,22 @@
 import Link from 'next/link'
 import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
 
-export function ContactCta() {
+export function ContactCta({
+  title = '¿Tenés un caso para resolver?',
+  text = 'Enviános los estudios del paciente y coordinamos la planificación quirúrgica junto a tu equipo.',
+}: {
+  title?: string
+  text?: string
+}) {
   return (
     <section className="page-container pb-section">
       <div className="reveal grid gap-lg rounded-xl bg-primary px-lg py-xl md:grid-cols-12 md:items-end md:px-xl md:py-[64px]">
         <div className="md:col-span-8">
-          <h2 className="font-display-lg text-display-lg text-on-primary">
-            ¿Tenés un caso para resolver?
+          <h2 className="text-balance font-display-lg text-display-lg text-on-primary">
+            {title}
           </h2>
           <p className="mt-md max-w-[52ch] text-body-lg text-on-primary-container">
-            Enviános los estudios del paciente y coordinamos la planificación
-            quirúrgica junto a tu equipo.
+            {text}
           </p>
         </div>
         <div className="md:col-span-4 md:justify-self-end">

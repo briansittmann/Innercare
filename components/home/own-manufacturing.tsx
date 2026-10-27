@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
 import { ProductTile } from '@/components/product-tile'
-import { products } from '@/content/products'
+import { getProducts } from '@/content/products'
 
-export function OwnManufacturing() {
+export async function OwnManufacturing() {
+  const products = await getProducts()
+
   return (
     <section className="page-container py-section">
       <div className="reveal max-w-[60ch]">

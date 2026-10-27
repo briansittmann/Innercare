@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { habilitaciones, sedePrincipal, tagline } from '@/content/company'
-import { products } from '@/content/products'
+import { getProducts } from '@/content/products'
 
 // Con Cache Components, `new Date()` no puede ir en el shell estático sin
 // decidir cuándo se calcula: 'use cache' lo fija y lo renueva según cacheLife.
@@ -20,7 +20,9 @@ const empresa = [
 
 const fabricacion = habilitaciones.find((h) => h.id === 'anmat-fabricacion')
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const products = await getProducts()
+
   return (
     <footer className="border-t border-outline-variant/60 bg-surface-container-low">
       <div className="page-container grid gap-xl py-xl md:grid-cols-12 md:py-section">

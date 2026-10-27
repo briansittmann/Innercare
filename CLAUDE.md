@@ -60,6 +60,12 @@ Antes de dar algo por terminado: el build y el lint tienen que pasar sin errores
 - Movimiento solo con CSS (`.rise-in` y `.reveal` en `globals.css`): sin librería y sin ocultar contenido si no hay JS.
 - Copy visible: sin guiones largos (`—`), una etiqueta por intención de CTA ("Ver catálogo", "Ver casos a medida", "Contactar") y como máximo un eyebrow cada tres secciones.
 - Contenedor de página: utilidad `page-container`.
+- Fotos de planta (máquinas, instalaciones): siempre con `PlantPhoto` (blanco y negro con tinte de marca), porque vienen con luz y color dispares. Las de producto y casos, sin tratamiento.
+
+## Datos
+
+- Las páginas leen productos solo con `getProducts()` y `getProductBySlug()` (asíncronas) de `content/products.ts`. Así el origen puede pasar a un CMS sin tocar las vistas.
+- Fichas: `generateStaticParams` + `notFound()`. Con Cache Components no existe `dynamicParams`. La primera visita a un slug desconocido responde 200 con `noindex` y después queda cacheada como 404.
 
 ## Problemas conocidos
 
@@ -84,7 +90,8 @@ Antes de dar algo por terminado: el build y el lint tienen que pasar sin errores
 ### Fase 1: diseño visual (en curso)
 
 - [x] Header con menú móvil, footer y home: hero, habilitaciones, fabricación propia, proceso, casos a medida y CTA de contacto.
-- [ ] Productos, Ficha de producto, Casos a medida, Nosotros, Contacto y 404.
+- [x] Productos (catálogo agrupado por categoría), Ficha de producto (galería, datos, especificaciones y medidas) y Nosotros.
+- [ ] Casos a medida, Contacto y 404 (los enlaces del header y del footer ya apuntan a ellas).
 
 ### Pendiente para fases siguientes
 
