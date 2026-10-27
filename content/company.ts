@@ -42,24 +42,24 @@ export const habilitaciones: readonly Habilitacion[] = [
 // Capacidades declaradas en la carpeta (pág. 4).
 export const capacidades: readonly Capacidad[] = [
   {
-    icon: 'local_shipping',
+    icon: 'distribucion',
     title: 'Distribución nacional',
     description: 'Distribución de productos médicos a todo el país.',
   },
   {
-    icon: 'inventory_2',
+    icon: 'trazabilidad',
     title: 'Calidad y trazabilidad',
     description:
       'Sistema de gestión de calidad, depósito geolocalizado y trazabilidad de cada unidad.',
   },
   {
-    icon: '3d_rotation',
+    icon: 'a-medida',
     title: 'Implantes a medida',
     description:
       'Planificación, diseño y fabricación de implantes a medida del paciente.',
   },
   {
-    icon: 'lan',
+    icon: 'gestion-digital',
     title: 'Gestión digital de casos',
     description:
       'Sistema digital para la gestión de casos y los registros de producción.',

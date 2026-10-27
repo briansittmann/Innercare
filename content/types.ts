@@ -2,8 +2,16 @@
 // fuente impresa no declara para todos los productos: las vistas los omiten
 // cuando faltan, nunca se completan con texto inventado.
 
-// Nombre de un icono de Material Symbols (p. ej. 'local_shipping').
-export type MaterialSymbol = string
+// Clave semántica del icono. La traducción a un icono concreto vive en
+// components/icon.tsx, para que el contenido no dependa de una librería.
+export type IconKey =
+  | 'distribucion'
+  | 'trazabilidad'
+  | 'a-medida'
+  | 'gestion-digital'
+  | 'planificacion'
+  | 'diseno'
+  | 'fabricacion'
 
 export type Image = {
   src: string
@@ -18,7 +26,7 @@ export type Habilitacion = {
 }
 
 export type Capacidad = {
-  icon: MaterialSymbol
+  icon: IconKey
   title: string
   description: string
 }
@@ -62,7 +70,7 @@ export type Product = {
 
 export type ProcesoStep = {
   step: string
-  icon: MaterialSymbol
+  icon: IconKey
   title: string
   description: string
 }

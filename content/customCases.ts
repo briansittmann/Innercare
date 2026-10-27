@@ -7,21 +7,21 @@ import type { CustomCase, FeaturedCase, ProcesoStep } from './types'
 export const proceso: readonly ProcesoStep[] = [
   {
     step: '01',
-    icon: 'monitor_heart',
+    icon: 'planificacion',
     title: 'Planificación quirúrgica virtual 3D',
     description:
       'Sobre los estudios del paciente se segmenta la anatomía, se define el plano de resección y se acuerda la estrategia con el equipo quirúrgico.',
   },
   {
     step: '02',
-    icon: 'draw',
+    icon: 'diseno',
     title: 'Diseño del implante y del instrumental',
     description:
       'Se diseña el implante a medida junto con las guías de resección, biomodelos y accesorios que requiere el procedimiento.',
   },
   {
     step: '03',
-    icon: 'precision_manufacturing',
+    icon: 'fabricacion',
     title: 'Fabricación en titanio biocompatible',
     description:
       'Se fabrica por mecanizado CNC o impresión 3D, con estructura trabecular porosa en las áreas de contacto con el hueso.',

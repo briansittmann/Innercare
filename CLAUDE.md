@@ -49,6 +49,22 @@ Antes de dar algo por terminado: el build y el lint tienen que pasar sin errores
   3. Comprobá que respete `prefers-reduced-motion`. Si no lo hace, añadilo.
   - `components.json` tiene `cssVariables: false` para que shadcn no escriba sus variables de tema en `globals.css`.
 
+## Dirección visual
+
+- Lectura (Taste Skill): web institucional B2B de un fabricante regulado de productos médicos, para cirujanos y compras hospitalarias. Lenguaje claro, técnico y preciso. Diales: variance 5, motion 4, density 4.
+- La firma visual será la pieza 3D del hero: una figura anatómica translúcida con el implante de titanio visible (ver `docs/referencias/`). La translucidez vive en el objeto 3D, nunca en la interfaz. Hasta la fase 3D, el hueco lo ocupa una foto (`components/home/hero.tsx`).
+- Tema único claro (sin modo oscuro). Un solo acento: `primary`.
+- Formas: lo interactivo es pill (`rounded-full`); superficies e imágenes, `rounded-xl` (12 px).
+- Titulares: `display-xl` (hero) y `display-lg` (secciones), fluidos con `clamp()`. Datos técnicos en `font-data-mono tabular-nums`.
+- Iconos: Phosphor (`@phosphor-icons/react/ssr`, peso `light` en iconos de contenido). `content/` usa claves semánticas (`IconKey`) y `components/icon.tsx` las traduce.
+- Movimiento solo con CSS (`.rise-in` y `.reveal` en `globals.css`): sin librería y sin ocultar contenido si no hay JS.
+- Copy visible: sin guiones largos (`—`), una etiqueta por intención de CTA ("Ver catálogo", "Ver casos a medida", "Contactar") y como máximo un eyebrow cada tres secciones.
+- Contenedor de página: utilidad `page-container`.
+
+## Problemas conocidos
+
+- Si un cambio de `globals.css` no aparece en el build, borrá `.next/` (la caché de Turbopack con `@tailwindcss/turbopack` no siempre se invalida).
+
 ## Referencias (no leer por defecto)
 
 - `docs/INFORME_PROYECTO.md`: diagnóstico de la web anterior (`legacy`). Es largo: consultalo solo cuando haga falta un dato concreto (textos literales, inventario de imágenes, problemas detectados).
@@ -63,15 +79,18 @@ Antes de dar algo por terminado: el build y el lint tienen que pasar sin errores
 - [x] MCP de shadcn configurado con el registro `@react-bits`.
 - [x] Porteado desde `legacy`: `src/data` → `content/` (TS tipado), `public/` y los tokens `@theme`.
 - [x] Build y lint pasan.
-- [ ] Vercel (Production Branch → `main`, preset Next.js) y GitHub (rama por defecto `main`): lo hace el usuario a mano.
+- [ ] Vercel (Production Branch → `main`, preset Next.js): lo hace el usuario con Claude en el navegador. GitHub ya tiene `main` como rama por defecto.
+
+### Fase 1: diseño visual (en curso)
+
+- [x] Header con menú móvil, footer y home: hero, habilitaciones, fabricación propia, proceso, casos a medida y CTA de contacto.
+- [ ] Productos, Ficha de producto, Casos a medida, Nosotros, Contacto y 404.
 
 ### Pendiente para fases siguientes
 
-- Diseño y páginas: Inicio, Productos, Ficha, Casos a medida, Nosotros, Contacto y 404. La home actual es provisional.
-- Material Symbols: no se carga todavía. Al añadirlo, cargar solo un subconjunto de iconos.
 - Formulario de contacto con envío real (la versión `legacy` no enviaba nada).
 - `metadataBase` con el dominio definitivo, metadatos por página, `sitemap` y `robots`.
-- `display-lg` (48 px) no es responsive.
+- Fotos en mayor resolución: varias de casos tienen menos de 650 px y se ven blandas en las celdas grandes.
 - Fase 3D (R3F / Drei / Three.js).
 
 ## Convenciones

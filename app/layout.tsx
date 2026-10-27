@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Hanken_Grotesk, Source_Sans_3 } from 'next/font/google'
+import { SiteFooter } from '@/components/site-footer'
+import { SiteHeader } from '@/components/site-header'
 import './globals.css'
 
 // Fuentes variables auto-hospedadas por next/font: sin peticiones a Google.
@@ -18,8 +20,8 @@ const sourceSans3 = Source_Sans_3({
 // sea una URL absoluta.
 export const metadata: Metadata = {
   title: {
-    default: 'Innercare — Implantes ortopédicos a medida del paciente',
-    template: '%s · Innercare',
+    default: 'Innercare | Implantes ortopédicos a medida del paciente',
+    template: '%s | Innercare',
   },
   description:
     'Innercare fabrica implantes ortopédicos modulares y a medida del paciente en titanio biocompatible, con planificación quirúrgica 3D. Habilitados por ANMAT para fabricar, importar y distribuir productos médicos en Argentina.',
@@ -31,7 +33,7 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: 'Innercare',
     locale: 'es_AR',
-    title: 'Innercare — Innovación tecnológica en beneficio del paciente',
+    title: 'Innercare | Innovación tecnológica en beneficio del paciente',
     description:
       'Implantes ortopédicos modulares y a medida del paciente, fabricados en titanio biocompatible por mecanizado CNC e impresión 3D.',
     images: ['/img/fabricacion-cnc-planta.jpg'],
@@ -51,7 +53,11 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       lang="es-AR"
       className={`${hankenGrotesk.variable} ${sourceSans3.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <SiteHeader />
+        <main className="flex-1">{children}</main>
+        <SiteFooter />
+      </body>
     </html>
   )
 }

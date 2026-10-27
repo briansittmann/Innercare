@@ -1,17 +1,19 @@
-import { tagline } from '@/content/company'
+import { ContactCta } from '@/components/home/contact-cta'
+import { Credentials } from '@/components/home/credentials'
+import { CustomCasesTeaser } from '@/components/home/custom-cases'
+import { Hero } from '@/components/home/hero'
+import { OwnManufacturing } from '@/components/home/own-manufacturing'
+import { Process } from '@/components/home/process'
 
-// Home provisional de la Fase 0: sólo comprueba fuentes, tokens y contenido.
-// Se reemplaza por el diseño definitivo.
 export default function Home() {
   return (
-    <main className="mx-auto flex w-full max-w-container-max flex-1 flex-col justify-center gap-md px-gutter py-section">
-      <p className="font-label-md text-label-md uppercase text-primary-container">
-        Innercare
-      </p>
-      <h1 className="font-display-lg text-display-lg text-primary">{tagline}</h1>
-      <p className="font-body-lg text-body-lg text-on-surface-variant">
-        Sitio en construcción.
-      </p>
-    </main>
+    <>
+      <Hero />
+      <Credentials />
+      <OwnManufacturing />
+      <Process />
+      <CustomCasesTeaser />
+      <ContactCta />
+    </>
   )
 }
