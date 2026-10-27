@@ -14,13 +14,15 @@ export function ProductTile({
 
   return (
     <Link href={`/productos/${product.slug}`} className="group block">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-surface-container-lowest ring-1 ring-outline-variant/50">
+      {/* Con multiply, los fondos claros de las fotos toman el tono del
+          escenario y las piezas conviven con la paleta neutra. */}
+      <div className="relative isolate aspect-[4/5] overflow-hidden rounded-xl bg-surface-container-low">
         <Image
           src={image.src}
           alt={image.alt}
           fill
           sizes={sizes}
-          className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+          className="object-cover mix-blend-multiply transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
         />
       </div>
 
@@ -36,7 +38,7 @@ export function ProductTile({
         <ArrowRightIcon
           size={22}
           aria-hidden
-          className="mt-1 shrink-0 text-primary transition-transform group-hover:translate-x-1"
+          className="mt-1 shrink-0 text-on-surface transition-transform group-hover:translate-x-1"
         />
       </div>
 

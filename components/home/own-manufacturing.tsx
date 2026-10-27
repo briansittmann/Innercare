@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
 import { ProductTile } from '@/components/product-tile'
 import { getProducts } from '@/content/products'
 
@@ -7,40 +6,24 @@ export async function OwnManufacturing() {
   const products = await getProducts()
 
   return (
-    <section className="page-container py-section">
-      <div className="reveal max-w-[60ch]">
-        <h2 className="font-display-lg text-display-lg text-on-surface">
-          Fabricación propia
-        </h2>
-        <p className="mt-md text-body-lg text-on-surface-variant">
-          Sistemas modulares en titanio, customizables para adaptarse a la
-          patología de cada paciente.
-        </p>
+    <section className="page-container pb-section md:pb-[120px]">
+      <div className="reveal flex flex-col gap-md md:flex-row md:items-end md:justify-between">
+        <h2 className="font-display-lg text-display-lg text-on-surface">Fabricación propia</h2>
+        <Link
+          href="/productos"
+          className="text-body-md text-on-surface underline decoration-outline underline-offset-[6px] transition-colors hover:decoration-on-surface"
+        >
+          Ver catálogo
+        </Link>
       </div>
 
-      {/* Dos productos en columnas desfasadas: la segunda baja una sección. */}
-      <div className="mt-xl grid gap-xl md:grid-cols-12 md:gap-lg">
-        {products.map((product, index) => (
-          <div
-            key={product.slug}
-            className={
-              index % 2 === 0
-                ? 'reveal md:col-span-5'
-                : 'reveal md:col-span-5 md:col-start-7 md:mt-section'
-            }
-          >
-            <ProductTile product={product} sizes="(min-width: 768px) 40vw, 100vw" />
-          </div>
+      <ul className="mt-xl grid gap-x-lg gap-y-xl md:grid-cols-2">
+        {products.map((product) => (
+          <li key={product.slug} className="reveal">
+            <ProductTile product={product} sizes="(min-width: 768px) 50vw, 100vw" />
+          </li>
         ))}
-      </div>
-
-      <Link
-        href="/productos"
-        className="mt-xl inline-flex items-center gap-sm font-label-md text-label-md text-primary underline-offset-4 hover:underline"
-      >
-        Ver catálogo
-        <ArrowRightIcon size={16} aria-hidden />
-      </Link>
+      </ul>
     </section>
   )
 }

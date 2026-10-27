@@ -1,50 +1,39 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
+import { Hero3D } from '@/components/hero-3d/hero-3d'
 import { tagline } from '@/content/company'
 
 export function Hero() {
   return (
-    <section className="page-container grid items-center gap-xl pb-section pt-xl md:min-h-[calc(100dvh-72px)] md:grid-cols-12 md:pb-xl md:pt-lg">
-      <div className="md:col-span-7">
-        <p className="rise-in font-label-md text-label-md uppercase text-primary-container">
-          Fabricante habilitado por ANMAT
-        </p>
-        <h1 className="rise-in mt-md text-balance font-display-xl text-display-xl text-on-surface [--rise-order:1]">
-          {tagline}
-        </h1>
-        <p className="rise-in mt-lg max-w-[46ch] text-body-lg text-on-surface-variant [--rise-order:2]">
-          Fabricamos implantes ortopédicos modulares y a medida del paciente en
-          titanio biocompatible, con planificación quirúrgica 3D.
-        </p>
-        <div className="rise-in mt-xl flex flex-wrap gap-md [--rise-order:3]">
-          <Link
-            href="/productos"
-            className="inline-flex h-12 items-center gap-sm rounded-full bg-primary px-6 font-label-md text-label-md text-on-primary transition hover:bg-primary-container active:scale-[0.98]"
-          >
-            Ver catálogo
-            <ArrowRightIcon size={18} aria-hidden />
-          </Link>
-          <Link
-            href="/casos-a-medida"
-            className="inline-flex h-12 items-center rounded-full border border-outline-variant bg-surface-container-lowest px-6 font-label-md text-label-md text-primary transition hover:border-primary active:scale-[0.98]"
-          >
-            Ver casos a medida
-          </Link>
+    <section className="relative overflow-hidden">
+      <div className="page-container relative z-10 grid md:min-h-[calc(100dvh-72px)] md:grid-cols-12">
+        <div className="flex flex-col justify-center pb-lg pt-xl md:col-span-7 md:py-section">
+          <h1 className="rise-in text-balance font-display-xl text-display-xl text-on-surface">
+            {tagline}
+          </h1>
+          <p className="rise-in mt-lg max-w-[36ch] text-body-lg text-on-surface-variant [--rise-order:1]">
+            Implantes ortopédicos modulares y a medida del paciente, fabricados en
+            titanio en planta propia.
+          </p>
+          <div className="rise-in mt-xl flex flex-wrap items-center gap-x-xl gap-y-md [--rise-order:2]">
+            <Link
+              href="/productos"
+              className="inline-flex h-12 items-center gap-sm rounded-full bg-primary px-6 text-body-md font-medium text-on-primary transition hover:bg-primary-container active:scale-[0.98]"
+            >
+              Ver catálogo
+              <ArrowRightIcon size={18} aria-hidden />
+            </Link>
+            <Link
+              href="/casos-a-medida"
+              className="text-body-md text-on-surface underline decoration-outline underline-offset-[6px] transition-colors hover:decoration-on-surface"
+            >
+              Ver casos a medida
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Hueco de la pieza 3D: en la fase 3D esta imagen se reemplaza por la escena. */}
-      <div className="rise-in relative aspect-square overflow-hidden rounded-xl bg-surface-container-lowest ring-1 ring-outline-variant/50 [--rise-order:2] md:col-span-5">
-        <Image
-          src="/img/caso-intercalar-implante.jpg"
-          alt="Implante intercalar de fémur junto a las guías de resección fabricadas"
-          fill
-          preload
-          sizes="(min-width: 768px) 40vw, 100vw"
-          className="scale-[1.04] object-cover"
-        />
-      </div>
+      <Hero3D className="rise-in h-[62vh] w-full [--rise-order:2] md:absolute md:inset-y-0 md:right-0 md:h-auto md:w-[56%]" />
     </section>
   )
 }

@@ -10,19 +10,17 @@ export function ContactCta({
 }) {
   return (
     <section className="page-container pb-section">
-      <div className="reveal grid gap-lg rounded-xl bg-primary px-lg py-xl md:grid-cols-12 md:items-end md:px-xl md:py-[64px]">
+      <div className="reveal grid gap-lg border-t border-outline-variant pt-section md:grid-cols-12 md:items-end">
         <div className="md:col-span-8">
-          <h2 className="text-balance font-display-lg text-display-lg text-on-primary">
+          <h2 className="text-balance font-display-lg text-display-lg text-on-surface">
             {title}
           </h2>
-          <p className="mt-md max-w-[52ch] text-body-lg text-on-primary-container">
-            {text}
-          </p>
+          <p className="mt-md max-w-[52ch] text-body-lg text-on-surface-variant">{text}</p>
         </div>
         <div className="md:col-span-4 md:justify-self-end">
           <Link
             href="/contacto"
-            className="inline-flex h-12 items-center gap-sm rounded-full bg-surface-container-lowest px-6 font-label-md text-label-md text-primary transition hover:bg-primary-fixed active:scale-[0.98]"
+            className="inline-flex h-12 items-center gap-sm rounded-full bg-primary px-6 text-body-md font-medium text-on-primary transition hover:bg-primary-container active:scale-[0.98]"
           >
             Contactar
             <ArrowRightIcon size={18} aria-hidden />

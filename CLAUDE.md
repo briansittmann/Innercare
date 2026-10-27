@@ -51,6 +51,8 @@ Antes de dar algo por terminado: el build y el lint tienen que pasar sin errores
 
 ## Dirección visual
 
+> Rama `rediseno`: exploración de una dirección más limpia, acordada con el usuario para compararla con `main`. Superficies en grises fríos neutros, titulares en peso regular, header con navegación centrada y un 3D provisional en el hero (`components/hero-3d/`: endoprótesis de titanio dentro de un fémur de vidrio, hecha con primitivas de three.js). Lo que sigue describe `main`, salvo donde esta rama lo cambia.
+
 - Lectura (Taste Skill): web institucional B2B de un fabricante regulado de productos médicos, para cirujanos y compras hospitalarias. Lenguaje claro, técnico y preciso. Diales: variance 5, motion 4, density 4.
 - La firma visual será la pieza 3D del hero: una figura anatómica translúcida con el implante de titanio visible (ver `docs/referencias/`). La translucidez vive en el objeto 3D, nunca en la interfaz. Hasta la fase 3D, el hueco lo ocupa una foto (`components/home/hero.tsx`).
 - Tema único claro (sin modo oscuro). Un solo acento: `primary`.

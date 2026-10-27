@@ -32,27 +32,27 @@ export function SiteNav() {
 
   return (
     <>
-      <nav aria-label="Principal" className="hidden items-center gap-xl md:flex">
-        <ul className="flex items-center gap-lg">
+      <nav aria-label="Principal" className="hidden md:block">
+        <ul className="flex items-center gap-xl">
           {links.map((link) => (
             <li key={link.href}>
               <Link
                 href={link.href}
                 aria-current={isActive(link.href) ? 'page' : undefined}
-                className="font-label-md text-body-md font-medium text-on-surface-variant transition-colors hover:text-primary aria-[current=page]:text-primary"
+                className="text-body-md text-on-surface-variant transition-colors hover:text-on-surface aria-[current=page]:text-on-surface"
               >
                 {link.label}
               </Link>
             </li>
           ))}
         </ul>
-        <Link
-          href="/contacto"
-          className="inline-flex h-10 items-center rounded-full bg-primary px-5 font-label-md text-label-md text-on-primary transition hover:bg-primary-container active:scale-[0.98]"
-        >
-          Contactar
-        </Link>
       </nav>
+      <Link
+        href="/contacto"
+        className="hidden justify-self-end text-body-md text-on-surface underline decoration-outline underline-offset-[6px] transition-colors hover:decoration-on-surface md:inline"
+      >
+        Contactar
+      </Link>
 
       <button
         type="button"

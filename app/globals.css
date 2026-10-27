@@ -1,21 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-  /* Colors — Innercare Design System */
-  --color-surface: #f4faff;
-  --color-surface-dim: #c0dfee;
-  --color-surface-bright: #f4faff;
-  --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #e6f6ff;
-  --color-surface-container: #d9f2ff;
-  --color-surface-container-high: #ceedfd;
-  --color-surface-container-highest: #c9e7f7;
-  --color-on-surface: #001f2a;
-  --color-on-surface-variant: #424750;
-  --color-inverse-surface: #163440;
-  --color-inverse-on-surface: #e0f4ff;
-  --color-outline: #727781;
-  --color-outline-variant: #c2c6d2;
+  /* Colores. Rediseño: superficies en grises fríos neutros (antes celestes
+     de Material 3) y el azul de marca como único acento. */
+  --color-surface: #f5f7f9;
+  --color-surface-dim: #d4dbe1;
+  --color-surface-bright: #f5f7f9;
+  --color-surface-container-lowest: #fcfdfe;
+  --color-surface-container-low: #eef2f5;
+  --color-surface-container: #e6ebef;
+  --color-surface-container-high: #dde3e8;
+  --color-surface-container-highest: #d4dbe1;
+  --color-on-surface: #0d1b2a;
+  --color-on-surface-variant: #4b5866;
+  --color-inverse-surface: #16222e;
+  --color-inverse-on-surface: #eef2f5;
+  --color-outline: #7b8794;
+  --color-outline-variant: #d3d9df;
   --color-surface-tint: #2260a1;
   --color-primary: #003c6f;
   --color-on-primary: #ffffff;
@@ -46,9 +47,9 @@
   --color-tertiary-fixed-dim: #96ccff;
   --color-on-tertiary-fixed: #001d32;
   --color-on-tertiary-fixed-variant: #004a75;
-  --color-background: #f4faff;
-  --color-on-background: #001f2a;
-  --color-surface-variant: #c9e7f7;
+  --color-background: #f5f7f9;
+  --color-on-background: #0d1b2a;
+  --color-surface-variant: #d4dbe1;
 
   /* WhatsApp brand accent — used only by the contact CTA card */
   --color-whatsapp: #25d366;
@@ -76,31 +77,36 @@
   --text-label-md--letter-spacing: 0.05em;
   --text-label-md--font-weight: 600;
 
-  /* Titular del hero: fluido entre 36 y 64 px. */
-  --text-display-xl: clamp(2.25rem, 1.4rem + 3.2vw, 4rem);
-  --text-display-xl--line-height: 1.04;
-  --text-display-xl--letter-spacing: -0.03em;
-  --text-display-xl--font-weight: 500;
+  /* Titular del hero: fluido entre 40 y 64 px, peso regular. */
+  --text-display-xl: clamp(2.5rem, 1.7rem + 2.6vw, 4rem);
+  --text-display-xl--line-height: 1;
+  --text-display-xl--letter-spacing: -0.035em;
+  --text-display-xl--font-weight: 400;
 
-  /* Fluido entre 32 y 48 px: a 48 px fijos, los titulares largos
-     desbordaban en móvil. */
-  --text-display-lg: clamp(2rem, 1.5rem + 1.7vw, 3rem);
-  --text-display-lg--line-height: 1.1;
-  --text-display-lg--letter-spacing: -0.02em;
-  --text-display-lg--font-weight: 600;
+  /* Titulares de sección: fluidos entre 34 y 56 px. */
+  --text-display-lg: clamp(2.125rem, 1.5rem + 2.2vw, 3.5rem);
+  --text-display-lg--line-height: 1.05;
+  --text-display-lg--letter-spacing: -0.03em;
+  --text-display-lg--font-weight: 400;
 
-  --text-headline-lg: 32px;
-  --text-headline-lg--line-height: 40px;
-  --text-headline-lg--letter-spacing: -0.01em;
-  --text-headline-lg--font-weight: 600;
+  /* Párrafo grande de presentación (bloque editorial de la home). */
+  --text-statement: clamp(1.75rem, 1.2rem + 1.8vw, 2.75rem);
+  --text-statement--line-height: 1.18;
+  --text-statement--letter-spacing: -0.02em;
+  --text-statement--font-weight: 400;
+
+  --text-headline-lg: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  --text-headline-lg--line-height: 1.2;
+  --text-headline-lg--letter-spacing: -0.02em;
+  --text-headline-lg--font-weight: 400;
 
   --text-headline-md: 24px;
   --text-headline-md--line-height: 32px;
-  --text-headline-md--font-weight: 600;
+  --text-headline-md--font-weight: 500;
 
   --text-headline-sm: 20px;
   --text-headline-sm--line-height: 28px;
-  --text-headline-sm--font-weight: 600;
+  --text-headline-sm--font-weight: 500;
 
   --text-body-lg: 18px;
   --text-body-lg--line-height: 28px;

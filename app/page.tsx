@@ -1,17 +1,15 @@
 import { ContactCta } from '@/components/contact-cta'
-import { Credentials } from '@/components/home/credentials'
 import { CustomCasesTeaser } from '@/components/home/custom-cases'
 import { Hero } from '@/components/home/hero'
 import { OwnManufacturing } from '@/components/home/own-manufacturing'
-import { Process } from '@/components/home/process'
+import { Statement } from '@/components/home/statement'
 
 export default function Home() {
   return (
     <>
       <Hero />
-      <Credentials />
+      <Statement />
       <OwnManufacturing />
-      <Process />
       <CustomCasesTeaser />
       <ContactCta />
     </>
