@@ -304,6 +304,14 @@ Rama `rediseno`.
 
 **Motivo.** El usuario marcó ese recorrido sobre una captura. Los valores salieron de proyectar el centro de la cinta con la misma cámara que el componente y ajustarlo a los puntos marcados. La profundidad queda en la de fábrica para conservar el desenfoque.
 
+## 2026-10-29 · Una sola cinta
+
+Rama `rediseno`. Reemplaza las dos entradas anteriores en cuanto a la segunda cinta.
+
+**Decisión.** `layers={1}`: solo la cinta principal, con interacción. `FIBER_PLACEMENTS` conserva la ubicación ajustada de la segunda, por si vuelve; con una sola cinta no se usa.
+
+**Motivo.** El usuario filmó las dos variantes y se quedó con una.
+
 ## Pendientes abiertos
 
 - ~~**Respaldo del 3D sin WebGL.**~~ Resuelto el 2026-10-29 con el prototipo de cabeza: se comprueba el contexto antes de montar el canvas, que va dentro de un límite de errores, y sin WebGL queda la imagen fija (`public/img/cuerpo-inicio.webp`).

@@ -6,7 +6,8 @@ import { tagline } from '@/content/company'
 // Ubicación de cada cinta de fibras: [desplazamiento, profundidad, pendiente,
 // fase]. La principal es la de fábrica. La segunda, más atrás (misma
 // profundidad que la de fábrica), entra por arriba a la altura de la barra,
-// pasa por encima de la cabeza y sale por la derecha a un 44 % del alto.
+// pasa por encima de la cabeza y sale por la derecha a un 44 % del alto. Hoy
+// se dibuja solo la principal (layers={1}): la segunda queda por si vuelve.
 const FIBER_PLACEMENTS = [
   [0, 0, 0, 0],
   [2.1, -4.6, 0.29, 2.4],
@@ -24,11 +25,10 @@ export function Hero() {
       id="inicio"
       className="relative -mt-16 overflow-hidden bg-linear-to-b from-stage-from to-stage-to pt-16 md:-mt-[72px] md:pt-[72px]"
     >
-      {/* Cintas de fibras en tinta azul sobre el degradé, por detrás del texto
-          y del 3D. La principal baja en diagonal desde arriba a la izquierda
-          hacia el cuello del busto; la segunda (layers={2}) va más tenue y
-          más atrás, como la ubica el componente. Sin viñeta, grano ni
-          partículas, para que el degradé se siga leyendo igual. Con el mouse
+      {/* Cinta de fibras en tinta azul sobre el degradé, por detrás del texto
+          y del 3D: baja en diagonal desde arriba a la izquierda hacia el
+          cuello del busto. Sin viñeta, grano ni partículas, para que el
+          degradé se siga leyendo igual. Con el mouse
           encima, la cámara se inclina hacia él con un resorte y se enfoca el
           tramo que queda bajo el puntero (los eventos se escuchan en window:
           el contenedor no los recibe). */}
@@ -40,7 +40,7 @@ export function Hero() {
           lineColor="#003c6f"
           rotation={-39}
           fiberStyle="lines"
-          layers={2}
+          layers={1}
           placements={FIBER_PLACEMENTS}
           brightness={0.6}
           particles={0}
