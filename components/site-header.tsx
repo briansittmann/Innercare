@@ -21,6 +21,9 @@ function Logo({ className }: { className: string }) {
 }
 
 // Capas: el header es la única capa fija (z-40); el menú móvil vive dentro.
+// En la home, el hero sube por detrás del header (components/home/hero.tsx).
+// En el celular, la barra es transparente arriba de todo y se vuelve
+// esmerilada al hacer scroll, o al abrir el menú (.barra-movil).
 // En escritorio, el header es transparente y deja pasar los clics fuera de la
 // barra: lo único visible es la barra de vidrio flotante, con el contenido
 // pasando por detrás al hacer scroll. Alto total: 8 px de margen + 64 px de
@@ -35,7 +38,7 @@ function Logo({ className }: { className: string }) {
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 md:pointer-events-none md:pt-2">
-      <div className="bg-surface/80 backdrop-blur-md md:hidden">
+      <div className="barra-movil md:hidden">
         <div className="page-container flex h-16 items-center justify-between gap-lg">
           <Logo className="h-8 w-auto" />
           <MobileNav />

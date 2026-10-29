@@ -39,14 +39,19 @@ function MaterialFor({ name, quality, boneOpacity, glassBuffer }: {
   return <TrabecularTitanium />
 }
 
-export function BodyModel({ quality, boneOpacity }: { quality: Quality; boneOpacity: number }) {
+export function BodyModel({ quality, boneOpacity, stage }: {
+  quality: Quality
+  boneOpacity: number
+  // Fondo que refracta el vidrio (el tramo del degradé detrás del canvas)
+  stage: Texture
+}) {
   const anatomy = useGLTF(ANATOMY_URL, false, true)
   const implants = useGLTF(IMPLANTS_URL, false, true)
   const meshes = useMemo(
     () => [...meshesOf(anatomy.scene), ...meshesOf(implants.scene)],
     [anatomy.scene, implants.scene],
   )
-  const [skin, glassBuffer] = useGlassBuffer()
+  const [skin, glassBuffer] = useGlassBuffer(stage)
 
   return (
     <group>

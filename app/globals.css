@@ -50,7 +50,9 @@
   --color-background: #f5f7f9;
   --color-on-background: #0d1b2a;
   --color-surface-variant: #d4dbe1;
-  /* Panel del 3D del hero (components/hero-3d/body-scene.tsx dibuja el mismo degradé) */
+  /* Fondo del hero, de arriba abajo: el único fondo de color de la interfaz.
+     components/hero-3d/body-scene.tsx repite estos valores para que el
+     vidrio refracte el mismo degradé. */
   --color-stage-from: #e6eef8;
   --color-stage-to: #c3d7ee;
 
@@ -220,6 +222,32 @@ body {
     background: var(--color-surface-container-lowest) !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
+  }
+}
+
+/* Barra móvil del header: transparente arriba de todo, para que en la home
+   se vea el degradé del hero, y esmerilada en cuanto hay scroll (sobre los
+   primeros 64 px, su alto) o con el menú abierto. Sin scroll-driven
+   animations queda siempre esmerilada. */
+.barra-movil {
+  background-color: color-mix(in oklab, var(--color-surface) 80%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+@supports (animation-timeline: scroll()) {
+  @keyframes barra-movil {
+    from {
+      background-color: transparent;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  .barra-movil:not(:has([aria-expanded='true'])) {
+    animation: barra-movil linear both;
+    animation-timeline: scroll();
+    animation-range: 0 64px;
   }
 }
 

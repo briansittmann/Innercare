@@ -52,10 +52,12 @@ export function SectionIndex({ items }: { items: readonly SectionIndexItem[] }) 
                 aria-current={current ? 'true' : undefined}
                 className="group relative flex h-6 w-7 items-center justify-center rounded-full outline-none focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
-                {/* Marca: corta en reposo, larga y de marca en la sección actual. */}
+                {/* Marca: corta en reposo, larga y de marca en la sección actual.
+                    En on-surface-variant y no en outline: sobre el azul del hero,
+                    outline no llega a 3:1. */}
                 <span
                   aria-hidden
-                  className="h-0.5 w-4 rounded-full bg-outline transition-[scale,background-color] duration-[160ms] ease-out scale-x-50 group-hover:scale-x-100 group-hover:bg-on-surface group-focus-visible:scale-x-100 group-aria-[current=true]:scale-x-100 group-aria-[current=true]:bg-primary"
+                  className="h-0.5 w-4 rounded-full bg-on-surface-variant transition-[scale,background-color] duration-[160ms] ease-out scale-x-50 group-hover:scale-x-100 group-hover:bg-on-surface group-focus-visible:scale-x-100 group-aria-[current=true]:scale-x-100 group-aria-[current=true]:bg-primary"
                 />
                 {/* Nombre: lo leen siempre los lectores de pantalla; a la
                     vista aparece con el puntero o el foco. */}

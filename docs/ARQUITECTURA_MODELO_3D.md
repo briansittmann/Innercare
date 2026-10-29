@@ -7,10 +7,11 @@ Estado al 2026-10-29. El hero muestra el prototipo de cabeza; el cuerpo entero v
 - **Hecho:** el esqueleto. `3d/scripts/anatomia.py` genera `3d/salida/esqueleto.glb`: 263 huesos de BodyParts3D 4.0 (CC BY 4.0) con dientes, ajustados dentro de la piel y unidos en 25 mallas `hueso_<zona>`. Son unas 117 000 caras y 2,5 MB sin comprimir. Imágenes en `3d/salida/preview/esqueleto/` (solo huesos) y `esqueleto-piel/` (con la piel translúcida encima).
 - **Hecho:** el prototipo de cabeza (orden de trabajo, punto 2), salvo la medición en el celular.
   - `3d/scripts/implantes.py` genera la craneoplastía (`salida/implantes.glb`, unas 5 000 caras) y recorta el cráneo debajo (`salida/anatomia.glb`: piel y esqueleto con los recortes). `3d/scripts/cabeza.py` recorta el busto (`salida/cabeza.glb`). `npm run modelos` corre los dos y los optimiza a `public/modelos/`: `cabeza.glb` (425 KB, 334 KB transferidos con gzip) e `implantes.glb` (73 KB). Son unos 87 000 triángulos.
-  - En el hero (`components/hero-3d/`): materiales finales por nombre de malla, parada 1 con giro lento de 3/4 de perfil hacia el frente y vuelta, detección de WebGL con imagen de respaldo (`public/img/cuerpo-inicio.webp`), carga diferida, sin render fuera de pantalla y sin giro con `prefers-reduced-motion`.
-  - Medición en escritorio (Apple M1, 1440 × 900, dpr 1,5): 60 fps con el vidrio medio. El 3D queda listo a los 0,6 s de la navegación en el build de producción, con 450 KB de JS en la home.
-  - El vidrio dibuja lo que tiene detrás en un buffer propio con MSAA (`useGlassBuffer` en `materials.tsx`): el de Drei no tiene antialiasing y la malla se dentaba. La resolución arranca en la de la pantalla, hasta 1,5x, y solo baja si faltan cuadros, sin volver a subir. Las tres calidades se ven igual: solo cambian las muestras de la refracción.
-  - Para medir: `?medir` en la home muestra cuadros por segundo, triángulos, tiempos y bytes; `?calidad=alta|media|baja` fija el vidrio, y `?hueso=0.3`, la opacidad del hueso. Es del prototipo: se quita antes del lanzamiento.
+  - En el hero (`components/hero-3d/`): materiales finales por nombre de malla, parada 1 con giro lento de 3/4 de perfil hacia el frente y vuelta, detección de WebGL con imágenes de respaldo (`public/img/cuerpo-inicio.webp` y `cuerpo-inicio-movil.webp`), carga diferida, sin render fuera de pantalla y sin giro con `prefers-reduced-motion`.
+  - El degradé azul ocupa todo el hero y el canvas es transparente, sin panel (sección 3, "Fondo y encuadre").
+  - Medición en escritorio (Apple M1, 1440 × 900, dpr 1,5): 60 fps con el vidrio medio, sin que baje la resolución; sin tope de cuadros, unos 70 fps (con el panel y 6 muestras eran 73). En el build de producción, el 3D queda listo a 0,6 s del montaje (1 s de la navegación, medido con la máquina cargada; antes se había medido 0,6 s de la navegación), con 450 KB de JS en la home. Con el hero visible hay unos 12 dibujos por cuadro; fuera de pantalla, ninguno.
+  - El vidrio dibuja lo que tiene detrás en un buffer propio con MSAA (`useGlassBuffer` en `materials.tsx`): el de Drei no tiene antialiasing y la malla se dentaba. La resolución arranca en la de la pantalla, hasta 1,5x, y solo baja si faltan cuadros, sin volver a subir. Las tres calidades se ven igual: solo cambian las muestras de la refracción (10, 4 y 3; la media, la de siempre, tenía 6).
+  - Para medir: `?medir` en la home muestra cuadros por segundo, triángulos, tiempos y bytes; `?calidad=alta|media|baja` fija el vidrio; `?hueso=0.3`, la opacidad del hueso, y `?fondo` dibuja en el canvas el tramo del degradé que refracta el vidrio (si no coincide con el del CSS, se ve un rectángulo). Es del prototipo: se quita antes del lanzamiento.
 - **Siguiente:** medir en el celular y ajustar la calidad por defecto, la transmisión y la opacidad del hueso. Después, el cuerpo entero (orden de trabajo, punto 3).
 - **Del esqueleto, a revisar con el material de vidrio:**
   - El cráneo queda algo bajo dentro de la cabeza, porque la del maniquí es más alta que la del atlas: entra escalado por eje (0,98 × 1,05 × 0,86).
@@ -173,14 +174,25 @@ Son objetivos de partida, a ajustar con la medición del primer prototipo.
 ```
 components/hero-3d/
   hero-3d.tsx         envoltorio: carga diferida sin SSR, detección de WebGL,
-                      respaldo, prefers-reduced-motion, visibilidad y medición
-  body-scene.tsx      Canvas, luces (Lightformer), cámara, giro y PerformanceMonitor
+                      respaldo, prefers-reduced-motion, visibilidad, encuadre
+                      (tramo del degradé y foco) y medición
+  body-scene.tsx      Canvas transparente, encuadre de la cámara, degradé del
+                      buffer, luces (Lightformer), giro y PerformanceMonitor
   body-model.tsx      useGLTF de los dos .glb y asignación de materiales por nombre
   materials.tsx       vidrio (tres calidades), hueso y titanio trabecular
   stops.ts            paradas: posición y objetivo de la cámara, y giro de la figura (pendiente)
   use-scroll-progress.ts  (pendiente)
 content/cuerpo3d.ts   etiqueta y enlace de cada parada (pendiente)
 ```
+
+### Fondo y encuadre
+
+- El degradé vertical de azules (`--color-stage-from` a `--color-stage-to`) es el fondo CSS de la sección del hero, que sube por detrás del header (`components/home/hero.tsx`). El canvas es transparente: texto y 3D comparten el fondo y no hay bordes.
+- El vidrio refracta un buffer propio (`useGlassBuffer`), que se dibuja con `scene.background` puesto y lo quita al terminar. Ese fondo es el tramo del degradé que queda detrás del canvas: `hero-3d.tsx` mide con `offsetTop` qué fracción del alto de la sección ocupa el canvas (`Framing.stage`) y `body-scene.tsx` dibuja en una textura el degradé de la sección entera, corrido y estirado para que muestre solo ese tramo. Los colores se repiten en `STAGE_FROM` y `STAGE_TO`: si cambian en `globals.css`, cambian ahí también.
+- Comprobación: con `?fondo`, el canvas dibuja también el tramo. Una captura con `?fondo` y otra sin él tienen que coincidir (diferencia máxima medida: 2/255 a 1440, 1024 y 768 px y en el celular).
+- La cámara (0,92 m, 30°) apunta al centro de la cabeza, con la proporción que eligió el usuario: la cabeza arranca a un 22 % del alto del hero y el corte del busto queda debajo del borde inferior. El canvas es más ancho que el busto, para no cortar los hombros en ninguna pose del giro, y la figura se ubica en `--hero-3d-foco` (fracción del ancho del canvas) con `setViewOffset`: el canvas es un recorte de una vista más ancha centrada en la figura, así que la perspectiva no cambia. `camera.manual` evita que R3F pise el aspecto al redimensionar.
+- Escritorio: el canvas va abajo a la derecha, con 14/15 de su alto de ancho y el alto del hero, como máximo 80vw (en pantallas verticales queda más bajo); la figura, al 55,5 % del ancho. A 1440 × 900 son 840 × 900 px, con unos 65 px de margen al hombro en la pose frontal. Celular: debajo del texto, al 62 % del alto de la pantalla, 48 px metido bajo los botones, con la figura centrada; los hombros los corta el borde de la pantalla.
+- El área del canvas pesa (MSAA, limpieza y la pasada de fondo del buffer): sin tope de cuadros, con el panel había 72-74 fps, y con un canvas al 60 % del ancho de la pantalla, 57-59. Por eso el ancho se ata al alto y no al de la pantalla. Lo que más pesa igual es el vidrio: con el busto más grande, pasar la calidad media de 6 a 4 muestras de refracción recupera unos 3 ms (de 60 a 70 fps sin tope), sin diferencia visible (0,02 % de píxeles cambia más de 4/255 respecto de la calidad alta).
 
 ### Recorrido con scroll
 
@@ -192,7 +204,8 @@ content/cuerpo3d.ts   etiqueta y enlace de cada parada (pendiente)
 ### Respaldo sin WebGL
 
 - Antes de montar el canvas se comprueba que haya contexto WebGL, y el canvas va dentro de un límite de errores. Hecho con el prototipo de cabeza.
-- La imagen fija (`public/img/cuerpo-inicio.webp`) es una captura del canvas en la pose inicial, con movimiento reducido. Se ve mientras carga el 3D, sin WebGL y si la escena falla, con `object-cover`: recorta los costados igual que la cámara, así el paso de la imagen al 3D no se nota. Hay que volver a capturarla cuando cambie el modelo o el encuadre.
+- Las imágenes fijas son capturas del canvas en la pose inicial (movimiento reducido), con fondo transparente y la figura centrada, más anchas que el canvas: `public/img/cuerpo-inicio.webp` (escritorio, 960 × 900 px CSS a 1,5x) y `cuerpo-inicio-movil.webp` (celular, 720 × 523 a 2x). Son dos porque el vidrio refracta otro tramo del degradé. Se ven mientras carga el 3D, sin WebGL y si la escena falla, al alto del canvas y centradas en `--hero-3d-foco` (`<picture>` con `getImageProps`). El 3D aparece encima con un fundido y la imagen se quita al terminarlo: con fondo transparente, cruzar las dos opacidades dejaría el busto a medio tono.
+- Cómo se capturan: la página en Chrome con WebGL por hardware, movimiento reducido y `omitBackground`, con el fondo de la página y todo lo que no es el canvas ocultos, recortando centrado en la figura. Escritorio a 1440 × 900 con el canvas corrido 300 px a la izquierda, para que el recorte entre en la página. Celular a 720 px de ancho con el texto del hero limitado a 390 px (margen de 16 px y titular de 40 px), para que el tramo del degradé sea el de un teléfono. Se pasan a WebP con `cwebp -q 82 -alpha_q 90`. Comprobación: una captura sin WebGL y otra con el 3D tienen que coincidir. Hay que volver a capturarlas cuando cambie el modelo, el encuadre o el texto del hero en el celular, y borrar `.next/dev/cache/images`, porque el optimizador de imágenes de desarrollo sirve la versión anterior.
 - Con el recorrido, una imagen por parada (`public/img/cuerpo-<parada>.webp`).
 
 ### Accesibilidad

@@ -208,7 +208,7 @@ Rama `rediseno`. Detalle en `ARQUITECTURA_MODELO_3D.md` y `3d/README.md`.
 
 ## 2026-10-29 · El 3D en un panel azul, con vidrio celeste
 
-Rama `rediseno`. Reemplaza, del prototipo de cabeza, el fondo gris, las calidades del vidrio y su ajuste automático.
+Rama `rediseno`. Reemplaza, del prototipo de cabeza, el fondo gris, las calidades del vidrio y su ajuste automático. El panel lo reemplaza, a su vez, "Todo el hero sobre el degradé azul, sin panel".
 
 **Decisión.**
 - El 3D del hero va en un panel `rounded-xl` con un degradé vertical de azules de la marca (`--color-stage-from` y `--color-stage-to`). Lo dibuja la escena; el CSS lo repite solo mientras carga.
@@ -225,6 +225,33 @@ Rama `rediseno`. Reemplaza, del prototipo de cabeza, el fondo gris, las calidade
 **Descartado.**
 - Fondo de color en toda la sección del hero: queda una franja gris detrás del header, que es fijo, y el vidrio no refracta un degradé CSS.
 - Dibujar el implante por encima del vidrio para que se vea nítido (ver la entrada del prototipo).
+
+## 2026-10-29 · Todo el hero sobre el degradé azul, sin panel
+
+Rama `rediseno`. Reemplaza el panel de la entrada anterior. Detalle en `ARQUITECTURA_MODELO_3D.md`, sección 3, "Fondo y encuadre".
+
+**Decisión.**
+- El degradé de azules de la marca es el fondo de todo el hero, de borde a borde y por detrás del header (la sección sube 64 px en el celular y 72 en escritorio). Sigue siendo el único fondo de color de la interfaz.
+- El canvas vuelve a ser transparente y sin bordes. El vidrio refracta su buffer propio, que lleva como fondo el tramo del degradé que queda detrás del canvas, medido según su posición en la sección.
+- Salida hacia la sección siguiente: corte recto, sin fundido. Coincide con el corte del busto, que queda debajo del borde.
+- Proporción del busto: la de la captura que pasó el usuario (cabeza a un 22 % del alto del hero, centro de la cabeza a un 75 % del ancho a 1440 px, hombros cortados por el borde inferior). En escritorio, el canvas va abajo a la derecha, con un ancho de 14/15 de su alto, y la figura se ubica con un desplazamiento de lente (`setViewOffset`). En el celular va debajo del texto.
+- La calidad media del vidrio baja de 6 a 4 muestras de refracción.
+- Imágenes de respaldo con fondo transparente, una para escritorio y otra para el celular.
+- Barra móvil del header transparente arriba de todo y esmerilada al hacer scroll. Las marcas inactivas del índice lateral y el subrayado de "Ver casos a medida" pasan de `outline` a `on-surface-variant`.
+
+**Motivo.**
+- Texto y modelo en el mismo espacio, sin la caja del panel. La franja gris detrás del header (motivo para descartar esta opción en la entrada anterior) desaparece al subir el hero detrás del header. Que el vidrio no refracte el CSS se resuelve dibujando el mismo degradé en su buffer: las capturas con y sin el degradé en el canvas (`?fondo`) difieren como mucho en 2/255, así que no se ve ningún rectángulo.
+- Corte recto: un fundido obligaba a enmascarar el canvas y desvanecer el busto, y a agregar al degradé una tercera parada gris (claro, azul, claro), que se lee menos limpia. Con el corte, el hero termina como el encuadre de una foto.
+- El ancho del canvas se ata al alto porque el área cuesta: al 60 % del ancho de la pantalla, el M1 bajaba de 72-74 a 57-59 fps sin tope. Con un canvas más angosto que el busto, los hombros se cortarían con un borde recto en medio del hero.
+- Con el busto más grande, el vidrio es lo que más pesa. Con 4 muestras se recuperan unos 3 ms por cuadro (70 fps sin tope, 60 con tope y sin bajar la resolución) sin diferencia visible.
+- Dos imágenes de respaldo porque el vidrio refracta otro tramo del degradé en cada diseño. Con fondo transparente, el 3D aparece encima con un fundido y la imagen se quita al terminar; cruzar las opacidades dejaría el busto a medio tono.
+- Sobre el azul, `outline` queda por debajo de 3:1 (2,5 a 2,8). El resto del texto pasa AA en el punto más oscuro del degradé: `on-surface-variant`, 4,9; el botón primario contra el fondo, 7,6.
+
+**Descartado.**
+- Fundido hacia el gris (ver el motivo).
+- Canvas al 60 % del ancho de la pantalla: por el rendimiento.
+- Alejar la cámara para achicar el busto y ganar rendimiento: dejaba a la vista la base del busto y no respetaba la proporción elegida.
+- Calidad baja (3 muestras) por defecto: deja sin margen el ajuste automático, que la usa como último paso.
 
 ## Pendientes abiertos
 

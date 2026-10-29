@@ -12,14 +12,16 @@ export type Quality = 'alta' | 'media' | 'baja'
 
 // La calidad solo cambia cuántas muestras toma la refracción: el aspecto es
 // el mismo en las tres, para que un cambio a mitad del giro no se note.
-const REFRACTION_SAMPLES: Record<Quality, number> = { alta: 10, media: 6, baja: 3 }
+const REFRACTION_SAMPLES: Record<Quality, number> = { alta: 10, media: 4, baja: 3 }
 
 // Lo que se ve a través del vidrio: la escena sin la piel, dibujada en un
 // buffer propio cada cuadro. El de Drei no tiene antialiasing, y las barras
 // finas de la craneoplastía se dentaban; este usa MSAA. No sirve
 // transmissionSampler: ese buffer no ve objetos transparentes, y el hueso lo
-// es. Devuelve el ref para la malla de vidrio y la textura para su material.
-export function useGlassBuffer() {
+// es. El canvas es transparente (el fondo es CSS), así que el buffer lleva
+// como fondo `background`: el tramo del degradé que queda detrás del canvas.
+// Devuelve el ref para la malla de vidrio y la textura para su material.
+export function useGlassBuffer(background: Texture) {
   const glass = useRef<Mesh>(null)
   const target = useFBO({ samples: 2, type: UnsignedByteType })
   useFrame(({ gl, scene, camera }) => {
@@ -27,12 +29,15 @@ export function useGlassBuffer() {
     if (!mesh) return
     // Sin tone mapping: se aplica una sola vez, al dibujar el vidrio
     const toneMapping = gl.toneMapping
+    const visibleBackground = scene.background
     gl.toneMapping = NoToneMapping
+    scene.background = background
     mesh.visible = false
     gl.setRenderTarget(target)
     gl.render(scene, camera)
     gl.setRenderTarget(null)
     mesh.visible = true
+    scene.background = visibleBackground
     gl.toneMapping = toneMapping
   })
   return [glass, target.texture as Texture] as const

@@ -1,9 +1,17 @@
 'use client'
 
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment, Lightformer, PerformanceMonitor } from '@react-three/drei'
-import { BackSide, CanvasTexture, MathUtils, SRGBColorSpace, type Group } from 'three'
+import {
+  BackSide,
+  CanvasTexture,
+  MathUtils,
+  SRGBColorSpace,
+  type Group,
+  type PerspectiveCamera,
+  type Texture,
+} from 'three'
 import { BodyModel, preloadBodyModels } from './body-model'
 import type { Quality } from './materials'
 
@@ -20,9 +28,10 @@ const TURN_PERIOD = 22 // segundos, ida y vuelta
 // Altura del centro de la cabeza: el modelo está en metros, con los pies en 0
 const HEAD_HEIGHT = 1.56
 
-// Fondo del panel: degradé de azules de la marca, el mismo que
-// --color-stage-from y --color-stage-to en globals.css. Lo dibuja la escena
-// (no el CSS) para que el vidrio refracte exactamente lo que se ve alrededor.
+// Fondo del hero: degradé vertical de azules de la marca, el mismo que
+// --color-stage-from y --color-stage-to en globals.css. Lo pinta el CSS de la
+// sección y el canvas es transparente; la escena lo dibuja solo en el buffer
+// del vidrio, para que refracte lo que se ve alrededor.
 const STAGE_FROM = '#e6eef8'
 const STAGE_TO = '#c3d7ee'
 
@@ -33,9 +42,21 @@ const STAGE_TO = '#c3d7ee'
 const MAX_DPR = 1.5
 const MIN_DPR = 1
 
+// Dónde queda el canvas dentro del hero: el tramo vertical del degradé que
+// tiene detrás (0 arriba, 1 abajo) y la fracción del ancho donde va el centro
+// de la figura. Lo mide hero-3d.tsx.
+export type Framing = {
+  stage: readonly [top: number, bottom: number]
+  focusX: number
+}
+
 export type SceneSettings = {
   animate: boolean
   active: boolean
+  framing: Framing
+  // Dibuja el tramo del degradé también en el canvas (?fondo), para comprobar
+  // que coincide con el del CSS
+  showStage: boolean
   // Fija la calidad del vidrio; sin valor, se adapta al rendimiento
   quality?: Quality
   boneOpacity: number
@@ -52,10 +73,11 @@ export type FrameStats = {
   quality: Quality
 }
 
-function Bust({ animate, quality, boneOpacity }: {
+function Bust({ animate, quality, boneOpacity, stage }: {
   animate: boolean
   quality: Quality
   boneOpacity: number
+  stage: Texture
 }) {
   const ref = useRef<Group>(null)
   const time = useRef(0)
@@ -73,7 +95,7 @@ function Bust({ animate, quality, boneOpacity }: {
   return (
     <group ref={ref} rotation={[0, TURN_PROFILE, 0]}>
       <group position={[0, -HEAD_HEIGHT, 0]}>
-        <BodyModel quality={quality} boneOpacity={boneOpacity} />
+        <BodyModel quality={quality} boneOpacity={boneOpacity} stage={stage} />
       </group>
     </group>
   )
@@ -122,14 +144,25 @@ function StatsProbe({ quality, onStats }: {
   return null
 }
 
-function StageBackground() {
+// El tramo del degradé que queda detrás del canvas, en una textura de
+// 2 × 512 px que three estira a todo el canvas. Se dibuja el degradé de la
+// sección entera, corrido y estirado para que la textura muestre solo ese
+// tramo: los colores salen iguales que en el CSS, sin calcular mezclas. El
+// canvas 2D interpola en sRGB, igual que linear-gradient.
+function useStageTexture([top, bottom]: Framing['stage']) {
   const texture = useMemo(() => {
     const canvas = document.createElement('canvas')
     canvas.width = 2
-    canvas.height = 256
+    canvas.height = 512
     const context = canvas.getContext('2d')
     if (context) {
-      const gradient = context.createLinearGradient(0, 0, 0, canvas.height)
+      const span = bottom - top
+      const gradient = context.createLinearGradient(
+        0,
+        (-top / span) * canvas.height,
+        0,
+        ((1 - top) / span) * canvas.height,
+      )
       gradient.addColorStop(0, STAGE_FROM)
       gradient.addColorStop(1, STAGE_TO)
       context.fillStyle = gradient
@@ -138,14 +171,63 @@ function StageBackground() {
     const map = new CanvasTexture(canvas)
     map.colorSpace = SRGBColorSpace
     return map
-  }, [])
-  useEffect(() => () => texture.dispose(), [texture])
-  return <primitive attach="background" object={texture} />
+  }, [top, bottom])
+
+  const invalidate = useThree((state) => state.invalidate)
+  useEffect(() => {
+    invalidate()
+    return () => texture.dispose()
+  }, [texture, invalidate])
+  return texture
+}
+
+// La cámara apunta al centro de la figura. Para ponerla en focusX del ancho,
+// el canvas se trata como un recorte de una vista más ancha centrada en ella:
+// la figura se corre sin cambiar la perspectiva, como al recortar una foto.
+// `manual` evita que R3F pise el aspecto al redimensionar.
+function CameraFraming({ focusX }: { focusX: number }) {
+  const get = useThree((state) => state.get)
+  const width = useThree((state) => state.size.width)
+  const height = useThree((state) => state.size.height)
+  useLayoutEffect(() => {
+    if (width === 0 || height === 0) return
+    const { camera, invalidate } = get()
+    const perspective = camera as PerspectiveCamera & { manual?: boolean }
+    const fullWidth = width + 2 * Math.abs(focusX - 0.5) * width
+    perspective.manual = true
+    perspective.setViewOffset(fullWidth, height, fullWidth / 2 - focusX * width, 0, width, height)
+    invalidate()
+  }, [get, width, height, focusX])
+  return null
+}
+
+// Todo lo que va dentro del canvas y depende del encuadre
+function Scene({ framing, showStage, animate, quality, boneOpacity, onReady }: {
+  framing: Framing
+  showStage: boolean
+  animate: boolean
+  quality: Quality
+  boneOpacity: number
+  onReady: () => void
+}) {
+  const stage = useStageTexture(framing.stage)
+  return (
+    <>
+      <CameraFraming focusX={framing.focusX} />
+      {showStage && <primitive attach="background" object={stage} />}
+      <Suspense fallback={null}>
+        <Bust animate={animate} quality={quality} boneOpacity={boneOpacity} stage={stage} />
+        <ReadySignal onReady={onReady} />
+      </Suspense>
+    </>
+  )
 }
 
 export default function BodyScene({
   animate,
   active,
+  framing,
+  showStage,
   quality: fixedQuality,
   boneOpacity,
   onReady,
@@ -171,14 +253,18 @@ export default function BodyScene({
       frameloop={!active ? 'never' : animate ? 'always' : 'demand'}
       dpr={dpr}
       camera={{ position: [0, 0.02, 0.92], fov: 30, near: 0.05, far: 10 }}
-      gl={{ antialias: true, powerPreference: 'high-performance' }}
+      // Transparente: el fondo es el degradé CSS de la sección
+      gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
     >
-      <StageBackground />
       <PerformanceMonitor onDecline={decline} />
-      <Suspense fallback={null}>
-        <Bust animate={animate} quality={quality} boneOpacity={boneOpacity} />
-        <ReadySignal onReady={onReady} />
-      </Suspense>
+      <Scene
+        framing={framing}
+        showStage={showStage}
+        animate={animate}
+        quality={quality}
+        boneOpacity={boneOpacity}
+        onReady={onReady}
+      />
       {onStats && <StatsProbe quality={quality} onStats={onStats} />}
       {/* Estudio de luz propio (sin HDRI descargado): paneles blancos y uno
           con el azul de marca para que el titanio y el vidrio lo reflejen.
