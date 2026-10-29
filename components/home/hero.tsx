@@ -6,7 +6,7 @@ export function Hero() {
   return (
     <section id="inicio" className="relative overflow-hidden">
       <div className="page-container relative z-10 grid md:min-h-[calc(100dvh-72px)] md:grid-cols-12">
-        <div className="flex flex-col justify-center pb-lg pt-xl md:col-span-7 md:py-section">
+        <div className="flex flex-col justify-center pb-lg pt-xl md:col-span-6 md:py-section">
           <h1 className="rise-in text-balance font-display-xl text-display-xl text-on-surface">
             {tagline}
           </h1>
@@ -28,7 +28,8 @@ export function Hero() {
         </div>
       </div>
 
-      <Hero3D className="rise-in h-[62vh] w-full [--rise-order:2] md:absolute md:inset-y-0 md:right-0 md:h-auto md:w-[56%]" />
+      {/* El 3D va en un panel propio, con el fondo de color de la escena */}
+      <Hero3D className="rise-in mx-4 h-[62vh] overflow-hidden rounded-xl [--rise-order:2] md:absolute md:inset-y-4 md:right-4 md:mx-0 md:h-auto md:w-[44%]" />
     </section>
   )
 }

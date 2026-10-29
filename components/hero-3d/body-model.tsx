@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react'
 import { useGLTF } from '@react-three/drei'
-import type { Mesh, Object3D } from 'three'
-import { Bone, Glass, TrabecularTitanium, type Quality } from './materials'
+import type { Mesh, Object3D, Texture } from 'three'
+import { Bone, Glass, TrabecularTitanium, useGlassBuffer, type Quality } from './materials'
 
 // Anatomía e implantes van en archivos separados (licencia del atlas: ver
 // docs/ARQUITECTURA_MODELO_3D.md, "Archivos"). Por ahora, el prototipo de
@@ -28,12 +28,13 @@ function meshesOf(root: Object3D) {
 // El material sale del nombre de la malla: piel, hueso_<zona> o
 // implante_<pieza>. Una pieza CAD de Innercare reemplaza a la generada con
 // solo respetar el nombre.
-function MaterialFor({ name, quality, boneOpacity }: {
+function MaterialFor({ name, quality, boneOpacity, glassBuffer }: {
   name: string
   quality: Quality
   boneOpacity: number
+  glassBuffer: Texture
 }) {
-  if (name === 'piel') return <Glass quality={quality} />
+  if (name === 'piel') return <Glass quality={quality} buffer={glassBuffer} />
   if (name.startsWith('hueso_')) return <Bone opacity={boneOpacity} />
   return <TrabecularTitanium />
 }
@@ -45,19 +46,26 @@ export function BodyModel({ quality, boneOpacity }: { quality: Quality; boneOpac
     () => [...meshesOf(anatomy.scene), ...meshesOf(implants.scene)],
     [anatomy.scene, implants.scene],
   )
+  const [skin, glassBuffer] = useGlassBuffer()
 
   return (
     <group>
       {meshes.map((mesh) => (
         <mesh
           key={mesh.uuid}
+          ref={mesh.name === 'piel' ? skin : undefined}
           name={mesh.name}
           geometry={mesh.geometry}
           position={mesh.position}
           quaternion={mesh.quaternion}
           scale={mesh.scale}
         >
-          <MaterialFor name={mesh.name} quality={quality} boneOpacity={boneOpacity} />
+          <MaterialFor
+            name={mesh.name}
+            quality={quality}
+            boneOpacity={boneOpacity}
+            glassBuffer={glassBuffer}
+          />
         </mesh>
       ))}
     </group>

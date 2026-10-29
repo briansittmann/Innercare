@@ -179,7 +179,7 @@ export function Hero3D({ className = '' }: { className?: string }) {
       ref={ref}
       role="img"
       aria-label="Busto de vidrio con el cráneo a la vista y una craneoplastía de titanio trabecular en el lado derecho"
-      className={`relative ${className}`}
+      className={`relative bg-linear-to-b from-stage-from to-stage-to ${className}`}
     >
       <Image
         src={POSTER}

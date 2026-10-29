@@ -1,9 +1,9 @@
 'use client'
 
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment, Lightformer, PerformanceMonitor } from '@react-three/drei'
-import { BackSide, MathUtils, type Group } from 'three'
+import { BackSide, CanvasTexture, MathUtils, SRGBColorSpace, type Group } from 'three'
 import { BodyModel, preloadBodyModels } from './body-model'
 import type { Quality } from './materials'
 
@@ -20,7 +20,18 @@ const TURN_PERIOD = 22 // segundos, ida y vuelta
 // Altura del centro de la cabeza: el modelo está en metros, con los pies en 0
 const HEAD_HEIGHT = 1.56
 
-const QUALITY_STEPS: Quality[] = ['baja', 'media', 'alta']
+// Fondo del panel: degradé de azules de la marca, el mismo que
+// --color-stage-from y --color-stage-to en globals.css. Lo dibuja la escena
+// (no el CSS) para que el vidrio refracte exactamente lo que se ve alrededor.
+const STAGE_FROM = '#e6eef8'
+const STAGE_TO = '#c3d7ee'
+
+// Resolución: arranca en la de la pantalla, hasta 1,5x (a 2x, una pantalla
+// retina de escritorio baja a menos de 20 cuadros), y si hace falta baja
+// hasta 1x. El buffer del vidrio tiene antialiasing: a menos resolución la
+// malla se ve más blanda, pero no dentada.
+const MAX_DPR = 1.5
+const MIN_DPR = 1
 
 export type SceneSettings = {
   animate: boolean
@@ -111,6 +122,27 @@ function StatsProbe({ quality, onStats }: {
   return null
 }
 
+function StageBackground() {
+  const texture = useMemo(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 2
+    canvas.height = 256
+    const context = canvas.getContext('2d')
+    if (context) {
+      const gradient = context.createLinearGradient(0, 0, 0, canvas.height)
+      gradient.addColorStop(0, STAGE_FROM)
+      gradient.addColorStop(1, STAGE_TO)
+      context.fillStyle = gradient
+      context.fillRect(0, 0, canvas.width, canvas.height)
+    }
+    const map = new CanvasTexture(canvas)
+    map.colorSpace = SRGBColorSpace
+    return map
+  }, [])
+  useEffect(() => () => texture.dispose(), [texture])
+  return <primitive attach="background" object={texture} />
+}
+
 export default function BodyScene({
   animate,
   active,
@@ -120,15 +152,18 @@ export default function BodyScene({
   onStats,
 }: SceneSettings) {
   const [autoQuality, setAutoQuality] = useState<Quality>('media')
-  const [dpr, setDpr] = useState(1.5)
+  const [dpr, setDpr] = useState(() =>
+    MathUtils.clamp(window.devicePixelRatio, MIN_DPR, MAX_DPR),
+  )
   const quality = fixedQuality ?? autoQuality
 
-  const step = (direction: 1 | -1) => {
+  // Solo baja, de a un paso, y no vuelve a subir: subir y bajar a mitad del
+  // giro se nota. Primero la resolución y, al final, las muestras de la
+  // refracción. Con ?calidad no se ajusta nada, para medir.
+  const decline = () => {
     if (fixedQuality) return
-    setAutoQuality((current) => {
-      const index = QUALITY_STEPS.indexOf(current) + direction
-      return QUALITY_STEPS[MathUtils.clamp(index, 0, QUALITY_STEPS.length - 1)] ?? current
-    })
+    if (dpr > MIN_DPR) setDpr(Math.max(MIN_DPR, dpr - 0.25))
+    else setAutoQuality('baja')
   }
 
   return (
@@ -136,22 +171,10 @@ export default function BodyScene({
       frameloop={!active ? 'never' : animate ? 'always' : 'demand'}
       dpr={dpr}
       camera={{ position: [0, 0.02, 0.92], fov: 30, near: 0.05, far: 10 }}
-      gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
+      gl={{ antialias: true, powerPreference: 'high-performance' }}
     >
-      {/* Si no llega a los cuadros, baja primero la resolución y después la
-          calidad del vidrio; si sobra, sube. */}
-      <PerformanceMonitor
-        onDecline={() => {
-          if (dpr > 1) setDpr(1)
-          else step(-1)
-        }}
-        onIncline={() => step(1)}
-        flipflops={3}
-        onFallback={() => {
-          setDpr(1)
-          if (!fixedQuality) setAutoQuality('baja')
-        }}
-      />
+      <StageBackground />
+      <PerformanceMonitor onDecline={decline} />
       <Suspense fallback={null}>
         <Bust animate={animate} quality={quality} boneOpacity={boneOpacity} />
         <ReadySignal onReady={onReady} />
@@ -170,6 +193,8 @@ export default function BodyScene({
         <Lightformer form="rect" intensity={2} position={[-5, 1, 1]} rotation-y={Math.PI / 2} scale={[8, 3, 1]} />
         <Lightformer form="rect" intensity={1.2} color="#9ec5f0" position={[5, 0, 1]} rotation-y={-Math.PI / 2} scale={[8, 3, 1]} />
         <Lightformer form="ring" intensity={1.5} color="#003c6f" position={[0, -1, -6]} scale={4} />
+        {/* Contraluz: el brillo blanco en el borde del vidrio */}
+        <Lightformer form="rect" intensity={4} position={[-2, 2, -5]} scale={[3, 6, 1]} />
       </Environment>
     </Canvas>
   )

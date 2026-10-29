@@ -8,7 +8,8 @@ Estado al 2026-10-29. El hero muestra el prototipo de cabeza; el cuerpo entero v
 - **Hecho:** el prototipo de cabeza (orden de trabajo, punto 2), salvo la medición en el celular.
   - `3d/scripts/implantes.py` genera la craneoplastía (`salida/implantes.glb`, unas 5 000 caras) y recorta el cráneo debajo (`salida/anatomia.glb`: piel y esqueleto con los recortes). `3d/scripts/cabeza.py` recorta el busto (`salida/cabeza.glb`). `npm run modelos` corre los dos y los optimiza a `public/modelos/`: `cabeza.glb` (425 KB, 334 KB transferidos con gzip) e `implantes.glb` (73 KB). Son unos 87 000 triángulos.
   - En el hero (`components/hero-3d/`): materiales finales por nombre de malla, parada 1 con giro lento de 3/4 de perfil hacia el frente y vuelta, detección de WebGL con imagen de respaldo (`public/img/cuerpo-inicio.webp`), carga diferida, sin render fuera de pantalla y sin giro con `prefers-reduced-motion`.
-  - Medición en escritorio (Apple M1, build de producción, dpr 1,5): 60 fps con el vidrio medio o bajo y 37 fps con el alto. El 3D queda listo a los 0,6 s de la navegación, con 450 KB de JS en la home.
+  - Medición en escritorio (Apple M1, 1440 × 900, dpr 1,5): 60 fps con el vidrio medio. El 3D queda listo a los 0,6 s de la navegación en el build de producción, con 450 KB de JS en la home.
+  - El vidrio dibuja lo que tiene detrás en un buffer propio con MSAA (`useGlassBuffer` en `materials.tsx`): el de Drei no tiene antialiasing y la malla se dentaba. La resolución arranca en la de la pantalla, hasta 1,5x, y solo baja si faltan cuadros, sin volver a subir. Las tres calidades se ven igual: solo cambian las muestras de la refracción.
   - Para medir: `?medir` en la home muestra cuadros por segundo, triángulos, tiempos y bytes; `?calidad=alta|media|baja` fija el vidrio, y `?hueso=0.3`, la opacidad del hueso. Es del prototipo: se quita antes del lanzamiento.
 - **Siguiente:** medir en el celular y ajustar la calidad por defecto, la transmisión y la opacidad del hueso. Después, el cuerpo entero (orden de trabajo, punto 3).
 - **Del esqueleto, a revisar con el material de vidrio:**
@@ -33,14 +34,14 @@ Un cuerpo humano de vidrio, entero, con el esqueleto tenue adentro y seis implan
 
 | Capa | Aspecto | Material (R3F) |
 |---|---|---|
-| Piel | Vidrio frío casi blanco, tirando al azul de marca, con brillo en los bordes. Maniquí de diseño, liso y sin pezones ni genitales, de pie y con los brazos algo separados del torso. Las imágenes de origen (`3d/fuentes/`) salieron con figura femenina: decidir si se mantiene. | `MeshTransmissionMaterial` (es el único: es caro). |
+| Piel | Vidrio celeste, más azul donde es más grueso (atenuación), con brillo blanco en los bordes. Maniquí de diseño, liso y sin pezones ni genitales, de pie y con los brazos algo separados del torso. Las imágenes de origen (`3d/fuentes/`) salieron con figura femenina: decidir si se mantiene. | `MeshTransmissionMaterial` (es el único: es caro). |
 | Esqueleto | Completo, blanco lechoso y tenue, para que se lea como anatomía. | `MeshPhysicalMaterial` transparente, sin transmisión. |
 | Implantes trabeculares (impresión 3D) | Titanio gris mate oscuro, poroso. | `MeshStandardMaterial`, metalness 1 y roughness alto. |
 | Implantes de CNC | Titanio pulido. | `MeshStandardMaterial`, metalness 1 y roughness bajo. |
 
 La diferencia entre el mate y el pulido es real (así salen las piezas de cada tecnología) y cuenta las dos fabricaciones de la planta sin texto.
 
-Fondo: el gris de la página (`--color-surface`). Nada de los rosas ni violetas de la referencia (`docs/referencias/referenciaTranslucido.png`).
+Fondo: el 3D va en un panel `rounded-xl` con un degradé vertical de azules de la marca (`--color-stage-from` a `--color-stage-to`), que dibuja la propia escena para que el vidrio refracte lo mismo que se ve alrededor. El texto del hero queda sobre el gris de la página. Nada de los rosas ni violetas de la referencia (`docs/referencias/referenciaTranslucido.png`); sí su vidrio celeste con brillo blanco en los bordes (decidido el 2026-10-29, ver `DECISIONES.md`).
 
 ### Los seis implantes
 

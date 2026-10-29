@@ -1,39 +1,61 @@
 'use client'
 
-import { MeshTransmissionMaterial } from '@react-three/drei'
-import { Color } from 'three'
+import { useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { MeshTransmissionMaterial, useFBO } from '@react-three/drei'
+import { NoToneMapping, UnsignedByteType, type Mesh, type Texture } from 'three'
 
 // Materiales del cuerpo de vidrio, asignados por nombre de malla
 // (body-model.tsx). Ver docs/ARQUITECTURA_MODELO_3D.md, "Capas".
 
 export type Quality = 'alta' | 'media' | 'baja'
 
-// El canvas es transparente: el vidrio refracta lo que hay "detrás" en su
-// propio buffer, y le damos el fondo de la página (--color-surface).
-const PAGE_BACKGROUND = new Color('#f5f7f9')
+// La calidad solo cambia cuántas muestras toma la refracción: el aspecto es
+// el mismo en las tres, para que un cambio a mitad del giro no se note.
+const REFRACTION_SAMPLES: Record<Quality, number> = { alta: 10, media: 6, baja: 3 }
 
-// La piel es el único material caro: renderiza la escena en un buffer propio
-// cada cuadro (y otra vez para la cara trasera, con backside). No usa
-// transmissionSampler porque ese buffer no ve objetos transparentes, y el
-// hueso lo es. Sin resolution, el buffer es del tamaño del canvas: con uno
-// fijo de 512 px, la malla de la craneoplastía se pixela.
-const GLASS_QUALITY = {
-  alta: { samples: 10, backside: true, chromaticAberration: 0.03 },
-  media: { samples: 6, backside: false, chromaticAberration: 0.02 },
-  baja: { samples: 3, resolution: 512, backside: false, chromaticAberration: 0 },
-} as const
+// Lo que se ve a través del vidrio: la escena sin la piel, dibujada en un
+// buffer propio cada cuadro. El de Drei no tiene antialiasing, y las barras
+// finas de la craneoplastía se dentaban; este usa MSAA. No sirve
+// transmissionSampler: ese buffer no ve objetos transparentes, y el hueso lo
+// es. Devuelve el ref para la malla de vidrio y la textura para su material.
+export function useGlassBuffer() {
+  const glass = useRef<Mesh>(null)
+  const target = useFBO({ samples: 2, type: UnsignedByteType })
+  useFrame(({ gl, scene, camera }) => {
+    const mesh = glass.current
+    if (!mesh) return
+    // Sin tone mapping: se aplica una sola vez, al dibujar el vidrio
+    const toneMapping = gl.toneMapping
+    gl.toneMapping = NoToneMapping
+    mesh.visible = false
+    gl.setRenderTarget(target)
+    gl.render(scene, camera)
+    gl.setRenderTarget(null)
+    mesh.visible = true
+    gl.toneMapping = toneMapping
+  })
+  return [glass, target.texture as Texture] as const
+}
 
-export function Glass({ quality }: { quality: Quality }) {
+// Vidrio celeste de la marca: el color tiñe todo, y la atenuación agrega más
+// azul donde el vidrio es más grueso (cuello y hombros), así los bordes
+// quedan claros, como en la referencia.
+export function Glass({ quality, buffer }: { quality: Quality; buffer: Texture }) {
   return (
     <MeshTransmissionMaterial
-      {...GLASS_QUALITY[quality]}
-      backsideThickness={0.04}
+      buffer={buffer}
+      samples={REFRACTION_SAMPLES[quality]}
       thickness={0.05}
-      roughness={0.07}
-      ior={1.22}
+      roughness={0.06}
+      ior={1.25}
+      chromaticAberration={0}
       anisotropicBlur={0.1}
-      color="#e3edf6"
-      background={PAGE_BACKGROUND}
+      color="#c8e1fa"
+      attenuationColor="#5b9ee0"
+      attenuationDistance={0.35}
+      clearcoat={1}
+      clearcoatRoughness={0.1}
     />
   )
 }
@@ -43,7 +65,7 @@ export function Glass({ quality }: { quality: Quality }) {
 export function Bone({ opacity }: { opacity: number }) {
   return (
     <meshPhysicalMaterial
-      color="#f4f1ea"
+      color="#f7f5f0"
       roughness={0.55}
       sheen={0.4}
       sheenColor="#ffffff"
@@ -54,8 +76,8 @@ export function Bone({ opacity }: { opacity: number }) {
   )
 }
 
-// Titanio de impresión 3D: gris oscuro y mate. El de CNC (pulido) va con
-// roughness bajo, cuando estén esos implantes.
+// Titanio de impresión 3D: gris y mate. El de CNC (pulido) va con roughness
+// bajo, cuando estén esos implantes.
 export function TrabecularTitanium() {
   return <meshStandardMaterial color="#9aa1aa" metalness={1} roughness={0.5} />
 }
