@@ -2,7 +2,7 @@ import { habilitaciones } from '@/content/company'
 
 export function Statement() {
   return (
-    <section className="page-container py-section md:py-[120px]">
+    <section id="habilitaciones" className="page-container py-section md:py-[120px]">
       <p className="reveal max-w-[30ch] font-headline-lg text-statement text-on-surface">
         Fabricamos implantes ortopédicos modulares y a medida del paciente en
         titanio biocompatible,{' '}

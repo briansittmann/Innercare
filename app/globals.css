@@ -123,6 +123,45 @@
   --text-data-mono: 14px;
   --text-data-mono--line-height: 20px;
   --text-data-mono--font-weight: 500;
+
+  /* Curvas de movimiento (sistema de botones, docs/BOTONES.md). Reemplazan
+     las de Tailwind: `ease-out` e `ease-in-out` usan estas. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  /* Sistema de botones (docs/BOTONES.md). Equivalencias con el texto del
+     sistema: primario = primary, primario oscuro = on-primary-fixed,
+     tinte = primary-fixed, tinte suave = primary-faint, borde =
+     outline-variant. Sombras de contacto en on-surface y de color en
+     primary. */
+  --color-primary-faint: #f0f5fc;
+  /* Pill, como el resto de lo interactivo. El sistema propone 0.5rem:
+     cambiarlo aquí lo cambia en todos los botones. */
+  --radius-control: 9999px;
+  --shadow-boton: inset 0 1px 0 rgb(255 255 255 / 0.2), inset 0 -1px 0 rgb(0 0 0 / 0.15),
+    0 1px 2px rgb(13 27 42 / 0.15), 0 4px 12px -4px rgb(0 60 111 / 0.3);
+  --shadow-boton-claro: inset 0 1px 0 #fff, inset 0 -1px 0 rgb(13 27 42 / 0.04),
+    0 1px 2px rgb(13 27 42 / 0.05), 0 3px 8px -4px rgb(0 60 111 / 0.12);
+  --shadow-boton-hundido: inset 0 2px 3px rgb(0 0 0 / 0.18);
+  --shadow-boton-hundido-claro: inset 0 2px 3px rgb(13 27 42 / 0.08);
+
+  /* Panel de contacto: elevación y fondo detrás (oscurecido y desenfocado;
+     opaco si el sistema pide reducir la transparencia). */
+  --shadow-panel: 0 24px 48px -12px rgb(13 27 42 / 0.28), 0 2px 6px rgb(13 27 42 / 0.08);
+  --color-scrim: rgb(13 27 42 / 0.24);
+  --color-scrim-solid: rgb(13 27 42 / 0.6);
+  --blur-scrim: 6px;
+}
+
+/* El hover solo existe con un puntero preciso (mouse o trackpad): en
+   pantallas táctiles no queda "pegado" después de tocar. Redefine el `hover:`
+   de Tailwind, que de fábrica solo comprueba `(hover: hover)`. */
+@custom-variant hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
 }
 
 /* Familias tipográficas: las variables --font-hanken-grotesk y
@@ -141,6 +180,19 @@
   --font-data-mono: var(--font-source-sans-3), monospace;
 }
 
+/* Los enlaces a secciones (#id) dejan el destino bajo el header fijo, no
+   tapado por él. Next desactiva el scroll suave al cambiar de página gracias
+   a `data-scroll-behavior="smooth"` en <html> (app/layout.tsx). */
+html {
+  scroll-padding-top: 72px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 body {
   background-color: var(--color-background);
   color: var(--color-on-surface);
@@ -154,6 +206,135 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Vidrio de la navegación, barra e índice lateral (GlassSurface aplica sus
+   estilos en línea, de ahí el !important): opaco si el sistema pide reducir
+   la transparencia. */
+@media (prefers-reduced-transparency: reduce) {
+  .nav-glass {
+    background: var(--color-surface-container-lowest) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+/* Botones y piezas que combinan con ellos (docs/BOTONES.md). La base lee
+   variables y cada variante solo define sus valores. El hover cambia
+   únicamente `background-color` (y el borde en las claras): el degradado
+   queda fijo encima. En `components` para que las utilidades puedan
+   ajustar tamaño o ancho en cada uso. */
+@layer components {
+  .boton,
+  .relieve {
+    background-color: var(--relieve-color);
+    background-image: var(--relieve-fondo);
+    box-shadow: var(--relieve-sombra);
+  }
+
+  .boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 3rem;
+    padding-inline: 1.25rem;
+    border-radius: var(--radius-control);
+    font-weight: 600;
+    white-space: nowrap;
+    text-decoration: none;
+    transition:
+      transform 160ms var(--ease-out),
+      translate 160ms var(--ease-out),
+      background-color 160ms var(--ease-out),
+      border-color 160ms var(--ease-out),
+      color 160ms var(--ease-out);
+  }
+
+  /* El foco se ve igual de claro que el hover, más el anillo. */
+  .boton:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    background-color: var(--relieve-color-hover);
+  }
+
+  /* Al apretar: se achica un poco, baja 1 px y la sombra pasa adentro. */
+  .boton:active {
+    transform: scale(0.97);
+    translate: 0 1px;
+    box-shadow: var(--relieve-sombra-hundido);
+  }
+
+  /* Primario: fondo de marca, texto blanco. */
+  .boton-primario {
+    color: var(--color-on-primary);
+    --relieve-color: var(--color-primary);
+    --relieve-color-hover: color-mix(in oklab, var(--color-primary), var(--color-on-primary-fixed));
+    --relieve-fondo: linear-gradient(rgb(255 255 255 / 0.1), rgb(255 255 255 / 0));
+    --relieve-sombra: var(--shadow-boton);
+    --relieve-sombra-hundido: var(--shadow-boton-hundido);
+  }
+
+  /* Claro: blanco con borde y un tinte de marca abajo. También lo usan
+     .boton-relleno (en reposo) y .relieve-claro. */
+  .boton-claro,
+  .boton-relleno,
+  .relieve-claro {
+    color: var(--color-on-primary-fixed);
+    border: 1px solid var(--color-outline-variant);
+    --relieve-color: #fff;
+    --relieve-color-hover: var(--color-primary-faint);
+    --relieve-fondo: linear-gradient(
+      transparent,
+      color-mix(in oklab, var(--color-primary-fixed) 60%, transparent)
+    );
+    --relieve-sombra: var(--shadow-boton-claro);
+    --relieve-sombra-hundido: var(--shadow-boton-hundido-claro);
+  }
+
+  .boton-claro:focus-visible {
+    border-color: var(--color-primary);
+  }
+
+  /* Botón que se repite (uno por tarjeta): claro en reposo, se rellena con
+     el primario al pasar el puntero o con el foco. Así no compiten varios
+     botones rellenos en la misma pantalla. */
+  .boton-relleno:focus-visible {
+    color: var(--color-on-primary);
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+    background-image: linear-gradient(rgb(255 255 255 / 0.1), rgb(255 255 255 / 0));
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .boton:hover {
+      background-color: var(--relieve-color-hover);
+    }
+
+    .boton-claro:hover {
+      border-color: var(--color-primary);
+    }
+
+    .boton-relleno:hover {
+      color: var(--color-on-primary);
+      border-color: var(--color-primary);
+      background-color: var(--color-primary);
+      background-image: linear-gradient(rgb(255 255 255 / 0.1), rgb(255 255 255 / 0));
+    }
+  }
+
+  /* Con movimiento reducido el botón sigue respondiendo (color y sombra),
+     pero sin moverse. Gana a la regla global que anula las transiciones. */
+  @media (prefers-reduced-motion: reduce) {
+    .boton {
+      transition-duration: 160ms !important;
+    }
+
+    .boton:active {
+      transform: none;
+      translate: none;
+    }
   }
 }
 
@@ -192,5 +373,245 @@ body {
       animation-timeline: view();
       animation-range: entry 0% entry 40%;
     }
+  }
+}
+
+/* Entrada de la barra de escritorio (components/site-header.tsx), solo si
+   el sitio se carga por la home (data-intro, de components/nav-intro.tsx):
+   1. Aparece la barra como píldora con el logo al centro (130 px: el logo
+      de 82 px más 24 px de cada lado, los mismos que tendrá al final).
+   2. Se estira hasta su ancho con un resorte: se pasa un 4,6 % y vuelve.
+   3. Mientras crece, entran los enlaces uno tras otro.
+   4. Al final, "Contactar" con un rebote más marcado.
+   Los resortes son curvas linear() calculadas (amortiguación 0,7 y 0,45).
+   Sin soporte de linear(), la declaración no vale y la barra se ve quieta. */
+.nav-intro {
+  container-type: inline-size;
+  --spring-soft: linear(0, 0.051, 0.171, 0.323, 0.48, 0.626, 0.751, 0.851, 0.927, 0.98, 1.015, 1.035, 1.044, 1.046, 1.042, 1.036, 1.029, 1.022, 1.016, 1.01, 1.006, 1.003, 1, 0.999, 1);
+  --spring-bouncy: linear(0, 0.081, 0.275, 0.518, 0.755, 0.953, 1.095, 1.176, 1.205, 1.193, 1.156, 1.107, 1.057, 1.015, 0.984, 0.966, 0.958, 0.96, 0.967, 0.976, 0.987, 0.996, 1.002, 1.007, 1.008, 1.008, 1.007, 1.005, 1.003, 1.001, 1, 0.999, 1);
+}
+
+@keyframes nav-stretch {
+  from {
+    width: calc(2rem * 1200 / 466 + 3rem);
+  }
+}
+
+@keyframes nav-logo-in {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    scale: 0.9;
+  }
+}
+
+@keyframes nav-link-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+@keyframes nav-cta-in {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nav-intro[data-intro] .nav-intro-bar {
+    animation:
+      fade-in 350ms var(--ease-out) backwards,
+      nav-stretch 900ms var(--spring-soft) 750ms backwards;
+  }
+
+  .nav-intro[data-intro] .nav-intro-logo {
+    animation: nav-logo-in 500ms var(--ease-out) 100ms backwards;
+  }
+
+  /* Solo opacidad y desenfoque: PillNav mide la posición de cada enlace
+     para el punto activo y el relleno del hover. */
+  .nav-intro[data-intro] .nav-intro-links li {
+    animation: nav-link-in 450ms var(--ease-out) backwards;
+    animation-delay: 850ms;
+  }
+
+  .nav-intro[data-intro] .nav-intro-links li:nth-child(2) {
+    animation-delay: 930ms;
+  }
+
+  .nav-intro[data-intro] .nav-intro-links li:nth-child(3) {
+    animation-delay: 1010ms;
+  }
+
+  .nav-intro[data-intro] .nav-intro-cta {
+    animation: nav-cta-in 700ms var(--spring-bouncy) 1400ms backwards;
+  }
+}
+
+/* Panel de contacto (components/contact/contact-modal.tsx).
+   - Entra desde la derecha en escritorio y desde abajo en móvil, con el
+     fondo oscureciéndose; sale por el mismo camino (data-closing).
+   - .field-in: cada pieza del formulario entra un poco después de la
+     anterior (--i: 0, 1, 2…; orden en contact-form.tsx), con el panel ya
+     llegando. `backwards` y no `both`: al terminar no deja un transform
+     fijo que tape el efecto de apretar de los botones.
+   - .pop-in: el botón de enviar entra con un rebote suave (se pasa un
+     1,5 % y se asienta).
+   - .progress-in: la barra de progreso se llena desde cero al abrir.
+   - .error-in: los mensajes de error aparecen con una entrada corta.
+   - El fondo de atrás se oscurece y se desenfoca.
+   - Con movimiento reducido todo pasa a un fundido corto: más suave, pero
+     sigue habiendo una transición. */
+@keyframes panel-in-x {
+  from {
+    opacity: 0;
+    transform: translateX(3rem) scale(0.98);
+  }
+}
+
+@keyframes panel-out-x {
+  to {
+    opacity: 0;
+    transform: translateX(3rem) scale(0.98);
+  }
+}
+
+@keyframes panel-in-y {
+  from {
+    opacity: 0;
+    transform: translateY(2rem);
+  }
+}
+
+@keyframes panel-out-y {
+  to {
+    opacity: 0;
+    transform: translateY(2rem);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.015);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes progress-in {
+  from {
+    scale: 0 1;
+  }
+}
+
+@keyframes error-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Con el panel abierto, la página de atrás no se desplaza. El atributo lo
+   pone y lo quita el panel (no :has(), que no se entera cuando Next oculta
+   la ruta con <Activity>). */
+html[data-contact-open] {
+  overflow: hidden;
+}
+
+.contact-panel::backdrop {
+  background: var(--color-scrim);
+  -webkit-backdrop-filter: blur(var(--blur-scrim)) saturate(1.1);
+  backdrop-filter: blur(var(--blur-scrim)) saturate(1.1);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .contact-panel::backdrop {
+    background: var(--color-scrim-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+.contact-panel[open]:not([data-closing]) {
+  animation: panel-in-y 300ms var(--ease-out) both;
+}
+
+.contact-panel[open]:not([data-closing])::backdrop {
+  animation: fade-in 300ms var(--ease-out) both;
+}
+
+.contact-panel[data-closing] {
+  animation: panel-out-y 200ms var(--ease-out) both;
+}
+
+.contact-panel[data-closing]::backdrop {
+  animation: fade-out 200ms var(--ease-out) both;
+}
+
+@media (min-width: 48rem) {
+  .contact-panel[open]:not([data-closing]) {
+    animation-name: panel-in-x;
+  }
+
+  .contact-panel[data-closing] {
+    animation-name: panel-out-x;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .field-in {
+    animation: rise-in 280ms var(--ease-out) backwards;
+    animation-delay: calc(80ms + var(--i, 0) * 40ms);
+  }
+
+  .pop-in {
+    animation: pop-in 480ms var(--ease-out) backwards;
+    animation-delay: calc(80ms + var(--i, 0) * 40ms);
+  }
+
+  .progress-in {
+    animation: progress-in 500ms var(--ease-out) 200ms backwards;
+  }
+
+  .error-in {
+    animation: error-in 160ms var(--ease-out);
+  }
+}
+
+/* Ganan a la regla global que anula las animaciones. */
+@media (prefers-reduced-motion: reduce) {
+  .contact-panel[open]:not([data-closing]) {
+    animation: fade-in 200ms var(--ease-out) both !important;
+  }
+
+  .contact-panel[data-closing] {
+    animation: fade-out 160ms var(--ease-out) both !important;
+  }
+
+  .field-in,
+  .pop-in,
+  .error-in {
+    animation: fade-in 200ms var(--ease-out) backwards !important;
   }
 }

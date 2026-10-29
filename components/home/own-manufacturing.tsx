@@ -6,7 +6,7 @@ export async function OwnManufacturing() {
   const products = await getProducts()
 
   return (
-    <section className="page-container pb-section md:pb-[120px]">
+    <section id="fabricacion" className="page-container pb-section md:pb-[120px]">
       <div className="reveal flex flex-col gap-md md:flex-row md:items-end md:justify-between">
         <h2 className="font-display-lg text-display-lg text-on-surface">Fabricación propia</h2>
         <Link

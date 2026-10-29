@@ -47,3 +47,7 @@ next-env.d.ts
 
 # Material fuente (brochures, logos) — se guarda en local, demasiado pesado para git
 imagenes
+
+# 3D: modelos de origen pesados e intermedios (ver docs/ARQUITECTURA_MODELO_3D.md)
+/3d/fuentes/
+/3d/salida/

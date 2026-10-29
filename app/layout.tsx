@@ -47,16 +47,19 @@ export const viewport: Viewport = {
   themeColor: '#003c6f',
 }
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+// `modal`: slot app/@modal. Hoy solo lo usa el panel de contacto.
+export default function RootLayout({ children, modal }: LayoutProps<'/'>) {
   return (
     <html
       lang="es-AR"
+      data-scroll-behavior="smooth"
       className={`${hankenGrotesk.variable} ${sourceSans3.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />
+        {modal}
       </body>
     </html>
   )

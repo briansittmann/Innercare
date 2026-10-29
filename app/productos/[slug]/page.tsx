@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowRightIcon, DownloadSimpleIcon } from '@phosphor-icons/react/ssr'
+import { DownloadSimpleIcon } from '@phosphor-icons/react/ssr'
 import { ContactCta } from '@/components/contact-cta'
 import { ProductGallery } from '@/components/product-gallery'
 import { ProductTile } from '@/components/product-tile'
@@ -81,20 +81,12 @@ export default async function ProductPage({ params }: PageProps<'/productos/[slu
             </dl>
 
             <div className="mt-xl flex flex-wrap gap-md">
-              <Link
-                href="/contacto"
-                className="inline-flex h-12 items-center gap-sm rounded-full bg-primary px-6 font-label-md text-label-md text-on-primary transition hover:bg-primary-container active:scale-[0.98]"
-              >
+              <Link href={`/contacto?producto=${product.slug}`} className="boton boton-primario">
                 Contactar
-                <ArrowRightIcon size={18} aria-hidden />
               </Link>
               {product.datasheetUrl && (
-                <a
-                  href={product.datasheetUrl}
-                  download
-                  className="inline-flex h-12 items-center gap-sm rounded-full border border-outline-variant bg-surface-container-lowest px-6 font-label-md text-label-md text-primary transition hover:border-primary active:scale-[0.98]"
-                >
-                  <DownloadSimpleIcon size={18} aria-hidden />
+                <a href={product.datasheetUrl} download className="boton boton-claro">
+                  <DownloadSimpleIcon size={20} aria-hidden />
                   Ficha técnica (PDF)
                 </a>
               )}
@@ -135,7 +127,7 @@ export default async function ProductPage({ params }: PageProps<'/productos/[slu
                   {product.availableSizes.map((size) => (
                     <li
                       key={size}
-                      className="rounded-full border border-outline-variant bg-surface-container-lowest px-md py-xs font-data-mono text-data-mono tabular-nums text-on-surface"
+                      className="relieve relieve-claro rounded-full px-md py-xs font-data-mono text-data-mono tabular-nums text-on-surface"
                     >
                       {size}
                     </li>
@@ -169,6 +161,7 @@ export default async function ProductPage({ params }: PageProps<'/productos/[slu
       )}
 
       <ContactCta
+        href={`/contacto?producto=${product.slug}`}
         title="¿Necesitás este producto a medida?"
         text="Nuestros sistemas modulares son customizables y se fabrican a pedido. Contactanos para coordinar las especificaciones exactas que necesita tu paciente."
       />

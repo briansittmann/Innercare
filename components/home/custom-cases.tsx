@@ -18,7 +18,7 @@ export function CustomCasesTeaser() {
   })
 
   return (
-    <section className="page-container py-section">
+    <section id="casos" className="page-container py-section">
       <div className="reveal max-w-[60ch]">
         <h2 className="font-display-lg text-display-lg text-on-surface">
           Cuando el caso no entra en un catálogo
