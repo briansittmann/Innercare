@@ -253,6 +253,57 @@ Rama `rediseno`. Reemplaza el panel de la entrada anterior. Detalle en `ARQUITEC
 - Alejar la cámara para achicar el busto y ganar rendimiento: dejaba a la vista la base del busto y no respetaba la proporción elegida.
 - Calidad baja (3 muestras) por defecto: deja sin margen el ajuste automático, que la usa como último paso.
 
+## 2026-10-29 · Cinta de fibras detrás del hero (GhostFibers)
+
+Rama `rediseno`.
+
+**Decisión.** Detrás del texto y del 3D del hero corre una cinta de fibras finas en tinta azul (`GhostFibers` de React Bits, `components/ghost-fibers.tsx`). Usa `primary` y `surface-tint` en modo claro, rotación de -39°, una sola cinta con estilo de hilos, sin viñeta, grano, partículas ni interacción, y se dibuja a 1x. Baja en diagonal desde arriba a la izquierda hacia la nuca del busto, a la altura de la barbilla, y reaparece del otro lado, por el hombro.
+
+**Motivo.**
+- El usuario quería el efecto de Interference Ribbons. GhostFibers es casi igual, gratis y sin dependencias (WebGL2 propio). Con `prefers-reduced-motion` dibuja un cuadro fijo.
+- En modo claro las fibras se componen como tinta sobre el degradé. Así el degradé sigue siendo el fondo y conserva su color, que era el requisito del usuario.
+- A 1x se ve igual que a 2x (las fibras ya son blandas por la profundidad de campo) y cuesta menos: el 3D baja de unos 110 a 90 fps sin tope en el M1, en lugar de a 74.
+- Una sola cinta: la segunda agregaba una franja vertical por detrás de la barra de navegación.
+
+**Descartado.**
+- Interference Ribbons: es de React Bits Pro (USD 129, licencia para un desarrollador) y el código solo se baja con la clave.
+- Aero Shards: son esquirlas de vidrio, así que competirían con el busto (la translucidez vive solo en el 3D). Además usa WebGPU y depende de `vgpu`, un paquete 0.x con muchas dependencias.
+- Un shader propio: GhostFibers ya resuelve lo mismo.
+
+**Pendiente.** El vidrio del busto refracta solo el degradé, así que las fibras no se ven a través de él: la cinta parece entrar en la nuca. Para refractarlas habría que copiar el canvas de las fibras en la textura de fondo del buffer del vidrio en cada cuadro.
+
+## 2026-10-29 · Fibras interactivas y una segunda cinta
+
+Rama `rediseno`. Amplía la entrada anterior. La segunda cinta en su propio contenedor está **Reemplazada por** "La segunda cinta vuelve a ser la del componente"; la interacción sigue vigente.
+
+**Decisión.**
+- Las cintas reaccionan al mouse: la cámara se inclina hacia el puntero con un resorte, y la principal enfoca el tramo que queda bajo el puntero. El pulso al hacer clic sigue apagado.
+- Hay una segunda cinta, chica y en un plano más atrás, arriba a la derecha. Cruza de izquierda a derecha por encima de la cabeza, con espacio. Va en su propio contenedor (la mitad derecha del hero, a un 26 % del alto) para poder ubicarla, y tiene el máximo desenfoque, el foco por delante, menos intensidad, poco brillo en los pliegues y viñeta para fundir los bordes. No se dibuja en el celular, donde la cabeza queda debajo del texto.
+
+**Motivo.**
+- El usuario la quería más viva: el movimiento de fábrica sin interacción se sentía quieto.
+- La segunda cinta de la primera prueba (`layers={2}`) le gustó, pero su ubicación es fija y pasaba por detrás de la barra de navegación. Con una instancia aparte se elige el recorrido.
+- Con el brillo de los pliegues de fábrica, la cinta chica formaba manchas oscuras donde se pone de canto y se leía más adelante que la principal.
+- Rendimiento con las dos cintas: el 3D da unos 156 fps sin tope en el M1, contra unos 203 sin cintas.
+
+## 2026-10-29 · La segunda cinta vuelve a ser la del componente
+
+Rama `rediseno`. Reemplaza la segunda cinta de la entrada anterior y la decisión de usar una sola cinta de la entrada "Cinta de fibras detrás del hero".
+
+**Decisión.** Una sola instancia de `GhostFibers` con `layers={2}`: la segunda cinta es la que ubica el componente, más tenue y desenfocada, que baja desde arriba al centro por detrás de la barra. Todo lo demás se mantiene: hilos, -39°, colores de marca, 1x e interacción con el mouse.
+
+**Motivo.** Al usuario le gustaba la segunda cinta de la primera prueba. La instancia aparte, por encima de la cabeza, no le gustó.
+
+**Descartado.** La segunda cinta en su propio contenedor arriba a la derecha.
+
+## 2026-10-29 · La segunda cinta pasa por encima de la cabeza
+
+Rama `rediseno`.
+
+**Decisión.** `GhostFibers` recibe una prop propia, `placements`: la ubicación de cada cinta como [desplazamiento, profundidad, pendiente, fase], que de fábrica es fija. La principal conserva la de fábrica. La segunda pasa de `[1.9, -4.6, -0.08, 2.4]` a `[2.1, -4.6, 0.29, 2.4]`: entra por arriba a la altura de la barra (54 % del ancho), pasa por encima de la cabeza y sale por la derecha a un 44 % del alto. Antes bajaba por detrás del cuello.
+
+**Motivo.** El usuario marcó ese recorrido sobre una captura. Los valores salieron de proyectar el centro de la cinta con la misma cámara que el componente y ajustarlo a los puntos marcados. La profundidad queda en la de fábrica para conservar el desenfoque.
+
 ## Pendientes abiertos
 
 - ~~**Respaldo del 3D sin WebGL.**~~ Resuelto el 2026-10-29 con el prototipo de cabeza: se comprueba el contexto antes de montar el canvas, que va dentro de un límite de errores, y sin WebGL queda la imagen fija (`public/img/cuerpo-inicio.webp`).

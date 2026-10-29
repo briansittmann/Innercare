@@ -1,6 +1,16 @@
 import Link from 'next/link'
+import GhostFibers from '@/components/ghost-fibers'
 import { Hero3D } from '@/components/hero-3d/hero-3d'
 import { tagline } from '@/content/company'
+
+// Ubicación de cada cinta de fibras: [desplazamiento, profundidad, pendiente,
+// fase]. La principal es la de fábrica. La segunda, más atrás (misma
+// profundidad que la de fábrica), entra por arriba a la altura de la barra,
+// pasa por encima de la cabeza y sale por la derecha a un 44 % del alto.
+const FIBER_PLACEMENTS = [
+  [0, 0, 0, 0],
+  [2.1, -4.6, 0.29, 2.4],
+]
 
 // El hero entero tiene el degradé de azules de la marca, de borde a borde, y
 // sube por detrás del header (64 px en el celular, 72 en escritorio), que es
@@ -14,6 +24,33 @@ export function Hero() {
       id="inicio"
       className="relative -mt-16 overflow-hidden bg-linear-to-b from-stage-from to-stage-to pt-16 md:-mt-[72px] md:pt-[72px]"
     >
+      {/* Cintas de fibras en tinta azul sobre el degradé, por detrás del texto
+          y del 3D. La principal baja en diagonal desde arriba a la izquierda
+          hacia el cuello del busto; la segunda (layers={2}) va más tenue y
+          más atrás, como la ubica el componente. Sin viñeta, grano ni
+          partículas, para que el degradé se siga leyendo igual. Con el mouse
+          encima, la cámara se inclina hacia él con un resorte y se enfoca el
+          tramo que queda bajo el puntero (los eventos se escuchan en window:
+          el contenedor no los recibe). */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <GhostFibers
+          lightMode
+          glowColor="#003c6f"
+          secondaryColor="#2260a1"
+          lineColor="#003c6f"
+          rotation={-39}
+          fiberStyle="lines"
+          layers={2}
+          placements={FIBER_PLACEMENTS}
+          brightness={0.6}
+          particles={0}
+          sparkle={0}
+          grain={0}
+          vignette={0}
+          pulseOnClick={false}
+          dpr={1}
+        />
+      </div>
       <div className="page-container relative z-10 grid md:min-h-[calc(100dvh-72px)] md:grid-cols-12">
         <div className="flex flex-col justify-center pb-lg pt-xl md:col-span-6 md:py-section">
           <h1 className="rise-in text-balance font-display-xl text-display-xl text-on-surface">
