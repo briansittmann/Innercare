@@ -52,8 +52,10 @@ const FOV = 30
 // más esqueleto a la vista y competía con los implantes.
 const OPACIDAD_HUESO = 0.34
 
-// Brillo del implante activo: un azul de la marca, claro, sumado al metal
-const BRILLO = new Color('#4d93e0')
+// Brillo del implante activo: un azul de la marca, claro, sumado al metal.
+// Bajo, para que la pieza se siga leyendo como titanio y no como plástico.
+const BRILLO = new Color('#a9cdf5')
+const INTENSIDAD_BRILLO = 0.12
 
 // Fondo de la escena (.escenario en globals.css), que el vidrio refracta:
 // arriba se funde con el gris de la página y, hacia la derecha, una luz azul.
@@ -119,8 +121,8 @@ function Cuerpo({ calidad, fondo }: { calidad: Quality; fondo: Texture }) {
           position={malla.position}
           quaternion={malla.quaternion}
           scale={malla.scale}
-          // El vidrio se dibuja al final, sobre el hueso y los implantes
-          renderOrder={malla.name === 'piel' ? 2 : 0}
+          // El vidrio se dibuja sobre el hueso
+          renderOrder={malla.name === 'piel' ? 1 : 0}
         >
           {malla.name === 'piel' ? (
             <Glass quality={calidad} buffer={buffer} />
@@ -183,9 +185,12 @@ function Implantes() {
       piezas.map(
         ({ implante }) =>
           new MeshStandardMaterial({
-            color: implante.acabado === 'pulido' ? '#c9ced6' : '#9aa1aa',
+            color: implante.acabado === 'pulido' ? '#d5dae1' : '#aab1ba',
             metalness: 1,
-            roughness: implante.acabado === 'pulido' ? 0.2 : 0.5,
+            roughness: implante.acabado === 'pulido' ? 0.18 : 0.45,
+            // Más reflejo del estudio que en el busto: detrás del vidrio del
+            // cuerpo entero, el titanio se apagaba hasta verse negro.
+            envMapIntensity: 2.6,
             emissive: BRILLO,
             emissiveIntensity: 0,
             transparent: true,
@@ -204,7 +209,7 @@ function Implantes() {
       if (!material) return
       const w = pesoTarjeta(seg, ORDEN_PARADAS.indexOf(implante.parada), reducido)
       material.opacity = Math.max(base, w)
-      material.emissiveIntensity = 0.55 * w
+      material.emissiveIntensity = INTENSIDAD_BRILLO * w
       material.depthWrite = material.opacity > 0.9
     })
   })
@@ -219,11 +224,33 @@ function Implantes() {
           matrix={matriz}
           matrixAutoUpdate={false}
           material={materiales[i]}
-          renderOrder={1}
+          layers={CAPA_IMPLANTES}
         />
       ))}
     </group>
   )
+}
+
+// Los implantes no se ven a través del vidrio sino encima: van en su propia
+// capa, que no entra en el buffer que refracta la piel ni en la pasada
+// principal, y se dibujan al final con la profundidad limpia. Refractados y
+// teñidos por el vidrio, el titanio se veía azul oscuro y sin brillo; así se
+// lee como metal y el implante es lo más nítido de la escena. El hueso queda
+// adentro del vidrio, tenue, como en el busto del hero.
+const CAPA_IMPLANTES = 1
+
+function Pasadas() {
+  useFrame(({ gl, scene, camera }) => {
+    gl.render(scene, camera)
+    const autoClear = gl.autoClear
+    gl.autoClear = false
+    gl.clearDepth()
+    camera.layers.set(CAPA_IMPLANTES)
+    gl.render(scene, camera)
+    camera.layers.set(0)
+    gl.autoClear = autoClear
+  }, 1)
+  return null
 }
 
 const proyectado = new Vector3()
@@ -329,6 +356,7 @@ function Escena({ calidad, alListo }: { calidad: Quality; alListo: () => void })
   return (
     <>
       <CamaraRecorrido />
+      <Pasadas />
       <Suspense fallback={null}>
         <Cuerpo calidad={calidad} fondo={fondo} />
         <Implantes />
