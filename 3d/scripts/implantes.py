@@ -1030,22 +1030,56 @@ nuevos.append(hombro())
 
 # --- 4. Acetábulo: reconstrucción en titanio trabecular (a medida) -------------
 # Del diseño del caso (public/img/caso-acetabular-tornillos.jpg) y del
-# implante poroso (caso-porosa-implante.jpg): copa con la cara interna maciza,
-# la externa trabecular (celosía), un borde macizo, un ala superior con dos
+# implante poroso (caso-porosa-implante.jpg): copa con la cara interna
+# perforada, la externa trabecular (celosía), un borde macizo, un ala superior con dos
 # agujeros sobre el ilíaco y tornillos de 25 a 55 mm que salen en abanico
 # hacia el ilíaco, el isquion y el pubis. Va en la cadera derecha, alrededor
 # de la cabeza femoral (que se conserva: el intercalar entra por arriba del
 # mismo fémur). Se borra el acetábulo debajo de la copa.
 ACE_INTERIOR = 25 * MM  # la cabeza femoral del atlas tiene 23 mm de radio
-ACE_CASCARA = 26.5 * MM  # cara interna maciza
+ACE_CASCARA = 26.5 * MM  # cara interna perforada
 ACE_POROSO = 29 * MM  # capa trabecular
 ACE_ABERTURA = (-0.62, -0.25, -0.70)  # afuera, adelante y abajo: unos 45° de inclinación
 ACE_TORNILLO = 5.5 * MM
-# Tornillos: ángulo desde el polo de la copa y azimut desde arriba (0°,
-# hacia el ilíaco; 90°, hacia atrás), en grados, y largo en mm (los de la
-# imagen del caso)
-ACE_TORNILLOS = [(18, 0, 50), (42, 25, 40), (40, -40, 55), (58, 70, 35), (55, -85, 40),
-                 (62, 145, 30), (60, -150, 35), (48, 180, 25)]
+# Tornillos: hacia dónde apunta cada uno, como ángulo desde el polo de la
+# copa y azimut desde arriba (0°, hacia el ilíaco; 180°, hacia abajo), en
+# grados. Como en la imagen del caso: cinco hacia el ilíaco y cuatro hacia
+# abajo (isquion y pubis). Dirección final y largo (de 25 a 55 mm, los de la
+# imagen) salen de buscar alrededor de cada uno el que queda entero dentro
+# del hueso.
+ACE_TORNILLOS = [(15, 0), (40, 35), (40, -35), (55, 80), (55, -80),
+                 (55, 140), (55, -140), (65, 165), (65, -165)]
+
+
+def dentro_del_hueso(bvh, puntos):
+    # Del lado de adentro de la superficie más cercana
+    res = []
+    for p in puntos:
+        q, n, _, _ = bvh.find_nearest(p.tolist())
+        res.append(q is not None and np.dot(p - np.array(q), np.array(n)) < -0.8 * MM)
+    return np.array(res)
+
+
+def buscar_tornillo(bvh, origen, d0, desde, largos=(25, 55), cono=25, evitar=(), separacion=14):
+    # La dirección dentro de un cono alrededor de d0 en la que el tornillo
+    # entra más largo sin salir del hueso (recorrido desde `desde` hasta la
+    # punta), lejos de los ya elegidos. Devuelve (dirección, largo) o None.
+    base = base_eje(d0)
+    mejor = None
+    for alfa in np.radians(np.arange(0, cono + 1, 5)):
+        for beta in np.radians(np.arange(0, 360, 30 if alfa else 360)):
+            d = base @ np.array([math.sin(alfa) * math.cos(beta), math.sin(alfa) * math.sin(beta),
+                                 math.cos(alfa)])
+            if any(math.degrees(math.acos(np.clip(d @ e, -1, 1))) < separacion for e in evitar):
+                continue
+            ts = np.arange(desde, desde + largos[1] * MM + 0.1 * MM, 2 * MM)
+            ok = dentro_del_hueso(bvh, origen + d[None, :] * ts[:, None])
+            n = len(ok) if ok.all() else int(np.argmin(ok))
+            largo = (ts[n - 1] if n else 0) - desde
+            largo = min(largos[1], 5 * math.floor(largo / MM / 5)) * MM
+            if largo >= largos[0] * MM and (mejor is None or largo > mejor[1] + 1e-9):
+                mejor = (d, largo)
+    return mejor
 
 
 def acetabulo():
@@ -1057,57 +1091,89 @@ def acetabulo():
     a = unitario(ACE_ABERTURA)
     polo = -a
     base = base_eje(polo, ref=(0, 0, 1))  # x local: hacia arriba
+    bvh = bvh_de(coxal)  # entero, antes del recorte
     print(f'[implantes] acetábulo: cabeza femoral de {radio_cabeza * 1000:.1f} mm de radio')
 
+    def media_esfera_calada(radio, borde, espesor):
+        bm = bmesh.new()
+        bmesh.ops.create_icosphere(bm, subdivisions=4, radius=radio)
+        bmesh.ops.delete(bm, geom=[f for f in bm.faces if min(v.co.z for v in f.verts) < -0.2 * MM],
+                         context='FACES')
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+        huecos = perforar(bm, sorted(bm.verts, key=lambda v: -v.co.z), borde)
+        bmesh.ops.solidify(bm, geom=bm.faces[:], thickness=espesor)
+        calada = Pieza().sumar_bm(bm)
+        bm.free()
+        return calada, huecos
+
     pieza = Pieza()
-    # Cara interna maciza
-    perfil = arco(ACE_CASCARA, 0, 90, 18) + arco(ACE_INTERIOR, 90, 0, 18)
-    pieza.sumar(*revolver(perfil, 56), origen=c, eje=polo, ref=(0, 0, 1))
-    # Capa trabecular: media icoesfera calada, con espesor hacia adentro
-    bm = bmesh.new()
-    bmesh.ops.create_icosphere(bm, subdivisions=4, radius=ACE_POROSO)
-    bmesh.ops.delete(bm, geom=[f for f in bm.faces if min(v.co.z for v in f.verts) < -0.2 * MM],
-                     context='FACES')
-    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
-    centros = sorted(bm.verts, key=lambda v: -v.co.z)
-    huecos = perforar(bm, centros, 0.5 * MM)
-    bmesh.ops.solidify(bm, geom=bm.faces[:], thickness=ACE_POROSO - ACE_CASCARA + 0.3 * MM)
-    trabecular = Pieza().sumar_bm(bm)
-    bm.free()
+    # Cara interna perforada (agujeros chicos) y capa trabecular por fuera
+    # (poros grandes), las dos medias icoesferas caladas
+    interna, agujeros_int = media_esfera_calada(ACE_CASCARA, 1.25 * MM, ACE_CASCARA - ACE_INTERIOR)
+    pieza.sumar_pieza(interna, origen=c, eje=polo, ref=(0, 0, 1))
+    trabecular, huecos = media_esfera_calada(ACE_POROSO, 0.5 * MM, ACE_POROSO - ACE_CASCARA + 0.3 * MM)
     pieza.sumar_pieza(trabecular, origen=c, eje=polo, ref=(0, 0, 1))
-    print(f'[implantes] acetábulo: {huecos} poros')
+    print(f'[implantes] acetábulo: {agujeros_int} agujeros adentro, {huecos} poros afuera')
     # Borde macizo
     r_sup = math.sqrt(ACE_INTERIOR ** 2 - (3.5 * MM) ** 2)
     pieza.sumar(*revolver([(ACE_INTERIOR, -0.8 * MM), (ACE_POROSO + 0.4 * MM, -0.8 * MM),
                            (ACE_POROSO + 0.4 * MM, 3.5 * MM), (r_sup, 3.5 * MM)], 56, cerrado=True),
                 origen=c, eje=polo, ref=(0, 0, 1))
-    # Tornillos en abanico, con la cabeza hundida en la cara interna
-    for alfa, beta, largo in ACE_TORNILLOS:
+    # Tornillos en abanico, enteros dentro del hueso, con la cabeza hundida
+    # en la cara interna
+    elegidos = []
+    for alfa, beta in ACE_TORNILLOS:
         al, be = math.radians(alfa), math.radians(beta)
-        d = base @ np.array([math.sin(al) * math.cos(be), math.sin(al) * math.sin(be), math.cos(al)])
+        d0 = base @ np.array([math.sin(al) * math.cos(be), math.sin(al) * math.sin(be), math.cos(al)])
+        res = buscar_tornillo(bvh, c, d0, ACE_POROSO + 1 * MM, largos=(20, 55), cono=40,
+                              evitar=elegidos, separacion=20)
+        if res is None:
+            print(f'[implantes] acetábulo: sin lugar para el tornillo ({alfa}°, {beta}°)')
+            continue
+        d, largo = res
+        elegidos.append(d)
         cabeza = (ACE_TORNILLO * 1.5, 2 * MM)
-        pieza.sumar(*tornillo(largo * MM, ACE_TORNILLO, cabeza=cabeza),
-                    origen=c + d * (ACE_INTERIOR + 0.3 * MM + largo * MM + cabeza[1]), eje=-d)
+        pieza.sumar(*tornillo(largo, ACE_TORNILLO, cabeza=cabeza, lados=8),
+                    origen=c + d * (ACE_INTERIOR + 0.3 * MM + largo + cabeza[1]), eje=-d)
+        arriba_abajo = 'arriba' if d @ np.array([0, 0, 1.0]) > 0 else 'abajo'
+        print(f'[implantes] acetábulo: tornillo de {largo / MM:.0f} mm hacia {arriba_abajo}')
 
-    # Ala superior: una lengüeta plana en el plano del borde, hacia el
-    # ilíaco, con dos agujeros que miran a la abertura (como en la imagen
-    # del caso) y sus tornillos hacia arriba y adentro
+    # Ala superior: una lengüeta plana que sale del borde hacia el ilíaco,
+    # inclinada hasta apoyar en el hueso, con dos agujeros (como en la imagen
+    # del caso) y sus tornillos dentro del hueso
     arriba = unitario(np.array([0, 0, 1.0]) - a[2] * a)
     lado = unitario(np.cross(a, arriba))
     borde = c + arriba * (ACE_POROSO - 1 * MM) - a * 1.5 * MM
+
+    def afuera_del_hueso(q):
+        punto, normal, _, _ = bvh.find_nearest(q.tolist())
+        return float(np.dot(q - np.array(punto), np.array(normal)))
+
+    for theta in np.radians(np.arange(0, 75, 5)):
+        t = math.cos(theta) * arriba + math.sin(theta) * polo
+        if afuera_del_hueso(borde + t * 14 * MM) < 1 * MM:
+            break
+    normal_ala = np.cross(t, lado)  # hacia afuera del hueso
+    print(f'[implantes] acetábulo: ala inclinada {math.degrees(theta):.0f}° hacia el hueso')
     agujeros = [(-6.5, 11), (6.5, 11)]
     nodos = [((-8 * MM, -3 * MM), 0), ((0, -4 * MM), 0), ((8 * MM, -3 * MM), 0)]
     nodos += [((x * MM, y * MM), 2.9 * MM) for x, y in agujeros]
     ala = placa(nodos, [(0, 1), (1, 2), (0, 3), (1, 3), (1, 4), (2, 4), (3, 4)],
                 5 * MM, 7 * MM, 3 * MM, lados=24)
-    marco = np.stack([lado, arriba, a], 1)
+    marco = np.stack([lado, t, normal_ala], 1)
     pieza.sumar(ala.co @ marco.T + borde, ala.caras)
     for x, y in agujeros:
         sup = borde + marco @ np.array([x * MM, y * MM, 3 * MM])
-        d = unitario(-a + arriba * 0.8)
-        largo = 40 * MM
-        pieza.sumar(*tornillo(largo, ACE_TORNILLO, cabeza=(ACE_TORNILLO * 1.6, 2.2 * MM)),
-                    origen=sup + d * (largo - 0.5 * MM), eje=-d)
+        res = buscar_tornillo(bvh, sup, unitario(-normal_ala + t * 0.3), 3 * MM, largos=(15, 40),
+                              cono=40, evitar=elegidos, separacion=8)
+        if res is None:
+            print('[implantes] acetábulo: sin lugar para un tornillo del ala')
+            continue
+        d, largo = res
+        elegidos.append(d)
+        pieza.sumar(*tornillo(largo + 3 * MM, ACE_TORNILLO, cabeza=(ACE_TORNILLO * 1.6, 2.2 * MM), lados=8),
+                    origen=sup + d * (largo + 2.5 * MM), eje=-d)
+        print(f'[implantes] acetábulo: tornillo del ala de {largo / MM:.0f} mm')
 
     obj = resumen(pieza.objeto('implante_acetabulo'))
 
