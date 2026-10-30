@@ -638,6 +638,34 @@ body {
   }
 }
 
+/* Aviso de deslizar del hero (components/home/hero.tsx). Junto al texto,
+   un riel fino del primario por el que cae un tramo más oscuro, una y otra
+   vez: indica la dirección sin flechas ni rebotes. Con movimiento reducido,
+   el tramo queda quieto arriba del riel. */
+.aviso-deslizar::after {
+  content: '';
+  width: 1px;
+  height: 2.5rem;
+  background:
+    linear-gradient(var(--color-primary), var(--color-primary)) 0 0 / 100% 40% no-repeat,
+    color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+@keyframes aviso-deslizar {
+  from {
+    background-position: 0 -150%;
+  }
+  to {
+    background-position: 0 250%;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .aviso-deslizar::after {
+    animation: aviso-deslizar 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+}
+
 /* Entrada del header (components/site-header.tsx), solo si el sitio se carga
    por la home (NavIntro), con el busto (intro.ts). En el celular, la barra
    baja con un fundido. En escritorio:

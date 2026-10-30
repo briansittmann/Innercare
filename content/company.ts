@@ -11,6 +11,11 @@ export const trayectoria =
   'médicos ortopédicos e implantables. Proveedor mediante licitaciones y concursos ' +
   'en todo el país.'
 
+// Resumen de las tres habilitaciones ANMAT de abajo, para el hero
+// (texto acordado en docs/landing/AJUSTES.md).
+export const habilitacionesResumen =
+  'Habilitados por ANMAT para fabricar, importar y distribuir productos médicos en todo el país.'
+
 // Habilitaciones ANMAT y trazabilidad (pág. 4).
 export const habilitaciones: readonly Habilitacion[] = [
   {

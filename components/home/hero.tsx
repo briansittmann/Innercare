@@ -1,9 +1,11 @@
 import Link from 'next/link'
+import { SealCheckIcon } from '@phosphor-icons/react/ssr'
 import type { CSSProperties } from 'react'
 import { BotonVidrio } from '@/components/boton-vidrio'
 import { Hero3D } from '@/components/hero-3d/hero-3d'
 import { INTRO_AT } from '@/components/intro-timeline'
-import { tagline } from '@/content/company'
+import { contactHref, contactLabel } from '@/components/nav-links'
+import { habilitacionesResumen, tagline } from '@/content/company'
 import { HeroFibers, HeroTitle, IntroSection } from './hero-intro'
 
 // Ubicación de cada cinta de fibras: [desplazamiento, profundidad, pendiente,
@@ -28,7 +30,8 @@ const introAt = (ms: number) => ({ '--intro-at': `${ms}ms` }) as CSSProperties
 //
 // Entrada orquestada (components/intro.ts, tiempos en intro-timeline.ts):
 // header, busto y fibras a la vez; mientras terminan, el título letra por
-// letra; después el subtítulo y, al final, los botones.
+// letra; después el subtítulo, los botones, la línea de habilitaciones y, al
+// final, el aviso de deslizar.
 export function Hero() {
   return (
     <IntroSection
@@ -62,7 +65,7 @@ export function Hero() {
         />
       </div>
       <div className="page-container relative z-10 grid md:min-h-[calc(100dvh-72px)] md:grid-cols-12">
-        <div className="flex flex-col justify-center pb-lg pt-xl md:col-span-6 md:py-section">
+        <div className="flex flex-col justify-center pb-lg pt-xl md:relative md:col-span-6 md:py-section">
           <h1 className="text-balance font-display-xl text-display-xl text-on-surface">
             <HeroTitle text={tagline} />
           </h1>
@@ -79,21 +82,31 @@ export function Hero() {
                 principal. Crece un poco con el
                 puntero encima (.boton-crece) */}
             <Link
-              href="/productos"
+              href={contactHref}
               className="intro-in boton boton-primario boton-crece min-h-[3.5rem] px-[1.75rem] text-body-lg font-semibold"
               style={introAt(INTRO_AT.actions)}
             >
-              Ver catálogo
+              {contactLabel}
             </Link>
             {/* Vidrio, como "Ver la demo" de Mango (pedido del usuario) */}
             <BotonVidrio
-              href="/casos-a-medida"
+              href="#recorrido"
               style={introAt(INTRO_AT.actions + 100)}
               className="intro-in min-h-[3.5rem] px-[1.75rem] text-body-lg font-semibold"
             >
-              Ver casos a medida
+              Recorrer los implantes
             </BotonVidrio>
           </div>
+          {/* Credencial, no eslogan: chica y con el sello en el primario, para
+              que se lea como dato y no compita con los botones */}
+          <p
+            className="intro-in mt-lg flex max-w-[46ch] items-start gap-sm text-body-sm text-on-surface-variant md:mt-xl"
+            style={introAt(INTRO_AT.credentials)}
+          >
+            <SealCheckIcon size={20} weight="light" aria-hidden className="shrink-0 text-primary" />
+            {habilitacionesResumen}
+          </p>
+          <ScrollCue />
         </div>
       </div>
 
@@ -105,5 +118,28 @@ export function Hero() {
           hombros, y no más: su área pesa en los cuadros por segundo. */}
       <Hero3D className="intro-3d -mt-xl h-[62vh] [--hero-3d-foco:0.5] md:absolute md:right-0 md:bottom-0 md:mt-0 md:aspect-[14/15] md:h-[min(100%,80vw)] md:w-auto md:[--hero-3d-foco:0.555]" />
     </IntroSection>
+  )
+}
+
+// Aviso de deslizar: anticipa que el recorrido por el cuerpo se maneja con
+// el scroll. Un tramo del primario cae por un riel fino, en loop
+// (.aviso-deslizar en globals.css; quieto con movimiento reducido).
+// Decorativo para los lectores de pantalla: el recorrido se anuncia con su
+// propio título.
+// Dónde va: centrado abajo no entra sin pisar el busto (en escritorio, la
+// espalda del busto pasa por el centro de la pantalla hasta pantallas de
+// proporción ≈ 1,8:1). Así que en escritorio va abajo de todo, alineado con
+// el texto; en el celular, centrado entre la línea de habilitaciones y el
+// busto, que es donde termina la primera pantalla. En los dos, el riel a la
+// izquierda del texto, en una sola línea, para no empujar más el busto.
+function ScrollCue() {
+  return (
+    <p
+      aria-hidden
+      className="intro-in aviso-deslizar mt-lg flex flex-row-reverse items-center gap-md self-center text-body-sm text-on-surface-variant md:absolute md:bottom-lg md:left-0 md:mt-0"
+      style={introAt(INTRO_AT.scrollCue)}
+    >
+      Deslizá para recorrer el cuerpo
+    </p>
   )
 }
