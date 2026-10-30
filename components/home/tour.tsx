@@ -180,18 +180,22 @@ function VistaParada({ parada }: { parada: Parada }) {
   )
 }
 
-// Vista de la entrada y del cierre (lugar reservado del cuerpo entero,
-// anclado a la derecha como en el hero del borrador): la captura del busto
-// de vidrio del hero.
+// Vista de la entrada y del cierre (lugar reservado del cuerpo entero, sin
+// WebGL o mientras carga): una captura del cuerpo 3D en la toma de la
+// entrada, con fondo transparente (public/img/cuerpo-entero.webp, 440 × 900
+// a 1,5x: el alto entero de la escena). En escritorio va al alto de la
+// escena y centrada al 68 %, donde la cámara pone el cuerpo; en el celular,
+// a dos tercios (la cámara del celular lo muestra más chico) y con el centro
+// del cuerpo al 74 % del alto, como en camara.ts.
 function VistaCuerpo() {
   return (
-    <div className="absolute bottom-0 left-1/2 h-[52vh] w-[min(100vw,36rem)] -translate-x-1/2 min-[820px]:left-[68%] min-[820px]:h-[88vh] min-[820px]:w-[min(52vw,52rem)]">
+    <div className="absolute top-[38.6%] left-1/2 aspect-[660/1350] h-[66.7%] -translate-x-1/2 min-[820px]:top-0 min-[820px]:left-[68%] min-[820px]:h-full">
       <Image
-        src="/img/cuerpo-inicio.webp"
+        src="/img/cuerpo-entero.webp"
         alt=""
         fill
-        sizes="(min-width: 820px) 52vw, 100vw"
-        className="object-contain object-bottom"
+        sizes="(min-width: 820px) 50vh, 33vh"
+        className="object-contain"
       />
     </div>
   )

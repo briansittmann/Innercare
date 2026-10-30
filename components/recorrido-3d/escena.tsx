@@ -2,12 +2,17 @@
 
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Environment, Lightformer, useGLTF } from '@react-three/drei'
+import { Environment, Lightformer, MeshTransmissionMaterial, useGLTF } from '@react-three/drei'
 import {
+  AdditiveBlending,
   BackSide,
   CanvasTexture,
   Color,
   DoubleSide,
+  FrontSide,
+  ShaderMaterial,
+  Sprite,
+  SpriteMaterial,
   Euler,
   MathUtils,
   Matrix4,
@@ -21,7 +26,7 @@ import {
   type PerspectiveCamera,
   type Texture,
 } from 'three'
-import { Bone, Glass, useGlassBuffer, type Quality } from '../hero-3d/materials'
+import { Bone, useGlassBuffer, type Quality } from '../hero-3d/materials'
 import {
   ORDEN_PARADAS,
   TOMAS_PARADA,
@@ -52,10 +57,17 @@ const FOV = 30
 // más esqueleto a la vista y competía con los implantes.
 const OPACIDAD_HUESO = 0.34
 
-// Brillo del implante activo: un azul de la marca, claro, sumado al metal.
-// Bajo, para que la pieza se siga leyendo como titanio y no como plástico.
+// Brillo del implante activo: un azul de la marca, claro, sumado al metal,
+// bajo para que la pieza se siga leyendo como titanio. El halo azul fuerte
+// del borrador (shadowBlur) lo da el resplandor de detrás (Resplandor).
 const BRILLO = new Color('#a9cdf5')
-const INTENSIDAD_BRILLO = 0.12
+const INTENSIDAD_BRILLO = 0.2
+const COLOR_RESPLANDOR = '#3d6fe0'
+
+// Capas: los implantes y su resplandor (1) y el borde de luz del vidrio (2)
+// se dibujan en pasadas propias, después de la escena (ver Pasadas).
+const CAPA_IMPLANTES = 1
+const CAPA_BORDE = 2
 
 // Fondo de la escena (.escenario en globals.css), que el vidrio refracta:
 // arriba se funde con el gris de la página y, hacia la derecha, una luz azul.
@@ -106,10 +118,81 @@ function mallasDe(root: Object3D) {
   return mallas
 }
 
+// Vidrio del cuerpo: el del busto (components/hero-3d/materials.tsx), más
+// claro y con más profundidad. El cuerpo entero se ve más chico y sobre un
+// fondo azul claro: con el tono del busto quedaba azul sobre azul, sin
+// contraste. Más claro en los bordes finos y más azul donde es grueso.
+const MUESTRAS: Record<Quality, number> = { alta: 10, media: 4, baja: 3 }
+
+function Vidrio({ calidad, buffer }: { calidad: Quality; buffer: Texture }) {
+  return (
+    <MeshTransmissionMaterial
+      buffer={buffer}
+      samples={MUESTRAS[calidad]}
+      thickness={0.06}
+      roughness={0.05}
+      ior={1.28}
+      chromaticAberration={0}
+      anisotropicBlur={0.1}
+      color="#eaf3fd"
+      attenuationColor="#3f86d6"
+      attenuationDistance={0.22}
+      clearcoat={1}
+      clearcoatRoughness={0.08}
+      envMapIntensity={1.4}
+    />
+  )
+}
+
+// Borde de luz (fresnel): un brillo blanco donde la superficie se pone de
+// canto, como el contraluz de la referencia de vidrio. Se suma encima del
+// vidrio, en su propia pasada.
+function materialBorde() {
+  return new ShaderMaterial({
+    uniforms: {
+      uColor: { value: new Color('#ffffff') },
+      uTinte: { value: new Color('#9fc8f5') },
+      uFuerza: { value: 0.85 },
+    },
+    vertexShader: /* glsl */ `
+      varying vec3 vNormal;
+      varying vec3 vVista;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vNormal = normalize(normalMatrix * normal);
+        vVista = normalize(-mv.xyz);
+        gl_Position = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform vec3 uColor;
+      uniform vec3 uTinte;
+      uniform float uFuerza;
+      varying vec3 vNormal;
+      varying vec3 vVista;
+      void main() {
+        float f = 1.0 - abs(dot(normalize(vNormal), normalize(vVista)));
+        float borde = pow(f, 3.2);
+        float halo = pow(f, 1.4) * 0.18;
+        vec3 color = uColor * borde + uTinte * halo;
+        gl_FragColor = vec4(color * uFuerza, 1.0);
+      }
+    `,
+    blending: AdditiveBlending,
+    transparent: true,
+    depthWrite: false,
+    depthTest: false,
+    side: FrontSide,
+  })
+}
+
 function Cuerpo({ calidad, fondo }: { calidad: Quality; fondo: Texture }) {
   const cuerpo = useGLTF(CUERPO_URL, false, true)
   const mallas = useMemo(() => mallasDe(cuerpo.scene), [cuerpo.scene])
   const [piel, buffer] = useGlassBuffer(fondo)
+  const borde = useMemo(() => materialBorde(), [])
+  useEffect(() => () => borde.dispose(), [borde])
+  const geometriaPiel = mallas.find((m) => m.name === 'piel')
   return (
     <group>
       {mallas.map((malla) => (
@@ -125,12 +208,22 @@ function Cuerpo({ calidad, fondo }: { calidad: Quality; fondo: Texture }) {
           renderOrder={malla.name === 'piel' ? 1 : 0}
         >
           {malla.name === 'piel' ? (
-            <Glass quality={calidad} buffer={buffer} />
+            <Vidrio calidad={calidad} buffer={buffer} />
           ) : (
             <Bone opacity={OPACIDAD_HUESO} />
           )}
         </mesh>
       ))}
+      {geometriaPiel && (
+        <mesh
+          geometry={geometriaPiel.geometry}
+          position={geometriaPiel.position}
+          quaternion={geometriaPiel.quaternion}
+          scale={geometriaPiel.scale}
+          material={borde}
+          layers={CAPA_BORDE}
+        />
+      )}
     </group>
   )
 }
@@ -138,7 +231,13 @@ function Cuerpo({ calidad, fondo }: { calidad: Quality; fondo: Texture }) {
 // Geometría y transformación de cada implante, según su fuente
 // (implantes.ts). Las de .glb salen del archivo, con la transformación del
 // nodo multiplicada por la de la entrada.
-type PiezaLista = { implante: Implante; geometria: BufferGeometry; matriz: Matrix4 }
+type PiezaLista = {
+  implante: Implante
+  geometria: BufferGeometry
+  matriz: Matrix4
+  centro: Vector3
+  radio: number
+}
 
 function matrizDe(implante: Implante) {
   return new Matrix4().compose(
@@ -158,12 +257,26 @@ function usePiezas(): PiezaLista[] {
     return IMPLANTES.map((implante) => {
       const matriz = matrizDe(implante)
       const fuente = implante.fuente
-      if (fuente.tipo === 'primitiva') return { implante, geometria: fuente.crear(), matriz, propia: true }
-      const archivo = archivos[urls.indexOf(fuente.url)]
-      const malla = archivo ? mallasDe(archivo.scene).find((m) => m.name === fuente.malla) : undefined
-      if (!malla) throw new Error(`Falta la malla ${fuente.malla} en ${fuente.url}`)
-      malla.updateWorldMatrix(true, false)
-      return { implante, geometria: malla.geometry, matriz: matriz.multiply(malla.matrixWorld), propia: false }
+      let geometria: BufferGeometry
+      let propia = true
+      if (fuente.tipo === 'primitiva') {
+        geometria = fuente.crear()
+      } else {
+        const archivo = archivos[urls.indexOf(fuente.url)]
+        const malla = archivo ? mallasDe(archivo.scene).find((m) => m.name === fuente.malla) : undefined
+        if (!malla) throw new Error(`Falta la malla ${fuente.malla} en ${fuente.url}`)
+        malla.updateWorldMatrix(true, false)
+        matriz.multiply(malla.matrixWorld)
+        geometria = malla.geometry
+        propia = false
+      }
+      // Centro y radio en el cuerpo: dónde va el resplandor y cuánto se
+      // apagan los implantes vecinos al activo
+      if (!geometria.boundingSphere) geometria.computeBoundingSphere()
+      const esfera = geometria.boundingSphere
+      const centro = (esfera?.center.clone() ?? new Vector3()).applyMatrix4(matriz)
+      const radio = (esfera?.radius ?? 0.02) * matriz.getMaxScaleOnAxis()
+      return { implante, geometria, matriz, propia, centro, radio }
     })
   }, [archivos, urls])
   // Las primitivas se crean acá: se liberan al desmontar
@@ -176,6 +289,59 @@ function usePiezas(): PiezaLista[] {
   return piezas
 }
 
+// Resplandor azul detrás del implante activo, el halo del borrador
+// (shadowBlur azul): un degradé radial que mira siempre a la cámara, en la
+// capa de los implantes y dibujado antes que ellos.
+let texturaResplandor: CanvasTexture | null = null
+function resplandorTextura() {
+  if (texturaResplandor) return texturaResplandor
+  const canvas = document.createElement('canvas')
+  canvas.width = 128
+  canvas.height = 128
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64)
+    g.addColorStop(0, 'rgba(255,255,255,1)')
+    g.addColorStop(0.35, 'rgba(255,255,255,0.55)')
+    g.addColorStop(1, 'rgba(255,255,255,0)')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, 128, 128)
+  }
+  texturaResplandor = new CanvasTexture(canvas)
+  return texturaResplandor
+}
+
+function Resplandor({ ref, centro, tamano }: {
+  ref: (sprite: Sprite | null) => void
+  centro: Vector3
+  tamano: number
+}) {
+  const material = useMemo(
+    () =>
+      new SpriteMaterial({
+        map: resplandorTextura(),
+        color: COLOR_RESPLANDOR,
+        transparent: true,
+        opacity: 0,
+        depthTest: false,
+        depthWrite: false,
+      }),
+    [],
+  )
+  useEffect(() => () => material.dispose(), [material])
+  return (
+    <sprite
+      ref={ref}
+      material={material}
+      position={centro}
+      scale={[tamano, tamano, 1]}
+      layers={CAPA_IMPLANTES}
+      renderOrder={-1}
+      visible={false}
+    />
+  )
+}
+
 function Implantes() {
   const piezas = usePiezas()
   // Un material por pieza: la opacidad y el brillo cambian con el recorrido.
@@ -185,12 +351,15 @@ function Implantes() {
       piezas.map(
         ({ implante }) =>
           new MeshStandardMaterial({
-            color: implante.acabado === 'pulido' ? '#d5dae1' : '#aab1ba',
-            metalness: 1,
-            roughness: implante.acabado === 'pulido' ? 0.18 : 0.45,
-            // Más reflejo del estudio que en el busto: detrás del vidrio del
-            // cuerpo entero, el titanio se apagaba hasta verse negro.
-            envMapIntensity: 2.6,
+            color: implante.acabado === 'pulido' ? '#e6e9ee' : '#c4cad2',
+            // Un poco menos que metal puro: así toma también la luz propia de
+            // los implantes (LuzImplantes) y no queda gris oscuro donde el
+            // estudio no le da reflejo
+            metalness: implante.acabado === 'pulido' ? 0.94 : 0.88,
+            roughness: implante.acabado === 'pulido' ? 0.12 : 0.3,
+            // Más reflejo del estudio que en el busto: chicos y sobre el
+            // vidrio, con el reflejo del busto se veían gris oscuro y planos.
+            envMapIntensity: 3.2,
             emissive: BRILLO,
             emissiveIntensity: 0,
             transparent: true,
@@ -201,21 +370,51 @@ function Implantes() {
   )
   useEffect(() => () => materiales.forEach((m) => m.dispose()), [materiales])
 
+  const resplandores = useRef<(Sprite | null)[]>([])
+
   useFrame(() => {
     const { seg, reducido } = estadoRecorrido
     const base = opacidadBase(seg, reducido)
-    piezas.forEach(({ implante }, i) => {
+    const pesos = piezas.map(({ implante }) =>
+      pesoTarjeta(seg, ORDEN_PARADAS.indexOf(implante.parada), reducido),
+    )
+    piezas.forEach((pieza, i) => {
       const material = materiales[i]
+      const w = pesos[i] ?? 0
       if (!material) return
-      const w = pesoTarjeta(seg, ORDEN_PARADAS.indexOf(implante.parada), reducido)
-      material.opacity = Math.max(base, w)
+      // Los inactivos cercanos al activo se apagan más, para que no crucen
+      // su halo (en el acetábulo, el clavo del intercalar y la endoprótesis)
+      let apagado = 1
+      piezas.forEach((otra, j) => {
+        const wj = pesos[j] ?? 0
+        if (j === i || wj <= 0) return
+        const distancia = Math.max(0, pieza.centro.distanceTo(otra.centro) - pieza.radio)
+        const cercania = MathUtils.clamp(distancia / 0.2, 0.25, 1)
+        apagado = Math.min(apagado, MathUtils.lerp(1, cercania, wj))
+      })
+      material.opacity = Math.max(base * apagado, w)
       material.emissiveIntensity = INTENSIDAD_BRILLO * w
       material.depthWrite = material.opacity > 0.9
+      const resplandor = resplandores.current[i]
+      if (resplandor) {
+        resplandor.material.opacity = 0.85 * w
+        resplandor.visible = w > 0.01
+      }
     })
   })
 
   return (
     <group>
+      {piezas.map(({ implante, centro, radio }, i) => (
+        <Resplandor
+          key={`resplandor-${implante.parada}`}
+          ref={(sprite) => {
+            resplandores.current[i] = sprite
+          }}
+          centro={centro}
+          tamano={radio * 3.8}
+        />
+      ))}
       {piezas.map(({ implante, geometria, matriz }, i) => (
         <mesh
           key={implante.parada}
@@ -231,19 +430,19 @@ function Implantes() {
   )
 }
 
-// Los implantes no se ven a través del vidrio sino encima: van en su propia
-// capa, que no entra en el buffer que refracta la piel ni en la pasada
-// principal, y se dibujan al final con la profundidad limpia. Refractados y
-// teñidos por el vidrio, el titanio se veía azul oscuro y sin brillo; así se
-// lee como metal y el implante es lo más nítido de la escena. El hueso queda
-// adentro del vidrio, tenue, como en el busto del hero.
-const CAPA_IMPLANTES = 1
-
+// Pasadas: la escena (vidrio y hueso); encima, el borde de luz del vidrio;
+// y al final los implantes con la profundidad limpia. Los implantes no se ven
+// a través del vidrio sino encima: no entran en el buffer que refracta la
+// piel. Refractados y teñidos por el vidrio, el titanio se veía azul oscuro y
+// sin brillo; así se lee como metal y el implante es lo más nítido de la
+// escena. El hueso queda adentro del vidrio, tenue, como en el busto del hero.
 function Pasadas() {
   useFrame(({ gl, scene, camera }) => {
     gl.render(scene, camera)
     const autoClear = gl.autoClear
     gl.autoClear = false
+    camera.layers.set(CAPA_BORDE)
+    gl.render(scene, camera)
     gl.clearDepth()
     camera.layers.set(CAPA_IMPLANTES)
     gl.render(scene, camera)
@@ -251,6 +450,19 @@ function Pasadas() {
     gl.autoClear = autoClear
   }, 1)
   return null
+}
+
+// Luz solo para los implantes (en su capa: la pasada principal no la ve, y
+// el vidrio y el hueso quedan como en el busto). Una luz de cielo blanca y
+// una principal desde arriba y adelante, que da el brillo del titanio.
+function LuzImplantes() {
+  return (
+    <>
+      <hemisphereLight layers={CAPA_IMPLANTES} args={['#ffffff', '#9fb6d3', 0.9]} />
+      <directionalLight layers={CAPA_IMPLANTES} position={[1.5, 3, 4]} intensity={2.4} />
+      <directionalLight layers={CAPA_IMPLANTES} position={[-3, 1, -2]} intensity={1.2} color="#dbe9fb" />
+    </>
+  )
 }
 
 const proyectado = new Vector3()
@@ -271,12 +483,30 @@ function CamaraRecorrido() {
     }
   }, [invalidate])
 
-  useFrame(({ camera, size }) => {
+  // Vaivén leve del cuerpo (borrador: sin(t × 0,5)), solo con la escena fija
+  // en pantalla y sin movimiento reducido. A 30 cuadros por segundo: el giro
+  // es tan lento que no se nota la diferencia y cuesta la mitad.
+  const tiempo = useRef(0)
+  useEffect(() => {
+    let cuadro = 0
+    let par = false
+    const latir = () => {
+      par = !par
+      if (par && estadoRecorrido.fijo && !estadoRecorrido.reducido) invalidate()
+      cuadro = requestAnimationFrame(latir)
+    }
+    cuadro = requestAnimationFrame(latir)
+    return () => cancelAnimationFrame(cuadro)
+  }, [invalidate])
+
+  useFrame(({ camera, size }, delta) => {
     const { width: W, height: H } = size
     if (W === 0 || H === 0) return
     const cam = camera as PerspectiveCamera & { manual?: boolean }
-    const { seg, reducido } = estadoRecorrido
+    const { seg, reducido, fijo } = estadoRecorrido
+    if (fijo && !reducido) tiempo.current += Math.min(delta, 0.1)
     const c = camaraPara(seg, W, H, reducido)
+    if (!reducido) c.azimut += Math.sin(tiempo.current * 0.5) * 0.026
     const [ax, ay] = c.ancla
     const fullW = W * (1 + 2 * Math.abs(ax - 0.5))
     const fullH = H * (1 + 2 * Math.abs(ay - 0.5))
@@ -357,6 +587,7 @@ function Escena({ calidad, alListo }: { calidad: Quality; alListo: () => void })
     <>
       <CamaraRecorrido />
       <Pasadas />
+      <LuzImplantes />
       <Suspense fallback={null}>
         <Cuerpo calidad={calidad} fondo={fondo} />
         <Implantes />

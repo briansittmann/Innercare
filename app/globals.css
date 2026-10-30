@@ -710,8 +710,9 @@ body {
    - .escena-vista: las vistas del lugar reservado del 3D (sin WebGL o
      mientras carga), una por parada. La activa (data-visible) entra con un
      fundido y la anterior se apaga. Se van cuando el 3D está listo.
-   - .indice-riel: riel del índice anatómico. Un tramo del primario lo llena
-     de arriba hasta la parada activa (--avance, de 0 a 1). */
+   - .indice-riel: riel del índice anatómico. Un tramo tenue del primario lo
+     llena de forma continua con el recorrido (--avance, de 0 a 1, lo escribe
+     JS) y la parada activa lleva una barra de 2 px. */
 /* Fondo de la escena del recorrido (el del borrador: una luz azul de la
    marca hacia la derecha, donde va el cuerpo, que se funde con el gris de
    la página). Lo llevan la escena y cada vista: la opacidad aísla el grupo
@@ -751,11 +752,21 @@ body {
 }
 
 .indice-riel::after {
-  width: 2px;
-  background: var(--color-primary);
+  width: 1px;
+  background: color-mix(in srgb, var(--color-primary) 45%, transparent);
   transform-origin: top;
   scale: 1 var(--avance, 0);
-  transition: scale 420ms var(--ease-out);
+}
+
+/* La parada activa: una barra de 2 px junto a su nombre (borrador) */
+.indice-enlace[aria-current]::before {
+  content: '';
+  position: absolute;
+  left: -0.5px;
+  top: 0.375rem;
+  bottom: 0.375rem;
+  width: 2px;
+  background: var(--color-primary);
 }
 
 #recorrido {
@@ -795,6 +806,27 @@ body {
   transition: opacity 700ms var(--ease-out);
 }
 
+/* El cuerpo se desvanece bajo la barra de navegación, que es de vidrio y lo
+   refractaba en formas raras; desde 1100 px, también hacia el borde
+   izquierdo, para que no pase por encima del índice anatómico. */
+.recorrido-lienzo {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 1rem, #000 5.5rem);
+  mask-image: linear-gradient(to bottom, transparent 1rem, #000 5.5rem);
+}
+
+@media (width >= 1100px) {
+  .recorrido-lienzo {
+    -webkit-mask-image:
+      linear-gradient(to bottom, transparent 1rem, #000 5.5rem),
+      linear-gradient(to right, transparent 1.5rem, #000 15rem);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to bottom, transparent 1rem, #000 5.5rem),
+      linear-gradient(to right, transparent 1.5rem, #000 15rem);
+    mask-composite: intersect;
+  }
+}
+
 .recorrido-escena[data-listo] .recorrido-vistas {
   opacity: 0;
   visibility: hidden;
@@ -807,7 +839,8 @@ body {
   opacity: 0;
   background: radial-gradient(
     circle 60vmax at var(--luz-x, 68%) var(--luz-y, 50%),
-    rgb(34 96 161 / 0.16),
+    rgb(34 96 161 / 0.3),
+    rgb(34 96 161 / 0.08) 45%,
     rgb(34 96 161 / 0)
   );
   transition: opacity 700ms var(--ease-out);
@@ -833,18 +866,10 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 1.5px solid rgb(34 96 161 / 0.6);
-  box-shadow: 0 0 18px rgb(77 147 224 / 0.35);
-}
-
-/* Resplandor quieto detrás del anillo, el brillo del implante activo del
-   borrador (shadowBlur azul): una luz suave que aclara la zona. */
-.recorrido-halo::after {
-  content: '';
-  position: absolute;
-  inset: 22%;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(164 201 255 / 0.32), rgb(164 201 255 / 0));
+  border: 2px solid rgb(34 96 161 / 0.85);
+  box-shadow:
+    0 0 22px rgb(61 111 224 / 0.45),
+    inset 0 0 22px rgb(61 111 224 / 0.3);
 }
 
 /* Borrador: el radio crece de 0,16 a 0,38 del tramo visible mientras se
