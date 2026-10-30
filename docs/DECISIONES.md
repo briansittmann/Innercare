@@ -434,6 +434,22 @@ Rama `rediseno`. Pedido del usuario. Reemplaza, de "Secciones de la landing", lo
 
 **Descartado.** Proceso apilado con fila de ejemplos, sedes con el eje a la izquierda en un panel con degradé, eje recortado a 33°–48° con marcas, contacto con el título a tamaño de portada y anillos.
 
+## 2026-10-30 · Recorrido 3D de la home
+
+Rama `rediseno`. Fase 3 de la landing. Detalle en `docs/landing/BITACORA.md`.
+
+**Decisión.**
+- El recorrido es su propia sección (`#recorrido`) debajo del hero, con el cuerpo entero (`public/modelos/cuerpo.glb`); el hero sigue con el busto.
+- Comportamiento del borrador (`updateTour` y `camFor`): ocho pantallas de scroll, siete tramos, pausa al principio y al final de cada tramo, alto visible en escala logarítmica, pesos de las tarjetas, opacidades de los implantes, halo e índice anatómico. El guion vive en `components/recorrido-3d/camara.ts` y lo comparten la escena y el HTML.
+- Progreso del scroll sin librería, con una amortiguación exponencial corta; el canvas dibuja solo cuando cambia (`frameloop="demand"`).
+- Implantes en su propia capa, dibujados encima del vidrio y no refractados. El hueso queda adentro del vidrio, como en el busto.
+- Un único módulo (`components/recorrido-3d/implantes.ts`) define de dónde sale cada implante y dónde va: la fase 4 cambia primitivas por modelos tocando solo ese archivo.
+- Lados de los implantes de `ARQUITECTURA_MODELO_3D.md` (acetábulo e intercalar a la derecha, endoprótesis a la izquierda), aunque el borrador 2D los dibuja al revés.
+
+**Motivo.** Fidelidad al borrador en el comportamiento, con la mejora en la ejecución (el cuerpo de vidrio real). Refractado, el titanio se veía azul oscuro y sin brillo.
+
+**Descartado.** GSAP y `ScrollControls` (otro contenedor de scroll); `PerformanceMonitor` (con dibujo a demanda mide mal y bajaría la calidad sin motivo); vidrio sin profundidad para dibujar los implantes encima (el hueso también quedaba encima, blanco y fuerte).
+
 ## Pendientes abiertos
 
 - ~~**Respaldo del 3D sin WebGL.**~~ Resuelto el 2026-10-29 con el prototipo de cabeza: se comprueba el contexto antes de montar el canvas, que va dentro de un límite de errores, y sin WebGL queda la imagen fija (`public/img/cuerpo-inicio.webp`).

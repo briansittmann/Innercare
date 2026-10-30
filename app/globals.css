@@ -837,6 +837,16 @@ body {
   box-shadow: 0 0 18px rgb(77 147 224 / 0.35);
 }
 
+/* Resplandor quieto detrás del anillo, el brillo del implante activo del
+   borrador (shadowBlur azul): una luz suave que aclara la zona. */
+.recorrido-halo::after {
+  content: '';
+  position: absolute;
+  inset: 22%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(164 201 255 / 0.32), rgb(164 201 255 / 0));
+}
+
 /* Borrador: el radio crece de 0,16 a 0,38 del tramo visible mientras se
    apaga, una vez cada 1,43 s. Sin halo con movimiento reducido. */
 @media (prefers-reduced-motion: no-preference) {
