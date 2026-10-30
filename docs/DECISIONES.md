@@ -48,7 +48,7 @@ Rama `rediseno`.
 
 ## 2026-10-29 · Páginas separadas e índice lateral en la home
 
-Rama `rediseno`.
+Rama `rediseno`. **Reemplazada por** "Una sola página con menú de anclas" (2026-10-30).
 
 **Decisión.** El sitio sigue teniendo páginas separadas (Productos, fichas, Casos a medida, Nosotros, Contacto). En la home se suma un índice lateral de secciones a la derecha, como complemento de la barra superior y no en su lugar.
 
@@ -390,6 +390,23 @@ Rama `rediseno`. Reemplaza, para ese enlace, el `.enlace` de la entrada anterior
 - Los dos botones del hero, más grandes que los del resto del sitio para acompañar al titular, con texto de 18 px y 56 px de alto los dos. Primero "Ver casos a medida" tenía 52, para que el principal pesara más, pero la diferencia se leía como un error: en un par, la jerarquía la marca el relleno.
 
 **Motivo.** Al usuario no le gustaba el enlace subrayado y quería el par de Mango: "Empezar" lleno y "Ver la demo" de vidrio.
+
+## 2026-10-30 · Una sola página con menú de anclas
+
+Rama `rediseno`. Aplica `docs/landing/AJUSTES.md` (decisiones del usuario). Reemplaza "Páginas separadas e índice lateral en la home".
+
+**Decisión.**
+- La home es la única página navegable: se borró `app/nosotros/`, no se hace Casos a medida y ningún enlace lleva a `/productos` (su código queda). Las fichas siguen, y su miga de pan vuelve a "Implantes" (`/#recorrido`).
+- La barra superior es un menú de anclas a la home: Implantes, Cómo trabajamos, Fabricación y Habilitaciones (`components/nav-links.ts`). Van como `/#id` para que funcionen desde las fichas. En la home se marca la sección que cruza la mitad de la pantalla (`components/use-active-section.ts`), con `aria-current="location"`. Las anclas de la misma página bajan con `scrollToAnchor` (`components/anchor-link.tsx`), porque `Link` no vuelve a bajar si el ancla ya está en la URL.
+- Sale el índice lateral de secciones (`components/home/section-index.tsx`); lo reemplazará el índice anatómico del recorrido.
+- "Plantear un caso" es la única etiqueta de contacto. Va a `/contacto?motivo=caso` (el panel, con "Caso a medida" marcado), salvo en las fichas, que precargan el producto.
+- Hero: "Plantear un caso" y "Recorrer los implantes" (vidrio, a `#recorrido`), la línea de habilitaciones ANMAT con un sello y el aviso "Deslizá para recorrer el cuerpo", las dos dentro de la línea de tiempo de la entrada.
+
+**Motivo.** La landing hace de catálogo y de galería de casos (AJUSTES.md).
+
+**Aviso de deslizar fuera del centro.** AJUSTES pide el aviso centrado abajo. En escritorio, la espalda del busto pasa por el centro de la pantalla en cualquier proporción menor a ≈ 1,8:1, así que el aviso va abajo a la izquierda, alineado con el texto. En el celular sí va centrado, entre la línea de habilitaciones y el busto. La Taste Skill desaconseja los avisos de scroll y las líneas chicas bajo los botones; manda AJUSTES, y el aviso tiene una función concreta: el recorrido por el cuerpo se maneja con el scroll.
+
+**Motivo genérico de contacto.** "Plantear un caso" habla de un caso clínico, así que el motivo que más le corresponde es "Caso a medida". Quien venga por otra cosa lo cambia en el formulario.
 
 ## Pendientes abiertos
 
