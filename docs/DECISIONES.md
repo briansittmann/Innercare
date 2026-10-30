@@ -408,6 +408,19 @@ Rama `rediseno`. Aplica `docs/landing/AJUSTES.md` (decisiones del usuario). Reem
 
 **Motivo genérico de contacto.** "Plantear un caso" habla de un caso clínico, así que el motivo que más le corresponde es "Caso a medida". Quien venga por otra cosa lo cambia en el formulario.
 
+## 2026-10-30 · Secciones de la landing
+
+Rama `rediseno`. Aplica `docs/landing/LANDING_SPEC.md` (sección 3) y `docs/landing/AJUSTES.md`. Detalle en `docs/landing/BITACORA.md` (fase 2).
+
+**Decisión.**
+- La home sigue el guion: recorrido por el cuerpo, cómo trabajamos, fabricación, habilitaciones, distribución y contacto. Reemplazan a "Fabricación propia" (grilla de productos) y al bloque editorial con habilitaciones.
+- Recorrido: escena fija a todo el ancho y tarjetas que pasan por encima a la derecha, una por pantalla. Es el armazón de la escena 3D (fase 3); mientras no exista, muestra la planificación de cada parada. Los datos de las paradas viven en `content/recorrido.ts`.
+- Datos técnicos (specs, números de disposición, latitudes) en cifras tabulares, como elemento gráfico.
+- El contacto final va en el azul de marca con el logo en blanco: es el segundo fondo de color de la interfaz, después del hero, porque el guion pide el logo en versión clara.
+- Sin fondos animados nuevos: `Waves` de React Bits usa WebGL2 y AJUSTES pide CSS o canvas 2D. El único movimiento nuevo es el eje de las sedes, que se llena con el scroll (CSS).
+
+**Motivo.** La landing hace de catálogo y de galería de casos, con nivel visual de producto (AJUSTES.md), sin perder la credibilidad de fabricante médico.
+
 ## Pendientes abiertos
 
 - ~~**Respaldo del 3D sin WebGL.**~~ Resuelto el 2026-10-29 con el prototipo de cabeza: se comprueba el contexto antes de montar el canvas, que va dentro de un límite de errores, y sin WebGL queda la imagen fija (`public/img/cuerpo-inicio.webp`).
