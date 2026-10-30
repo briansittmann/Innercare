@@ -404,7 +404,7 @@ Rama `rediseno`. Aplica `docs/landing/AJUSTES.md` (decisiones del usuario). Reem
 
 **Motivo.** La landing hace de catálogo y de galería de casos (AJUSTES.md).
 
-**Aviso de deslizar fuera del centro.** AJUSTES pide el aviso centrado abajo. En escritorio, la espalda del busto pasa por el centro de la pantalla en cualquier proporción menor a ≈ 1,8:1, así que el aviso va abajo a la izquierda, alineado con el texto. En el celular sí va centrado, entre la línea de habilitaciones y el busto. La Taste Skill desaconseja los avisos de scroll y las líneas chicas bajo los botones; manda AJUSTES, y el aviso tiene una función concreta: el recorrido por el cuerpo se maneja con el scroll.
+**Aviso de deslizar fuera del centro** (provisional, anotado en la fase 7: falta que el usuario lo confirme). AJUSTES pide el aviso centrado abajo. En escritorio, la espalda del busto pasa por el centro de la pantalla en cualquier proporción menor a ≈ 1,8:1, así que el aviso va abajo a la izquierda, alineado con el texto. En el celular sí va centrado, entre la línea de habilitaciones y el busto. La Taste Skill desaconseja los avisos de scroll y las líneas chicas bajo los botones; manda AJUSTES, y el aviso tiene una función concreta: el recorrido por el cuerpo se maneja con el scroll.
 
 **Motivo genérico de contacto.** "Plantear un caso" habla de un caso clínico, así que el motivo que más le corresponde es "Caso a medida". Quien venga por otra cosa lo cambia en el formulario.
 
@@ -437,6 +437,8 @@ Rama `rediseno`. Pedido del usuario. Reemplaza, de "Secciones de la landing", lo
 ## 2026-10-30 · Recorrido 3D de la home
 
 Rama `rediseno`. Fase 3 de la landing. Detalle en `docs/landing/BITACORA.md`.
+
+**Provisional** (anotado en la fase 7): el recorrido como sección propia, con el busto en el hero y el cuerpo entero recién abajo, es la solución mientras el hero no se toca (AJUSTES.md). El guion pide un solo cuerpo que va del hero al recorrido; si el hero se reabre, se revisa.
 
 **Decisión.**
 - El recorrido es su propia sección (`#recorrido`) debajo del hero, con el cuerpo entero (`public/modelos/cuerpo.glb`); el hero sigue con el busto.
@@ -479,6 +481,124 @@ Rama `rediseno`. Fase 6 de la landing. Detalle, capturas y mediciones en `docs/l
 
 **Corrección (mismo día, verificador).** La cinta en vivo sumaba un cuarto contexto WebGL al pie de la página. Pasa a ser una imagen fija con transparencia (una captura de `GhostFibers`, apaisada para escritorio y vertical para el celular) que deriva con el scroll por CSS (`animation-timeline: view()`), a escala completa y en diagonal; solo en la home, no en las fichas. Habilitaciones va en una banda un tono más oscura (`surface-container-low`) y las sedes que casi coinciden comparten un punto con guías a cada etiqueta.
 
+## 2026-10-30 · Prioridad visual: React Bits y movimiento sin tope de acento
+
+Rama `rediseno`. Decisión del usuario (`docs/landing/AJUSTES.md`, "Diseño"). Reemplaza, de `CLAUDE.md`, "React Bits solo como acento puntual" y el dial "motion 4".
+
+**Decisión.**
+- La prioridad es que la página se vea moderna y atractiva, con nivel de producto actual: es lo que la va a vender.
+- React Bits se puede usar donde sume, no solo como acento, y el movimiento puede subir por encima de motion 4.
+- Se admiten fondos animados donde queden bien, como las fibras del hero, livianos (CSS o canvas 2D antes que otro contexto WebGL), pausados fuera de pantalla y nunca más de uno a la vista junto con el 3D.
+- Se mantienen la credibilidad de fabricante médico (datos reales, tokens de marca), el procedimiento de React Bits (`shadcn view`, dependencias justificadas, tokens, movimiento reducido) y la prohibición del fade-up genérico: el movimiento tiene que tener una idea.
+- Con "La home, fiel al borrador de la landing": la ambición va en la ejecución, no en rediseñar las composiciones.
+
+**Lo que quedó en la práctica.** Ningún fondo de React Bits entró: todos los evaluados salvo `Noise` son WebGL2, y `Noise` ensuciaba el azul (ver "Pase visual de la home"). El movimiento nuevo es propio: el recorrido 3D atado al scroll, las piezas de partículas en canvas 2D y la cinta fija del cierre que deriva con el scroll.
+
+## 2026-10-30 · Hero y navegación: detalles de la landing
+
+Rama `rediseno`. Fase 1 de la landing. Completa "Una sola página con menú de anclas".
+
+**Decisión.**
+- La línea de habilitaciones ANMAT del hero va con un sello de Phosphor y no con un filete a la izquierda, como en el borrador.
+- El aviso "Deslizá para recorrer el cuerpo" lleva un riel por el que cae un tramo del primario (`.aviso-deslizar`), quieto con movimiento reducido. La línea y el aviso entran en la línea de tiempo de la intro (`INTRO_AT.credentials` y `INTRO_AT.scrollCue`).
+- PillNav marca la sección activa con `aria-current="location"` (antes `page`): es el único cambio de lógica en el componente de React Bits, anotado en su cabecera.
+- El menú móvil se cierra al tocar un ancla.
+
+**Motivo.** El filete se repetía con el riel del aviso y parecían dos piezas iguales. `aria-current="page"` anuncia otra página, y son secciones de la misma.
+
+**Descartado.** La Taste Skill desaconseja avisos de scroll y líneas chicas bajo los botones; mandan AJUSTES.md y el usuario.
+
+## 2026-10-30 · Datos de la landing
+
+Rama `rediseno`. Fase 2 de la landing.
+
+**Decisión.**
+- Las seis paradas del recorrido viven en `content/recorrido.ts`, que cuenta cada caso con los datos de `customCases.ts` y `products.ts`.
+- Habilitaciones con los textos de `content/company.ts` ("Certificado de Buenas Prácticas de Fabricación", GLN y Sub-GLN), no con los recortados del borrador.
+- Latitud de cada sede en `content/company.ts` (campo `latitud`, marcado como dato geográfico público y no de la carpeta), para ubicarla en el eje norte-sur. Se muestran con un decimal.
+- Rangos sin guiones: "Ø10 a 12 mm × 120 a 160 mm".
+
+**Motivo.** `content/` es la única fuente de verdad; la latitud es un dato público, no una cifra de la empresa.
+
+**Provisional.** Tres specs del borrador no salen tal cual de la carpeta: "Técnica: Impresión 3D" de la craneoplastía (la carpeta lo dice para titanio, no para PMMA) y del acetábulo, y "Desarrollo: A pedido médico" del maxilar (en la carpeta aparece en biomodelos). Hay que confirmarlas con Innercare.
+
+## 2026-10-30 · Tomas, anclas y respaldos del recorrido
+
+Rama `rediseno`. Fases 3 y 4 de la landing. Completa "Recorrido 3D de la home".
+
+**Decisión.**
+- Cada parada tiene, además del encuadre del borrador (implante al 34 % del ancho), un azimut y una elevación: el 3D deja girar alrededor del cuerpo, y la cabeza se ve de tres cuartos y desde arriba para que se lea la craneoplastía. La toma del maxilar está más cerrada (`vis` 82) para que la pieza ocupe cerca del 14 % del ancho.
+- Celular por debajo de 820 px (el del borrador, no `md`): cuerpo centrado y abajo, implante al 25 % del alto y la tarjeta como hoja inferior sin specs. Índice anatómico desde 1100 px.
+- `#parada-<id>` son marcas a k pantallas del principio del recorrido, así el índice lleva a la toma exacta; `#recorrido` tiene `scroll-margin-top` negativo para que el menú y "Recorrer los implantes" dejen la escena entera.
+- Respaldo sin WebGL o mientras carga: las vistas de planificación de cada parada y, en la entrada y el cierre, `public/img/cuerpo-entero.webp` (captura del 3D con los implantes reales). Sin JS, la escena deja de ser fija y se lee en orden: título, seis tarjetas y cierre.
+- Con movimiento reducido, sin amortiguación, halo ni desplazamiento de tarjetas: cada parada cambia en la mitad de su tramo.
+- Carga lo más conservadora: `cuerpo.glb` y el contexto WebGL se piden cuando termina la entrada del hero **y** el recorrido asoma un 5 %.
+
+**Motivo.** Composición del borrador, aprovechando lo que el 3D agrega (girar). Un 5 % y no margen 0, porque el borde del recorrido toca el de la pantalla al cargar y ya contaba como visible.
+
+**Descartado.** Cargar en un momento ocioso después de la entrada (si alguien no baja, se descarga igual).
+
+## 2026-10-30 · Implantes del recorrido generados en Blender
+
+Rama `rediseno`. Fase 4 de la landing. Detalle y renders de control en `docs/landing/BITACORA.md`.
+
+**Provisional:** son modelos propios hechos a partir de fotos y fichas de `content/`; los reemplazan los CAD de Innercare cuando lleguen, respetando el nombre de malla.
+
+**Decisión.**
+- `3d/scripts/implantes.py` genera maxilar, hombro reverso, acetábulo, endoprótesis de fémur e intercalar sobre el esqueleto ajustado, con el método de la craneoplastía (partes paramétricas apoyadas sobre el hueso con rayos), y recorta los huesos que reemplazan.
+- Archivos aparte para el recorrido: `public/modelos/implantes-recorrido.glb` (los cinco) y `cuerpo.glb` (piel y esqueleto con los seis recortes). `implantes.glb` y `cabeza.glb` (hero) quedan idénticos; la craneoplastía del recorrido sale de `implantes.glb`, que ya está en caché.
+- Nombres de malla por parada (`implante_<parada>`), los del contrato de `components/recorrido-3d/implantes.ts`.
+- Un acabado por pieza (`pulido` o `trabecular`); celosías en geometría y no con `alphaMap`.
+- Maxilar del lado derecho, como en la foto del caso, no centrado.
+- Tornillos acetabulares buscados dentro del coxal (la dirección que entra más largo sin salir del hueso, de 20 a 55 mm), no con ángulos fijos.
+
+**Motivo.** Sumar las piezas a `implantes.glb` habría puesto el hombro flotando junto al busto y multiplicado la descarga del hero. Con el implante dibujado encima del vidrio, la celosía se lee mejor en geometría.
+
+**Provisional también.** Medidas estimadas que no están en `content/` y no se publican: glenosfera de 36 mm, copa del hombro de 41 mm, cuerpo del hombro de Ø19 mm, cabeza femoral de Ø42 mm, cuerpo de la endoprótesis de Ø22 mm, copa acetabular de Ø58 mm a 45°, segmento intercalar de 130 mm y postes del maxilar de Ø4,2 mm. Hay que confirmarlas con Innercare, sobre todo las del hombro.
+
+**Descartado.** Los nombres viejos de la arquitectura (`implante_acetabular`, `implante_endoprotesis`); el inserto del hombro en blanco (el contrato admite un solo acabado por pieza); el ala acetabular apoyada con rayos (se enroscaba sobre el reborde).
+
+**Costo.** El recorrido dibuja unos 222 000 triángulos, un 11 % arriba del objetivo de partida de la arquitectura. Para bajarlo: celdas más grandes en las dos celosías o un esqueleto más simple.
+
+## 2026-10-30 · Piezas de partículas: detalles de ejecución
+
+Rama `rediseno`. Fase 5 de la landing. Completa "Partículas y animaciones de la home".
+
+**Decisión.**
+- Miniaturas: el hueco de la tarjeta se abre con `data-minis`, 760 ms después de que el canvas termina su fundido, y el ensamble espera a que esté abierto. Usan `track` de drei aunque está marcado como obsoleto: las vistas en línea pondrían drei y three en el bundle de las tarjetas, que son HTML del servidor.
+- Proceso: planos de corte anchos y punteados en el azul del hueso (como el borrador), que en el paso 3 pasan a ser las guías en caja; celosía del implante solo en la cara visible.
+- Fabricación: piezas dibujadas en 2D con las partes de la ficha (no capturas del 3D, que no permitían muestrear la silueta), copa al 60 % y endoprótesis al 90 % del recuadro para que pesen parecido, y partículas al 17 % sobre el metal final. "Volver a ver" se oculta con movimiento reducido y sin JS.
+
+**Motivo.** Que nunca se vea un cuadro vacío ni una pieza a medio armar; fidelidad al borrador en la idea, más detalle en la ejecución.
+
+**Pendiente.** En los fundidos de la tarjeta se ve un marco alrededor de la miniatura: el fondo que la miniatura pinta en el canvas no compone igual que la sombra de la tarjeta con la misma opacidad. No se arregla en CSS; la salida es que el canvas no pinte fondo y la tarjeta conserve el suyo bajo el hueco. Aparte, a algunos zooms puede asomar 1 px de costura entre el recorte del canvas y el hueco (el filete interior de 2 px lo tapa en las pruebas).
+
+## 2026-10-30 · Contextos WebGL de la home
+
+Rama `rediseno`. Fases 3 a 6 de la landing. Resume la regla de rendimiento de AJUSTES.md tal como quedó.
+
+**Decisión.**
+- Tres contextos WebGL en toda la home: busto y fibras del hero, y el del recorrido. Las miniaturas son vistas del canvas del recorrido; el proceso y la fabricación son canvas 2D (`components/animaciones/`); la cinta del cierre es una imagen fija.
+- Cada uno dibuja solo cuando hace falta: el hero se detiene fuera de pantalla; el recorrido dibuja a demanda (cuando cambia el progreso, o a 30 cuadros por segundo para el vaivén con la escena fija) y se apaga fuera de pantalla; las animaciones 2D no dibujan fuera de pantalla y se detienen al terminar.
+- El recorrido no se carga hasta que termina la intro del hero y asoma.
+
+**Motivo.** Medido en Chrome con la GPU del M1: recorrido a 60 fps con tope en escritorio y celular; el paso del hero al recorrido queda en unos 51 fps, que es el costo del hero solo.
+
+**Descartado.** Un cuarto contexto para la cinta del contacto (era `GhostFibers` en vivo); un canvas aparte para las miniaturas; `Waves` y los demás fondos WebGL2 de React Bits.
+
+**Pendiente.** Los dos contextos del hero nunca se liberan. Llevar el paso del hero al recorrido a 60 fps en escritorio implica tocar el hero (por ejemplo, bajar la resolución de las fibras o del busto mientras se hace scroll). Falta medir todo en un celular real.
+
+## 2026-10-30 · Logo claro y lema en el footer
+
+Rama `rediseno`. Fases 2 y 6 de la landing.
+
+**Provisional:** hasta que haya un logo claro y uno sin lema en `public/`.
+
+**Decisión.** El logo en blanco del cierre de contacto es el mismo PNG con `brightness-0 invert`. El footer conserva el lema en texto aunque el logo ya lo trae, porque al tamaño del footer el del logo no se lee.
+
+**Motivo.** No hay archivos de logo claro ni sin lema; no se inventan.
+
 ## Pendientes abiertos
 
 - ~~**Respaldo del 3D sin WebGL.**~~ Resuelto el 2026-10-29 con el prototipo de cabeza: se comprueba el contexto antes de montar el canvas, que va dentro de un límite de errores, y sin WebGL queda la imagen fija (`public/img/cuerpo-inicio.webp`).
+- Los de la landing están en `CLAUDE.md` ("Estado") y, con su contexto, en `docs/landing/BITACORA.md`.

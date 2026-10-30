@@ -371,3 +371,23 @@ Memoria compartida entre las fases de la landing: cada fase deja acá qué hizo,
 - Los dos contextos WebGL del hero nunca se liberan (es el hero).
 - La ficha de producto con el estilo nuevo.
 - Un logo sin el lema (no hay archivo): el lema sale dos veces en el footer.
+
+---
+
+## Fase 7 · Cierre (2026-10-30)
+
+**Commits:** el de esta entrada (solo documentación: `CLAUDE.md`, `docs/DECISIONES.md` y esta bitácora). No se tocó código de la aplicación.
+
+**Qué se hizo.**
+- **`docs/DECISIONES.md`:** ocho entradas nuevas, a partir de esta bitácora y sin repetir las que ya habían sumado las fases 1, 2, 3, 5 y 6: "Prioridad visual: React Bits y movimiento sin tope de acento" (AJUSTES, con lo que de verdad quedó), "Hero y navegación: detalles de la landing" (fase 1), "Datos de la landing" (fase 2), "Tomas, anclas y respaldos del recorrido" (fases 3 y 4), "Implantes del recorrido generados en Blender" (fase 4, que no tenía entrada), "Piezas de partículas: detalles de ejecución" (fase 5) y "Contextos WebGL de la home" y "Logo claro y lema en el footer" (fases 2 a 6). Se marcaron como **provisionales** el recorrido como sección propia con el busto en el hero, el aviso de deslizar fuera del centro, los implantes generados y sus medidas estimadas, las tres specs a confirmar y el logo. "Pendientes abiertos" remite a `CLAUDE.md` y a esta bitácora.
+- **`CLAUDE.md`:** reescrito para describir el proyecto como quedó. Estructura (`content/recorrido.ts`, `components/recorrido-3d/` con el contrato de `implantes.ts`, `components/animaciones/`, los cuatro modelos de `public/modelos/` y `npm run modelos`); dirección visual con la prioridad visual y la regla de fidelidad al borrador; hero, secciones, vidrio, navegación de una sola página, movimiento y una sección nueva de rendimiento (tres contextos WebGL, carga diferida del recorrido después de la intro, pausa fuera de pantalla); estado por fases de la landing y pendientes; `docs/landing/` en "Referencias". Salieron `section-index`, Nosotros, Casos a medida, "Ver catálogo", "Ver casos a medida", "Contactar", "React Bits solo como acento puntual" y el dial "motion 4".
+
+**Decidido sin preguntar.**
+- **Marcar provisionales con una línea en las entradas existentes** ("Recorrido 3D de la home" y el aviso de "Una sola página con menú de anclas"), como se hace con "Reemplazada por": no cambia su contenido.
+- **Agrupar por tema** en lugar de una entrada por cada viñeta de la bitácora: los detalles chicos de ejecución (opacidades, tamaños) quedan solo en la bitácora.
+- **`AJUSTES.md` manda sobre `CLAUDE.md`**, y así quedó escrito en "Referencias", con la salvedad del stack que ya hacía `AJUSTES.md`.
+- **Rama `rediseno` en "Situación"**: el texto viejo la describía en un bloque aparte; ahora es una rama más en la lista y el resto del archivo describe lo que hay en ella.
+
+**Comprobado.** `npm run build`, `npm run lint` y `npx tsc --noEmit` sin errores (sigue el aviso de `metadataBase`).
+
+**Pendiente.** Lo que lista `CLAUDE.md` en "Estado › Pendiente", sin cambios respecto de las fases anteriores.
