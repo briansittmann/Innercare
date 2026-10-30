@@ -4,12 +4,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ListIcon, XIcon } from '@phosphor-icons/react/ssr'
-import { isNavActive, navLinks } from './nav-links'
+import { AnchorLink } from './anchor-link'
+import { contactHref, contactLabel, navLinks } from './nav-links'
 
 export function MobileNav() {
   const pathname = usePathname()
   // El menú móvil queda asociado a la ruta en la que se abrió: al navegar
-  // cambia la ruta y se cierra solo, sin efectos.
+  // cambia la ruta y se cierra solo, sin efectos. Las anclas de la home no
+  // cambian la ruta, así que esas lo cierran al tocarlas.
   const [openOn, setOpenOn] = useState<string | null>(null)
   const open = openOn === pathname
 
@@ -44,18 +46,18 @@ export function MobileNav() {
             <ul className="flex flex-col">
               {navLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
+                  <AnchorLink
                     href={link.href}
-                    aria-current={isNavActive(pathname, link.href) ? 'page' : undefined}
-                    className="block py-3 font-headline-sm text-headline-sm text-on-surface aria-[current=page]:text-primary"
+                    onClick={() => setOpenOn(null)}
+                    className="block py-3 font-headline-sm text-headline-sm text-on-surface"
                   >
                     {link.label}
-                  </Link>
+                  </AnchorLink>
                 </li>
               ))}
             </ul>
-            <Link href="/contacto" className="boton boton-primario mt-lg w-full">
-              Contactar
+            <Link href={contactHref} className="boton boton-primario mt-lg w-full">
+              {contactLabel}
             </Link>
           </nav>
         </div>

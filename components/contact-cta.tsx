@@ -1,9 +1,10 @@
 import Link from 'next/link'
+import { contactHref, contactLabel } from './nav-links'
 
 export function ContactCta({
   id,
   // Con contexto (p. ej. ?producto=<slug>) el formulario llega precargado.
-  href = '/contacto',
+  href = contactHref,
   title = '¿Tenés un caso para resolver?',
   text = 'Enviános los estudios del paciente y coordinamos la planificación quirúrgica junto a tu equipo.',
 }: {
@@ -23,7 +24,7 @@ export function ContactCta({
         </div>
         <div className="md:col-span-4 md:justify-self-end">
           <Link href={href} className="boton boton-primario">
-            Contactar
+            {contactLabel}
           </Link>
         </div>
       </div>

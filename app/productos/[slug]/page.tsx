@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { DownloadSimpleIcon } from '@phosphor-icons/react/ssr'
 import { ContactCta } from '@/components/contact-cta'
+import { contactLabel } from '@/components/nav-links'
 import { ProductGallery } from '@/components/product-gallery'
 import { ProductTile } from '@/components/product-tile'
 import { getProductBySlug, getProducts } from '@/content/products'
@@ -44,8 +45,9 @@ export default async function ProductPage({ params }: PageProps<'/productos/[slu
         <nav aria-label="Ruta de navegación" className="text-body-sm text-on-surface-variant">
           <ol className="flex flex-wrap items-center gap-xs">
             <li>
-              <Link href="/productos" className="transition-colors hover:text-primary">
-                Productos
+              {/* La landing hace de catálogo: la miga vuelve al recorrido */}
+              <Link href="/#recorrido" className="transition-colors hover:text-primary">
+                Implantes
               </Link>
             </li>
             <li aria-hidden>/</li>
@@ -82,7 +84,7 @@ export default async function ProductPage({ params }: PageProps<'/productos/[slu
 
             <div className="mt-xl flex flex-wrap gap-md">
               <Link href={`/contacto?producto=${product.slug}`} className="boton boton-primario">
-                Contactar
+                {contactLabel}
               </Link>
               {product.datasheetUrl && (
                 <a href={product.datasheetUrl} download className="boton boton-claro">

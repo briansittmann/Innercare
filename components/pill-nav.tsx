@@ -1,6 +1,8 @@
 'use client';
 
-// PillNav de React Bits (@react-bits/PillNav-TS-TW), sin cambios de lógica.
+// PillNav de React Bits (@react-bits/PillNav-TS-TW), sin cambios de lógica
+// salvo uno: el enlace activo lleva aria-current="location" y no "page",
+// porque el menú son anclas a secciones de la home (components/nav-links.ts).
 // Copiado del registro a mano: `shadcn add` corrompe las cadenas de sombras y
 // colores al deduplicar lo que toma por clases de Tailwind. Conserva el estilo
 // de código original; solo se añadieron aserciones no nulas (`!`) para
@@ -62,7 +64,7 @@ export interface PillNavProps {
 
 interface LinkProps {
   className: string;
-  'aria-current'?: 'page';
+  'aria-current'?: 'location';
   'aria-label'?: string;
   tabIndex?: number;
   onClick?: (event: ReactMouseEvent<HTMLElement>) => void;
@@ -167,7 +169,7 @@ const TRACK = 'relative h-full';
 const LIST = 'm-0 flex h-full list-none items-stretch gap-[var(--pn-item-gap,2px)] p-0';
 const SLOT = 'group/slot flex';
 const ITEM =
-  'relative isolate inline-flex h-full cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap rounded-full border-0 px-[var(--pn-x)] [background:none] [font-family:inherit] [font-size:inherit] [line-height:inherit] font-medium tracking-[-0.005em] text-[var(--pn-text)] no-underline outline-none transition-[color] duration-[400ms] ease-[ease] group-data-[lit]/slot:text-[var(--pn-strong)] aria-[current=page]:text-[var(--pn-strong)] group-data-[items=pill]/nav:[background:var(--pn-tile)] group-data-[items=pill]/nav:[box-shadow:var(--pn-tile-rim)] group-data-[items=pill]/nav:text-[var(--pn-strong)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--pn-ring)] motion-reduce:transition-none';
+  'relative isolate inline-flex h-full cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap rounded-full border-0 px-[var(--pn-x)] [background:none] [font-family:inherit] [font-size:inherit] [line-height:inherit] font-medium tracking-[-0.005em] text-[var(--pn-text)] no-underline outline-none transition-[color] duration-[400ms] ease-[ease] group-data-[lit]/slot:text-[var(--pn-strong)] aria-[current=location]:text-[var(--pn-strong)] group-data-[items=pill]/nav:[background:var(--pn-tile)] group-data-[items=pill]/nav:[box-shadow:var(--pn-tile-rim)] group-data-[items=pill]/nav:text-[var(--pn-strong)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--pn-ring)] motion-reduce:transition-none';
 const FACE =
   'inline-flex items-center gap-[0.45em] transition-transform duration-[550ms] ease-[cubic-bezier(0.22,1,0.36,1)] [&_svg]:h-[1.15em] [&_svg]:w-[1.15em] [&_svg]:flex-none group-data-[on]/slot:-translate-y-[var(--pn-roll)] group-data-[on]/slot:duration-[750ms] group-data-[hover]/slot:-translate-y-[var(--pn-roll)] group-data-[hover]/slot:duration-[750ms] motion-reduce:transition-none';
 const FACE_ALT =
@@ -194,7 +196,7 @@ const PANEL =
   'absolute inset-x-0 top-0 z-[1] box-border rounded-[24px] px-[6px] pb-[6px] pt-[calc(var(--pn-h)_+_10px)] group-data-[layout=joined]/nav:pt-[calc(var(--pn-h)_+_4px)]';
 const MENU = 'm-0 flex list-none flex-col gap-[2px] p-0';
 const ROW =
-  'box-border flex h-[calc(var(--pn-h)_+_2px)] w-full cursor-pointer items-center gap-[10px] rounded-[18px] border-0 px-[16px] text-left [background:none] [font-family:inherit] text-[length:calc(var(--pn-font)_+_1px)] leading-none font-medium text-[var(--pn-strong)] no-underline outline-none transition-[background-color] duration-200 ease-[ease] [&_svg]:h-[1.15em] [&_svg]:w-[1.15em] [&_svg]:flex-none hover:[background:var(--pn-row-hover)] aria-[current=page]:[background:var(--pn-pill)] aria-[current=page]:[box-shadow:var(--pn-pill-shadow)] aria-[current=page]:text-[var(--pn-pill-ink)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--pn-ring)] motion-reduce:transition-none';
+  'box-border flex h-[calc(var(--pn-h)_+_2px)] w-full cursor-pointer items-center gap-[10px] rounded-[18px] border-0 px-[16px] text-left [background:none] [font-family:inherit] text-[length:calc(var(--pn-font)_+_1px)] leading-none font-medium text-[var(--pn-strong)] no-underline outline-none transition-[background-color] duration-200 ease-[ease] [&_svg]:h-[1.15em] [&_svg]:w-[1.15em] [&_svg]:flex-none hover:[background:var(--pn-row-hover)] aria-[current=location]:[background:var(--pn-pill)] aria-[current=location]:[box-shadow:var(--pn-pill-shadow)] aria-[current=location]:text-[var(--pn-pill-ink)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--pn-ring)] motion-reduce:transition-none';
 const MEASURE = 'pointer-events-none invisible absolute left-0 top-0 flex gap-[2px]';
 
 const DEFAULT_ITEMS: PillNavItem[] = [
@@ -861,7 +863,7 @@ const PillNav = ({
                     item,
                     {
                       className: ITEM,
-                      'aria-current': index === activeIndex ? 'page' : undefined,
+                      'aria-current': index === activeIndex ? 'location' : undefined,
                       'aria-label': item.ariaLabel,
                       onClick: event => choose(item, index, event)
                     },
@@ -921,7 +923,7 @@ const PillNav = ({
                   item,
                   {
                     className: ROW,
-                    'aria-current': index === activeIndex ? 'page' : undefined,
+                    'aria-current': index === activeIndex ? 'location' : undefined,
                     tabIndex: open ? undefined : -1,
                     onClick: event => {
                       choose(item, index, event);

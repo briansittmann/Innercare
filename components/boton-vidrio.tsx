@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import type { ComponentProps, CSSProperties, PointerEvent } from 'react'
+import { scrollToAnchor } from './anchor-link'
 
 // Botón de vidrio (.boton-vidrio en globals.css), como "Ver la demo" de Mango:
 // con el puntero encima sube 2 px, un brillo y un borde del primario siguen al
@@ -17,9 +18,17 @@ function followPointer(event: PointerEvent<HTMLElement>) {
 
 type BotonVidrioProps = Omit<ComponentProps<typeof Link>, 'children'> & { children: string }
 
-export function BotonVidrio({ children, className = '', ...props }: BotonVidrioProps) {
+export function BotonVidrio({ children, className = '', onClick, ...props }: BotonVidrioProps) {
   return (
-    <Link {...props} onPointerMove={followPointer} className={`boton-vidrio ${className}`}>
+    <Link
+      {...props}
+      onClick={(event) => {
+        onClick?.(event)
+        if (typeof props.href === 'string') scrollToAnchor(event, props.href)
+      }}
+      onPointerMove={followPointer}
+      className={`boton-vidrio ${className}`}
+    >
       <span className="sr-only">{children}</span>
       {/* Cada letra lleva su copia debajo (text-shadow) y sube con un
           escalonado de --i */}

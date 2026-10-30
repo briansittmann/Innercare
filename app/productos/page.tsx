@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { ContactCta } from '@/components/contact-cta'
 import { ProductTile } from '@/components/product-tile'
 import { getProducts } from '@/content/products'
@@ -34,14 +33,8 @@ export default async function ProductsPage() {
         <p className="rise-in mt-md max-w-[60ch] text-body-lg text-on-surface-variant [--rise-order:1]">
           Sistemas modulares de fabricación propia en titanio biocompatible,
           customizables para adaptarse a la patología de cada paciente. Para
-          reconstrucciones que requieren una pieza única, trabajamos por{' '}
-          <Link
-            href="/casos-a-medida"
-            className="text-primary underline underline-offset-4 hover:no-underline"
-          >
-            caso a medida
-          </Link>
-          .
+          reconstrucciones que requieren una pieza única, trabajamos por caso a
+          medida.
         </p>
       </section>
 

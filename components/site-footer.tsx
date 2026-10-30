@@ -2,6 +2,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { habilitaciones, sedePrincipal, tagline } from '@/content/company'
 import { getProducts } from '@/content/products'
+import { AnchorLink } from './anchor-link'
+import { contactHref, contactLabel, navLinks } from './nav-links'
 
 // Con Cache Components, `new Date()` no puede ir en el shell estático sin
 // decidir cuándo se calcula: 'use cache' lo fija y lo renueva según cacheLife.
@@ -12,11 +14,8 @@ async function CopyrightYear() {
 
 const telHref = (phone: string) => `tel:+${phone.replace(/\D/g, '')}`
 
-const empresa = [
-  { href: '/casos-a-medida', label: 'Casos a medida' },
-  { href: '/nosotros', label: 'Nosotros' },
-  { href: '/contacto', label: 'Contacto' },
-] as const
+// Las mismas anclas de la barra superior y el contacto
+const sitio = [...navLinks, { href: contactHref, label: contactLabel }]
 
 const fabricacion = habilitaciones.find((h) => h.id === 'anmat-fabricacion')
 
@@ -54,28 +53,20 @@ export async function SiteFooter() {
                 </Link>
               </li>
             ))}
-            <li>
-              <Link
-                href="/productos"
-                className="text-on-surface-variant transition-colors hover:text-primary"
-              >
-                Catálogo completo
-              </Link>
-            </li>
           </ul>
         </nav>
 
-        <nav aria-label="Empresa" className="md:col-span-2">
-          <h2 className="font-label-md text-label-md text-on-surface">Empresa</h2>
+        <nav aria-label="Sitio" className="md:col-span-2">
+          <h2 className="font-label-md text-label-md text-on-surface">Sitio</h2>
           <ul className="mt-md flex flex-col gap-sm text-body-sm">
-            {empresa.map((link) => (
+            {sitio.map((link) => (
               <li key={link.href}>
-                <Link
+                <AnchorLink
                   href={link.href}
                   className="text-on-surface-variant transition-colors hover:text-primary"
                 >
                   {link.label}
-                </Link>
+                </AnchorLink>
               </li>
             ))}
           </ul>

@@ -4,6 +4,7 @@ import { DesktopNav } from './desktop-nav'
 import { MobileNav } from './mobile-nav'
 import { NavIntro } from './nav-intro'
 import { NavGlass } from './nav-glass'
+import { contactHref, contactLabel } from './nav-links'
 
 function Logo({ className }: { className: string }) {
   return (
@@ -28,7 +29,7 @@ function Logo({ className }: { className: string }) {
 // barra: lo único visible es la barra de vidrio flotante, con el contenido
 // pasando por detrás al hacer scroll. Alto total: 8 px de margen + 64 px de
 // barra = 72 px, lo que descuenta el hero. Con los 8 px de relleno del vidrio
-// quedan 48 px para "Contactar", el mínimo táctil del sistema de botones.
+// quedan 48 px para "Plantear un caso", el mínimo táctil del sistema de botones.
 //
 // Entrada (.nav-intro-* en globals.css), solo al cargar el sitio por la home
 // (NavIntro) y a la vez que el busto del hero (components/intro.ts). En el
@@ -66,8 +67,8 @@ export function SiteHeader() {
                   <Logo className="h-8 w-auto" />
                 </span>
                 <DesktopNav className="nav-intro-links" />
-                <Link href="/contacto" className="nav-intro-cta boton boton-primario justify-self-end">
-                  Contactar
+                <Link href={contactHref} className="nav-intro-cta boton boton-primario justify-self-end">
+                  {contactLabel}
                 </Link>
               </div>
             </div>

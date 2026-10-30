@@ -645,7 +645,7 @@ body {
       de 82 px más 24 px de cada lado, los mismos que tendrá al final).
    2. Se estira hasta su ancho con un resorte: se pasa un 4,6 % y vuelve.
    3. Mientras crece, entran los enlaces uno tras otro.
-   4. Al final, "Contactar" con un rebote más marcado.
+   4. Al final, "Plantear un caso" con un rebote más marcado.
    Los resortes son curvas linear() calculadas (amortiguación 0,7 y 0,45).
    Sin soporte de linear(), la declaración no vale y la barra se ve quieta.
    El contenedor de consultas, solo en escritorio: en el celular haría de
@@ -724,6 +724,10 @@ body {
 
   .nav-intro[data-intro='running'] .nav-intro-links li:nth-child(3) {
     animation-delay: 1010ms;
+  }
+
+  .nav-intro[data-intro='running'] .nav-intro-links li:nth-child(4) {
+    animation-delay: 1090ms;
   }
 
   .nav-intro[data-intro='running'] .nav-intro-cta {
