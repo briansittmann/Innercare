@@ -13,75 +13,75 @@ const ancla = (parada: Parada) => `parada-${parada.id}`
 // llevan a su ficha; las a medida cuentan el caso y llevan al contacto.
 //
 // El hero del borrador vive dentro de esta escena; acá queda aparte (AJUSTES:
-// el hero de `rediseno` se mantiene), así que la sección lleva su título.
+// el hero de `rediseno` se mantiene), así que en su lugar (k = 0) va el
+// título de la sección, con el cuerpo entero a la derecha. La escena 3D y el
+// guion de cámara están en components/recorrido-3d/.
 export function Tour() {
-  const escenas = [
+  const vistas = [
     ...paradas.map((parada) => <VistaParada key={parada.id} parada={parada} />),
-    <VistaCierre key="cierre" />,
+    <VistaCuerpo key="cuerpo" />,
   ]
+  const aMedida = paradas.filter((p) => p.tipo === 'a-medida').length
+  const catalogo = paradas.length - aMedida
 
   return (
     <section id="recorrido" aria-labelledby="recorrido-titulo" className="relative bg-surface">
-      <div className="page-container pt-section pb-xl">
-        <h2
-          id="recorrido-titulo"
-          className="max-w-[16ch] text-balance font-display-lg text-display-lg text-on-surface"
-        >
-          Recorrido por los implantes
-        </h2>
-      </div>
-
       <TourScroll
         paradas={paradas.map((parada) => ({ ancla: ancla(parada), zona: parada.zona }))}
-        escenas={escenas}
-      >
-        <ol>
-          {paradas.map((parada, i) => (
-            // Cada parada ocupa una pantalla. Tarjeta a la derecha, centrada
-            // (en el celular, abajo, como hoja inferior).
-            <li
-              key={parada.id}
-              id={ancla(parada)}
-              data-parada={i}
-              className="flex min-h-dvh items-end justify-center px-[0.75rem] pt-[5.5rem] pb-[0.75rem] md:items-center md:justify-end md:pr-[clamp(1.25rem,5vw,5rem)] md:pb-[2.5rem] md:pl-0"
+        vistas={vistas}
+        entrada={
+          // Entrada (k = 0): donde el borrador tiene el texto del hero
+          <>
+            <h2
+              id="recorrido-titulo"
+              className="max-w-[14ch] text-balance font-display-lg text-display-lg text-on-surface"
             >
-              <TarjetaParada parada={parada} />
-            </li>
-          ))}
-        </ol>
-
-        {/* Cierre (k = 7 del guion: el cuerpo entero): el texto a la
-            izquierda, donde estaba el del hero en el borrador. */}
-        <div
-          data-parada={paradas.length}
-          className="flex min-h-dvh items-start px-[1.25rem] pt-[calc(4rem+1.375rem)] md:items-center md:pt-0 md:pl-[clamp(1.25rem,6vw,6rem)]"
-        >
-          <div className="pointer-events-auto w-full md:w-[min(37.5rem,46vw)]">
-            <h3 className="text-balance font-display-lg text-display-lg text-on-surface">
+              Recorrido por los implantes
+            </h2>
+            <p className="mt-md max-w-[40ch] text-body-lg text-on-surface-variant min-[820px]:mt-lg">
+              {`${numero(paradas.length)} implantes en su lugar, de la cabeza al fémur: ${numero(aMedida, true)} a medida y ${numero(catalogo, true)} de catálogo.`}
+            </p>
+          </>
+        }
+        cierre={
+          // Cierre (k = 7): el cuerpo entero y el texto final a la izquierda
+          <>
+            <h3 className="max-w-[18ch] text-balance font-display-lg text-display-lg text-on-surface">
               {cierreRecorrido.titulo}
             </h3>
-            <p className="mt-md max-w-[46ch] text-body-lg text-on-surface-variant md:mt-lg">
+            <p className="mt-md max-w-[46ch] text-body-lg text-on-surface-variant min-[820px]:mt-lg">
               {cierreRecorrido.texto}
             </p>
-            <div className="mt-lg flex flex-wrap gap-sm md:mt-xl">
+            <div className="mt-lg flex flex-wrap gap-sm min-[820px]:mt-xl">
               <Link href={contactHref} className="boton boton-primario">
                 {contactLabel}
               </Link>
             </div>
-          </div>
-        </div>
+          </>
+        }
+      >
+        {paradas.map((parada, i) => (
+          <TarjetaParada key={parada.id} parada={parada} indice={i} />
+        ))}
       </TourScroll>
     </section>
   )
 }
 
-function TarjetaParada({ parada }: { parada: Parada }) {
+const NUMEROS = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve']
+function numero(n: number, minuscula = false) {
+  const palabra = NUMEROS[n] ?? String(n)
+  return minuscula ? palabra : palabra.charAt(0).toUpperCase() + palabra.slice(1)
+}
+
+function TarjetaParada({ parada, indice }: { parada: Parada; indice: number }) {
   const aMedida = parada.tipo === 'a-medida'
 
   return (
     <article
+      data-tarjeta={indice}
       aria-labelledby={`${ancla(parada)}-titulo`}
-      className="pointer-events-auto w-full rounded-xl bg-surface-container-lowest px-[1.125rem] py-md shadow-escena ring-1 ring-outline-variant/70 md:w-[min(27.5rem,38vw)] md:px-lg md:py-[1.375rem]"
+      className="recorrido-tarjeta w-full rounded-xl bg-surface-container-lowest px-[1.125rem] py-md shadow-escena ring-1 ring-outline-variant/70 min-[820px]:px-lg min-[820px]:py-[1.375rem]"
     >
       <div className="mb-[0.75rem] flex items-center justify-between gap-[0.625rem]">
         <span
@@ -103,29 +103,29 @@ function TarjetaParada({ parada }: { parada: Parada }) {
         {parada.titulo}
       </h3>
 
-      {/* Lugar de la miniatura 3D (ensamble de partículas, fase 3): por
+      {/* Lugar de la miniatura 3D (ensamble de partículas, fase 5): por
           ahora, la foto de la pieza sobre la luz del borrador, con los bordes
           desvanecidos. Alto fijo para que el cambio no mueva la tarjeta. */}
       <div
         data-miniatura-3d={parada.id}
-        className="mini-parada relative my-[0.75rem] h-[6.5rem] overflow-hidden rounded-xl md:mt-md md:mb-[0.875rem] md:h-auto md:aspect-[16/10]"
+        className="mini-parada relative my-[0.625rem] h-[6.5rem] overflow-hidden rounded-xl min-[820px]:mt-md min-[820px]:mb-[0.875rem] min-[820px]:aspect-[16/10] min-[820px]:h-auto min-[820px]:max-h-[24dvh]"
       >
         <Image
           src={parada.miniatura.src}
           alt={parada.miniatura.alt}
           fill
-          sizes="(min-width: 768px) 27.5rem, 100vw"
+          sizes="(min-width: 820px) 27.5rem, 100vw"
           className="mini-imagen object-contain"
         />
       </div>
 
-      <p className="mb-[0.625rem] text-[0.9375rem] leading-normal text-on-surface-variant md:mb-[0.875rem]">
+      <p className="mb-[0.625rem] text-[0.9375rem] leading-normal text-on-surface-variant min-[820px]:mb-[0.875rem]">
         {parada.descripcion}
       </p>
 
       {/* Specs: ocultas en el celular, donde la tarjeta es una hoja inferior
           (borrador). La ficha completa está en la página del producto. */}
-      <dl className="mb-md hidden border-t border-outline-variant md:block">
+      <dl className="mb-md hidden border-t border-outline-variant min-[820px]:block">
         {parada.specs.map((spec) => (
           <div
             key={spec.label}
@@ -168,28 +168,29 @@ function VistaParada({ parada }: { parada: Parada }) {
   return (
     // Ubicada con left/top calculados y no con translate: un transform
     // aislaría la mezcla de la imagen con la luz de la escena.
-    <div className="absolute top-[5.5rem] left-[7vw] h-[38vh] w-[86vw] md:top-[calc(50%-min(34vh,20rem))] md:left-[calc(34%-min(22vw,18rem))] md:h-[min(68vh,40rem)] md:w-[min(44vw,36rem)]">
+    <div className="absolute top-[5.5rem] left-[7vw] h-[38vh] w-[86vw] min-[820px]:top-[calc(50%-min(34vh,20rem))] min-[820px]:left-[calc(34%-min(22vw,18rem))] min-[820px]:h-[min(68vh,40rem)] min-[820px]:w-[min(44vw,36rem)]">
       <Image
         src={parada.escena.src}
         alt=""
         fill
-        sizes="(min-width: 768px) 44vw, 86vw"
+        sizes="(min-width: 820px) 44vw, 86vw"
         className="visor-imagen object-contain"
       />
     </div>
   )
 }
 
-// Vista del cierre: el cuerpo entero, anclado a la derecha como en el hero
-// del borrador. Hasta que exista, la captura del busto de vidrio del hero.
-function VistaCierre() {
+// Vista de la entrada y del cierre (lugar reservado del cuerpo entero,
+// anclado a la derecha como en el hero del borrador): la captura del busto
+// de vidrio del hero.
+function VistaCuerpo() {
   return (
-    <div className="absolute bottom-0 left-1/2 h-[52vh] w-[min(100vw,36rem)] -translate-x-1/2 md:left-[68%] md:h-[88vh] md:w-[min(52vw,52rem)]">
+    <div className="absolute bottom-0 left-1/2 h-[52vh] w-[min(100vw,36rem)] -translate-x-1/2 min-[820px]:left-[68%] min-[820px]:h-[88vh] min-[820px]:w-[min(52vw,52rem)]">
       <Image
         src="/img/cuerpo-inicio.webp"
         alt=""
         fill
-        sizes="(min-width: 768px) 52vw, 100vw"
+        sizes="(min-width: 820px) 52vw, 100vw"
         className="object-contain object-bottom"
       />
     </div>

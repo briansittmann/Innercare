@@ -1,7 +1,7 @@
 #!/bin/sh
 # Implantes, prototipo de cabeza, cuerpo entero y optimización para la web.
-# Parte de la piel
-# y del esqueleto ya generados (piel.py y anatomia.py, que tardan más).
+# Parte de la piel y del esqueleto ya generados (piel.py y anatomia.py, que
+# tardan más).
 # Blender: la ruta se puede cambiar con la variable BLENDER.
 set -e
 cd "$(dirname "$0")/../.."

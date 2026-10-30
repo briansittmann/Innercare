@@ -695,10 +695,21 @@ body {
   }
 }
 
-/* Recorrido por el cuerpo (components/home/tour-scroll.tsx).
-   - .escena-vista: las vistas de la escena fija, una por parada. La activa
-     (data-visible) entra con un fundido y la anterior se apaga. Sin JS se
-     ve la primera.
+/* Recorrido por el cuerpo (components/home/tour-scroll.tsx y
+   components/recorrido-3d/). Ocho pantallas de scroll con la escena fija;
+   lo que se ve en cada momento lo decide el guion (camara.ts) desde JS.
+   - .recorrido-ancla: ancla de cada parada, a la altura de scroll donde la
+     cámara llega a ella (k pantallas; los 74 px compensan el
+     scroll-padding-top de 72 px y dejan 2 px adentro del tramo, como el
+     borrador).
+   - .recorrido-riel: las tarjetas, apiladas en la misma celda (a la derecha;
+     en el celular, abajo, como hoja inferior). JS les da la opacidad.
+   - .recorrido-halo: el anillo que late alrededor del implante activo. La
+     escena 3D escribe su centro, radio y opacidad (--halo-*).
+   - .recorrido-luz: la luz azul que acompaña al cuerpo (--luz-*).
+   - .escena-vista: las vistas del lugar reservado del 3D (sin WebGL o
+     mientras carga), una por parada. La activa (data-visible) entra con un
+     fundido y la anterior se apaga. Se van cuando el 3D está listo.
    - .indice-riel: riel del índice anatómico. Un tramo del primario lo llena
      de arriba hasta la parada activa (--avance, de 0 a 1). */
 /* Fondo de la escena del recorrido (el del borrador: una luz azul de la
@@ -745,6 +756,220 @@ body {
   transform-origin: top;
   scale: 1 var(--avance, 0);
   transition: scale 420ms var(--ease-out);
+}
+
+#recorrido {
+  /* "Recorrer los implantes" y el menú dejan la escena entera en pantalla,
+     sin el hueco del header (que va encima de la escena) */
+  scroll-margin-top: -72px;
+}
+
+.recorrido {
+  position: relative;
+  height: calc(var(--tramos) * 100dvh);
+}
+
+.recorrido-ancla {
+  position: absolute;
+  left: 0;
+  top: calc(var(--k) * 100dvh + 74px);
+  width: 1px;
+  height: 1px;
+}
+
+.recorrido-escena {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.recorrido-vistas,
+.recorrido-lienzo,
+.recorrido-luz {
+  position: absolute;
+  inset: 0;
+}
+
+.recorrido-vistas {
+  transition: opacity 700ms var(--ease-out);
+}
+
+.recorrido-escena[data-listo] .recorrido-vistas {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 700ms var(--ease-out),
+    visibility 0s 700ms;
+}
+
+.recorrido-luz {
+  opacity: 0;
+  background: radial-gradient(
+    circle 60vmax at var(--luz-x, 68%) var(--luz-y, 50%),
+    rgb(34 96 161 / 0.16),
+    rgb(34 96 161 / 0)
+  );
+  transition: opacity 700ms var(--ease-out);
+}
+
+.recorrido-escena[data-listo] .recorrido-luz {
+  opacity: 1;
+}
+
+.recorrido-halo {
+  display: none;
+  position: absolute;
+  left: calc(var(--halo-x, 0px) - var(--halo-r, 0px));
+  top: calc(var(--halo-y, 0px) - var(--halo-r, 0px));
+  width: calc(var(--halo-r, 0px) * 2);
+  height: calc(var(--halo-r, 0px) * 2);
+  opacity: var(--halo-o, 0);
+  pointer-events: none;
+}
+
+.recorrido-halo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgb(34 96 161 / 0.6);
+  box-shadow: 0 0 18px rgb(77 147 224 / 0.35);
+}
+
+/* Borrador: el radio crece de 0,16 a 0,38 del tramo visible mientras se
+   apaga, una vez cada 1,43 s. Sin halo con movimiento reducido. */
+@media (prefers-reduced-motion: no-preference) {
+  .recorrido-escena[data-listo] .recorrido-halo {
+    display: block;
+  }
+
+  .recorrido-halo::before {
+    animation: recorrido-halo 1.43s linear infinite;
+  }
+}
+
+@keyframes recorrido-halo {
+  from {
+    scale: 0.42;
+    opacity: 1;
+  }
+  to {
+    scale: 1;
+    opacity: 0;
+  }
+}
+
+/* Texto de la entrada y del cierre: a la izquierda, centrado en el alto,
+   donde el borrador tiene el del hero. En el celular, arriba. */
+.recorrido-texto {
+  position: absolute;
+  z-index: 3;
+  top: calc(env(safe-area-inset-top, 0px) + 5.375rem);
+  left: 1.25rem;
+  right: 1.25rem;
+}
+
+.recorrido-indice {
+  display: none;
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: clamp(1.25rem, 3vw, 2.5rem);
+  translate: 0 -50%;
+  transition: opacity 300ms;
+}
+
+.recorrido-riel {
+  position: absolute;
+  z-index: 4;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: grid;
+  align-items: end;
+  pointer-events: none;
+}
+
+.recorrido-riel > * {
+  grid-area: 1 / 1;
+  pointer-events: auto;
+  will-change: opacity, transform;
+}
+
+@media (width >= 820px) {
+  .recorrido-texto {
+    top: 50%;
+    left: clamp(1.25rem, 6vw, 6rem);
+    right: auto;
+    width: min(37.5rem, 46vw);
+    translate: 0 -46%;
+  }
+
+  .recorrido-riel {
+    top: 5.625rem;
+    bottom: 2.5rem;
+    left: auto;
+    right: clamp(1.25rem, 5vw, 5rem);
+    width: min(27.5rem, 38vw);
+    align-items: center;
+  }
+}
+
+@media (width >= 1100px) {
+  .recorrido-indice {
+    display: block;
+  }
+}
+
+/* Con JS, la escena empieza en la entrada: tarjetas, cierre e índice
+   ocultos hasta que el guion les dé opacidad. */
+@media (scripting: enabled) {
+  .recorrido-tarjeta,
+  .recorrido-cierre,
+  .recorrido-indice {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* Sin JS, todo en orden y legible: la escena deja de ser fija. */
+@media (scripting: none) {
+  .recorrido {
+    height: auto;
+  }
+
+  .recorrido-escena {
+    position: relative;
+    height: auto;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 6rem 1.25rem 4rem;
+  }
+
+  .recorrido-vistas,
+  .recorrido-lienzo,
+  .recorrido-luz,
+  .recorrido-halo,
+  .recorrido-indice {
+    display: none;
+  }
+
+  .recorrido-texto,
+  .recorrido-riel {
+    position: static;
+    translate: none;
+    width: auto;
+  }
+
+  .recorrido-riel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 27.5rem;
+  }
 }
 
 /* Imágenes que ocupan el lugar del 3D o de una animación (escena del
