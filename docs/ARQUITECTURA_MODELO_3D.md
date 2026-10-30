@@ -13,6 +13,7 @@ Estado al 2026-10-29. El hero muestra el prototipo de cabeza; el cuerpo entero v
   - El vidrio dibuja lo que tiene detrás en un buffer propio con MSAA (`useGlassBuffer` en `materials.tsx`): el de Drei no tiene antialiasing y la malla se dentaba. La resolución arranca en la de la pantalla, hasta 1,5x, y solo baja si faltan cuadros, sin volver a subir. Las tres calidades se ven igual: solo cambian las muestras de la refracción (10, 4 y 3; la media, la de siempre, tenía 6).
   - Para medir: `?medir` en la home muestra cuadros por segundo, triángulos, tiempos y bytes; `?calidad=alta|media|baja` fija el vidrio; `?hueso=0.3`, la opacidad del hueso, y `?fondo` dibuja en el canvas el tramo del degradé que refracta el vidrio (si no coincide con el del CSS, se ve un rectángulo); `?fibras=no` apaga las fibras y `?fibras=1x|2x` fija su resolución (por defecto, 2x en escritorio y 1x en el celular). Es del prototipo: se quita antes del lanzamiento.
 - **Hecho (2026-10-30, fase 3 de la landing):** el cuerpo entero en el recorrido de la home (`#recorrido`, `components/recorrido-3d/`). `npm run modelos` optimiza `salida/anatomia.glb` a `public/modelos/cuerpo.glb` (918 KB, 695 KB transferidos con gzip; unos 177 000 triángulos). La craneoplastía es la real; los otros cinco implantes son primitivas detrás de `components/recorrido-3d/implantes.ts`, cuyo contrato explica cómo reemplazarlas. Detalle en `docs/landing/BITACORA.md`.
+- **Hecho (2026-10-30, fase 4 de la landing):** los otros cinco implantes, generados en `implantes.py` (maxilar, hombro reverso, acetábulo, endoprótesis de fémur e intercalar de fémur), con los huesos que reemplazan recortados. Van en `public/modelos/implantes-recorrido.glb` (304 KB, 188 KB con gzip; unos 46 000 triángulos) y el cuerpo recortado en `cuerpo.glb` (902 KB). El hero no cambia: `cabeza.glb` e `implantes.glb` salen igual que antes (la craneoplastía sola y el esqueleto con el recorte del cráneo). Renders de control en `3d/salida/preview/implantes/`. Detalle y medidas estimadas en `docs/landing/BITACORA.md`.
 - **Siguiente:** medir en un celular real el busto del hero y el cuerpo del recorrido (hoy medido solo en escritorio y con emulación de celular). El recorrido tiene la resolución fija (1,5x) y el vidrio en calidad baja en el celular, porque dibuja a demanda y no puede medir los cuadros solo. Ese día, con el build de producción en la red local y `?medir`, comparar `?fibras=no|1x|2x` y `?calidad=alta|media|baja`, y ajustar la calidad por defecto, la transmisión, la opacidad del hueso y la resolución de las fibras en el celular (hoy 1x por precaución). Para abrirlo desde el teléfono, el firewall de macOS tiene que dejar entrar conexiones a Node.
 - **Del esqueleto, a revisar con el material de vidrio:**
   - El cráneo queda algo bajo dentro de la cabeza, porque la del maniquí es más alta que la del atlas: entra escalado por eje (0,98 × 1,05 × 0,86).
@@ -133,8 +134,8 @@ La escena asigna los materiales por nombre de malla. Así se ajusta el aspecto e
 
 - `piel`
 - `hueso_<nombre>` (por ejemplo `hueso_femur_izq`)
-- `implante_craneoplastia`, `implante_maxilar`, `implante_hombro`, `implante_acetabular`, `implante_endoprotesis`, `implante_intercalar`
-- Sufijo `_pulido` o `_trabecular` cuando una pieza combina las dos terminaciones.
+- `implante_craneoplastia` (en `implantes.glb`, compartido con el hero) y, en `implantes-recorrido.glb`, `implante_<parada>` con el id de la parada de `content/recorrido.ts`: `implante_maxilar`, `implante_hombro`, `implante_acetabulo`, `implante_femur` (la endoprótesis) e `implante_intercalar`
+- Sufijo `_pulido` o `_trabecular` cuando una pieza combina las dos terminaciones. Hoy cada implante es una sola malla con un solo acabado (`implantes.ts`): la base porosa de la glenosfera y el inserto del hombro van pulidos como el resto.
 
 ### Archivos
 
@@ -150,8 +151,10 @@ La escena asigna los materiales por nombre de malla. Así se ajusta el aspecto e
     preview.py       renders de control en PNG
   salida/            intermedios (en .gitignore)
 public/modelos/
-  anatomia.glb       piel y esqueleto, optimizados
-  implantes.glb      los seis implantes, optimizados
+  cabeza.glb         busto del hero (piel y esqueleto con el recorte del cráneo)
+  implantes.glb      la craneoplastía (hero y recorrido)
+  cuerpo.glb         piel y esqueleto con los recortes de los seis implantes (recorrido)
+  implantes-recorrido.glb  los otros cinco implantes (recorrido)
 ```
 
 `npm run modelos` corre los scripts y la optimización con `gltf-transform`.
