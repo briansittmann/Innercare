@@ -1125,6 +1125,13 @@ body {
   .proceso-leyenda {
     display: none;
   }
+
+  /* Sin JS no hay pasos que avanzar con el scroll: la sección toma su alto
+     natural en vez de las 3,4 pantallas fijas (#proceso, components/home/
+     process.tsx), que repetían dos pantallas del mismo contenido. */
+  #proceso {
+    height: auto;
+  }
 }
 
 /* Cinta de fibras del cierre de contacto (components/contact-cta.tsx): deriva
