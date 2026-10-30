@@ -18,7 +18,9 @@
 
 import { clamp, lerp, smooth, leerColor, type Ctx, type Rgb } from './lienzo'
 
-type Categoria = 0 | 1 | 2 // hueso, zona a resecar, implante y guías
+// Hueso, zona a resecar, implante y guías, y planos de corte (en el azul
+// del hueso, como en el borrador, pero aparte: no son hueso que quede)
+type Categoria = 0 | 1 | 2 | 3
 type P3 = { x: number; y: number; z: number; c: Categoria }
 
 // Unidades: el segmento mide 300 de alto (y hacia abajo, como en el canvas),
@@ -26,8 +28,15 @@ type P3 = { x: number; y: number; z: number; c: Categoria }
 const ALTO = 300
 const CORTE_1 = 101
 const CORTE_2 = 199
-const CORTES_TC = 26
+const CORTES_TC = 20
 const ACHATADO = 0.86 // sección elíptica del fémur
+// Medio ancho y media profundidad de los planos de corte
+const PLANO_X = 84
+const PLANO_Z = 52
+// Guías: marcos en caja alrededor del hueso, más anchos que él (borrador:
+// 96 de ancho contra unos 52 del hueso)
+const GUIA_X = 48
+const GUIA_Z = 34
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a)
 
@@ -63,17 +72,24 @@ function ordenarPorAltura<T extends { y: number }>(lista: T[]) {
 // la partícula i de una forma es la i de la siguiente.
 function formas(n: number): [P3[], P3[], P3[]] {
   // --- 2. Hueso con la zona a resecar (la forma de base) ---
-  const anillo = Math.round(n * 0.04)
+  const nPlano = Math.round(n * 0.055)
   const hueso: P3[] = []
-  // Planos de corte: dos anillos punteados alrededor del hueso
+  // Planos de corte: dos planos que atraviesan el hueso, unas tres veces más
+  // anchos que él (las líneas punteadas del borrador), con el contorno en
+  // trazos
   for (const yc of [CORTE_1, CORTE_2]) {
-    const r = radio(yc) + 9
+    const perimetro = 4 * (PLANO_X + PLANO_Z)
     let k = 0
-    while (k < anillo) {
-      const a = rnd(0, Math.PI * 2)
-      if ((a * r) % 10 > 6) continue
-      const s = superficie(a, a, r)
-      hueso.push({ x: s.x, y: yc + rnd(-0.4, 0.4), z: s.z, c: 1 })
+    while (k < nPlano) {
+      const t = rnd(0, perimetro)
+      if (t % 13 > 8) continue
+      let x: number
+      let z: number
+      if (t < 2 * PLANO_X) [x, z] = [-PLANO_X + t, PLANO_Z]
+      else if (t < 2 * PLANO_X + 2 * PLANO_Z) [x, z] = [PLANO_X, PLANO_Z - (t - 2 * PLANO_X)]
+      else if (t < 4 * PLANO_X + 2 * PLANO_Z) [x, z] = [PLANO_X - (t - 2 * PLANO_X - 2 * PLANO_Z), -PLANO_Z]
+      else [x, z] = [-PLANO_X, -PLANO_Z + (t - 4 * PLANO_X - 2 * PLANO_Z)]
+      hueso.push({ x: x + rnd(-0.6, 0.6), y: yc + rnd(-0.6, 0.6), z: z + rnd(-0.6, 0.6), c: 3 })
       k++
     }
   }
@@ -92,9 +108,17 @@ function formas(n: number): [P3[], P3[], P3[]] {
     const yc = 6 + Math.round((clamp(p.y, 6, ALTO - 6) - 6) / pasoCorte) * pasoCorte
     const r = radio(yc)
     const rc = canal(yc)
-    // En los extremos, algo de hueso esponjoso dentro del canal
-    const esponjoso = Math.random() < abertura(yc) * 0.5
-    const rr = esponjoso ? Math.sqrt(Math.random()) * rc : Math.sqrt(rnd((rc / r) ** 2, 1)) * r
+    // Contorno externo de la cortical, contorno del canal y relleno entre
+    // los dos; en los extremos, algo de hueso esponjoso dentro del canal
+    const esponjoso = Math.random() < abertura(yc) * 0.3
+    const tipo = Math.random()
+    const rr = esponjoso
+      ? Math.sqrt(Math.random()) * rc
+      : tipo < 0.45
+        ? r - rnd(0, 1.2)
+        : tipo < 0.75
+          ? rc + rnd(0, 1.2)
+          : Math.sqrt(rnd((rc / r) ** 2, 1)) * r
     const a = Math.atan2(p.x, p.z / ACHATADO) + rnd(-0.05, 0.05)
     const s = superficie(a, a, rr)
     return { x: s.x, y: yc, z: s.z, c: 0 }
@@ -106,8 +130,8 @@ function formas(n: number): [P3[], P3[], P3[]] {
   const resto = hueso.map((p, i) => ({ y: p.y, i })).filter(({ i }) => hueso[i]?.c !== 0)
   const m = resto.length
   const nuevas: P3[] = []
-  const nImplante = Math.round(m * 0.64)
-  const nClavo = Math.round(m * 0.1)
+  const nImplante = Math.round(m * 0.55)
+  const nClavo = Math.round(m * 0.08)
   const nGuias = m - nImplante - nClavo
   // Implante intercalar: collares macizos en los extremos y, en el medio,
   // la celosía porosa: barras en diagonal sobre la cara que mira a la
@@ -137,41 +161,46 @@ function formas(n: number): [P3[], P3[], P3[]] {
     const a = rnd(0, Math.PI * 2)
     nuevas.push({ x: Math.sin(a) * 5, y: rnd(3, ALTO - 3), z: Math.cos(a) * 5, c: 2 })
   }
-  // Guías de resección: una media caña que abraza el hueso del lado de
-  // adelante, apoyada en el hueso junto a cada plano de corte, con la ranura
-  // en el borde y dos vainas para clavijas
+  // Guías de resección: un marco en caja alrededor del hueso, apoyado junto
+  // a cada plano de corte y bien más ancho que el hueso (el rectángulo del
+  // borrador), con la ranura de corte en el borde que da al plano y dos
+  // vainas para clavijas en la cara de adelante
   const guias = [
-    { y0: CORTE_1 - 23, y1: CORTE_1 - 1 },
-    { y0: CORTE_2 + 1, y1: CORTE_2 + 23 },
+    { y0: CORTE_1 - 24, y1: CORTE_1 - 1, ranura: CORTE_1 - 4 },
+    { y0: CORTE_2 + 1, y1: CORTE_2 + 24, ranura: CORTE_2 + 4 },
   ]
   for (let k = 0; k < nGuias; k++) {
     const g = guias[k % 2] ?? guias[0]!
     const tipo = Math.random()
     const ym = (g.y0 + g.y1) / 2
-    if (tipo < 0.22) {
-      // Vaina: un cilindro corto que sale hacia adelante
-      const lado = Math.random() < 0.5 ? -0.42 : 0.42
-      const base = radio(ym) + 7
-      const largo = rnd(0, 11)
+    if (tipo < 0.16) {
+      // Vaina: un cilindro corto que sale de la cara de adelante
+      const x0 = Math.random() < 0.5 ? -24 : 24
       const a = rnd(0, Math.PI * 2)
-      const dir = superficie(lado, lado, 1)
-      const px = dir.x * (base + largo) + Math.cos(lado) * Math.cos(a) * 2.6
-      const pz = dir.z * (base + largo) - Math.sin(lado) * Math.cos(a) * 2.6
-      nuevas.push({ x: px, y: ym + Math.sin(a) * 2.6, z: pz, c: 2 })
+      nuevas.push({ x: x0 + Math.cos(a) * 3, y: ym + Math.sin(a) * 3, z: GUIA_Z + rnd(0, 12), c: 2 })
       continue
     }
-    const a = rnd(-0.78 * Math.PI, 0.78 * Math.PI)
-    const y = rnd(g.y0, g.y1)
-    const rg = radio(y) + 7
-    if (tipo < 0.36) {
-      // Bordes de arriba y de abajo de la media caña
-      const yb = Math.random() < 0.5 ? g.y0 : g.y1
-      const s = superficie(a, a, rnd(radio(yb) + 1, radio(yb) + 7))
-      nuevas.push({ x: s.x, y: yb, z: s.z, c: 2 })
+    if (tipo < 0.26) {
+      // Ranura: una línea sobre la cara de adelante, paralela al plano
+      nuevas.push({ x: rnd(-GUIA_X, GUIA_X), y: g.ranura + rnd(-0.5, 0.5), z: GUIA_Z + 0.5, c: 2 })
       continue
     }
-    const s = superficie(a, a, rg)
-    nuevas.push({ x: s.x, y, z: s.z, c: 2 })
+    // Las doce aristas de la caja, con un poco de espesor
+    const arista = Math.floor(Math.random() * 12)
+    const t = Math.random()
+    const yb = arista % 2 ? g.y0 : g.y1
+    let x: number
+    let y: number
+    let z: number
+    if (arista < 4) [x, y, z] = [lerp(-GUIA_X, GUIA_X, t), yb, arista < 2 ? GUIA_Z : -GUIA_Z]
+    else if (arista < 8) [x, y, z] = [arista < 6 ? GUIA_X : -GUIA_X, yb, lerp(-GUIA_Z, GUIA_Z, t)]
+    else
+      [x, y, z] = [
+        arista < 10 ? GUIA_X : -GUIA_X,
+        lerp(g.y0, g.y1, t),
+        arista % 2 ? GUIA_Z : -GUIA_Z,
+      ]
+    nuevas.push({ x: x + rnd(-0.8, 0.8), y: y + rnd(-0.8, 0.8), z: z + rnd(-0.8, 0.8), c: 2 })
   }
   const destino = ordenarPorAltura(nuevas)
   const origen = ordenarPorAltura(resto)
@@ -202,23 +231,26 @@ export class PiezaProceso {
   constructor(n: number) {
     this.formas = formas(n)
     this.retraso = new Float32Array(n).map(() => Math.random() * 0.3)
+    const hueso = leerColor('--color-hueso', '#2260a1')
     const colores: Rgb[] = [
-      leerColor('--color-hueso', '#2260a1'),
+      hueso,
       leerColor('--color-resecar', '#c8456b'),
       leerColor('--color-metal', '#586884'),
+      hueso,
     ]
     // Estilos precalculados: categoría de origen y de destino, paso de la
     // mezcla (0 a 8) y nivel de profundidad (0 a 3)
-    for (let a = 0; a < 3; a++) {
+    for (let a = 0; a < 4; a++) {
       this.estilos[a] = []
-      for (let b = 0; b < 3; b++) {
+      for (let b = 0; b < 4; b++) {
         this.estilos[a]![b] = []
         for (let q = 0; q <= 8; q++) {
           const ca = colores[a]!
           const cb = colores[b]!
           const t = q / 8
           const rgb = [0, 1, 2].map((k) => Math.round(lerp(ca[k]!, cb[k]!, t)))
-          this.estilos[a]![b]![q] = [0.34, 0.52, 0.7, 0.9].map(
+          // Opacidad por profundidad: atrás, más tenue (siempre legible)
+          this.estilos[a]![b]![q] = [0.5, 0.68, 0.84, 1].map(
             (alfa) => `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alfa})`,
           )
         }
@@ -258,10 +290,11 @@ export class PiezaProceso {
     const el = 0.32
     const ce = Math.cos(el)
     const se = Math.sin(el)
-    const sc = Math.min(w / 170, h / (ALTO * ce + 40)) * 0.97
+    // Ancho: los planos de corte, que giran con el vaivén
+    const sc = Math.min(w / 205, h / (ALTO * ce + 60)) * 0.97
     const cx = w / 2
     const cy = h / 2
-    const tam = Math.max(1.3, sc * 0.6)
+    const tam = Math.max(2, sc * 0.95)
 
     for (let i = 0; i < A.length; i++) {
       const a = A[i]!
