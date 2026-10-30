@@ -314,3 +314,40 @@ Memoria compartida entre las fases de la landing: cada fase deja acá qué hizo,
 
 **Pendiente.**
 - Lo que seguía de la entrada anterior: medir en un celular real, la caché de Turbopack con `globals.css` y `CLAUDE.md` desactualizado.
+
+---
+
+## Fase 6 · Pase visual (2026-10-30)
+
+**Commits:** `b7a1105` Polish section edges, spacing and focus rings across the home · `0320bbc` Close the page with the hero fiber ribbon behind the contact block · y el commit de esta entrada (docs).
+
+**Cómo se revisó.** Build de producción en el puerto 3100, Chrome sin interfaz con la GPU del M1, a 1440 × 900 y 390 × 844, de arriba abajo, con el borrador abierto como archivo al lado (capturas por sección y en los pasos entre secciones). Capturas de partida en `/private/tmp/claude-501/-Users-brianrebagliati-Documents-Work-Innercare/3403dac8-8619-432b-9048-845bab630d50/scratchpad/f6/antes/` (`d-*` escritorio, `m-*` celular, `b-*` borrador, `sd-*`/`sb-*` secciones nuestras y del borrador, `bd-*`/`bm-*` pasos entre secciones) y finales en `/private/tmp/claude-501/-Users-brianrebagliati-Documents-Work-Innercare/3403dac8-8619-432b-9048-845bab630d50/scratchpad/f6/v2/`.
+
+**Lista de lo flojo (frente al borrador y a un nivel de producto actual) y qué se hizo.**
+- **Recorrido → Cómo trabajamos:** al soltarse la escena fija, el fondo azul terminaba en un corte recto contra el gris (muy visible en el celular). Ahora `.escenario` y la luz que sigue al cuerpo (`.recorrido-luz`) se funden en el gris en los últimos 7 y 9 rem. La luz lo hace con una capa del mismo fondo y no con una máscara: con máscara el recorrido perdía un 3 % sin tope.
+- **Cómo trabajamos:** la pieza flotaba sobre el gris plano. Lleva detrás la misma luz fija de las animaciones de fabricación y las miniaturas (`.proceso-luz`), así las tres piezas de partículas comparten fondo. En el celular, más aire entre la leyenda y el título.
+- **Fabricación:** el título caía en tres líneas (Hanken es más ancha que la Instrument Sans condensada del borrador): `max-w-[22ch]` lo deja en dos, como el borrador. El texto de las tarjetas, a 58ch (dejaba media tarjeta vacía). "Volver a ver" queda a la misma altura en las dos tarjetas aunque los textos tengan distinto largo.
+- **Habilitaciones:** las referencias se leían más chicas que el detalle; pasan a 15,5 px y semibold, en el primario (el borrador las tiene en semibold).
+- **Distribución:** los puntos de cada par se veían como dos puntos sueltos; cada par lleva un halo del primario (el del borrador), centrado entre sus puntos.
+- **Foco de teclado:** los enlaces (tarjetas del recorrido, índice anatómico, teléfonos del footer) usaban el anillo del navegador. Regla base `:where(a, button, summary, [tabindex]):focus-visible` con el anillo del primario de los botones; los componentes con el suyo (`.boton`, `.boton-vidrio`, PillNav) ganan porque va en `@layer base`.
+- **Contacto:** fondo animado (abajo).
+- Revisado sin cambios: hero (no se toca), tarjetas del recorrido, cierre del recorrido, footer y barra.
+
+**Fondos animados probados (React Bits) y elección.** Solo el cierre de contacto los admite sin competir: el recorrido tiene el 3D, el proceso y fabricación tienen sus piezas animadas, y habilitaciones y sedes son tablas de datos donde el movimiento no tiene función. Los fondos de React Bits evaluados (`Waves`, `DotGrid`, `Topography`, `MagnetLines`, `CursorGrid`, `LineWaves`, `Threads`, `PatternWaves`) son hoy WebGL2; el único en canvas 2D es `Noise`. Capturas en `/private/tmp/claude-501/-Users-brianrebagliati-Documents-Work-Innercare/3403dac8-8619-432b-9048-845bab630d50/scratchpad/f6/fondos/`:
+- `noise-contacto.png` (`Noise`, canvas 2D, grano en superposición): **descartado**, ensucia el azul de la marca y no aporta nada.
+- `topo-contacto.png` (`Topography`, WebGL2, líneas de nivel): **descartado**, 1 600 líneas de código nuevas, parece un mapa de terreno y las líneas cruzan la bajada.
+- `fibras-contacto.png` y variantes de ubicación `v-*.png` (escritorio) y `mv-*.png` (celular): **elegido** `GhostFibers`, el componente de las fibras del hero, en blanco sobre el azul. La página cierra con la misma pieza con la que abre; no suma código de terceros ni dependencias (`components/fondo-contacto.tsx` solo lo configura). Escritorio: rotación −30°, desplazamiento 0,5, se desvanece hacia la izquierda entre el 45 y el 75 % del ancho (pasa entre el título y el logo; `v-2.png`). Celular: rotación −40°, desplazamiento −1,2, aparece en el último 45 % del alto, al costado del botón (`mv-3.png`).
+
+**Rendimiento** (Chrome con GPU, 1440 × 900, alternando el build anterior y el nuevo, como pide la memoria del proyecto). Recorrido con tope: 59,7 a 60 fps y p95 de 16,7 ms en escritorio y en el celular. Sin tope: antes 71,1 / 70,3, después 69,3 / 70,5 (con la máscara de la luz eran 68,6 / 68,4; se cambió por la capa de fondo). Paso del hero al recorrido: antes 51,0 / 50,5, después 51,0 / 51,3 (no empeora; el techo sigue siendo el hero, como anotó la fase 3). Contacto con las fibras: 60 fps en escritorio, en el celular y con movimiento reducido; el canvas no existe al cargar la página (se crea a media pantalla de distancia). Sin errores de consola en la home ni en una ficha (que usa el mismo bloque de contacto).
+
+**Decidido sin preguntar.**
+- **WebGL para el fondo del contacto**, aunque AJUSTES pide CSS o canvas 2D antes: la única opción 2D (`Noise`) no sumaba, y `GhostFibers` ya está en el proyecto, se crea solo cuando el bloque se acerca, dibuja solo mientras se ve y en ese tramo ni el hero ni el recorrido están a la vista (nunca hay dos fondos animados con el 3D). Sin WebGL2 queda la luz de `.cta-luz`; con movimiento reducido, un cuadro fijo.
+- **Las fibras también en las fichas**, porque usan el mismo `ContactCta`: el bloque se ve igual en todo el sitio.
+- **La entrada de las fibras no se orquesta:** su intro avanza solo mientras se ven, así que entran cuando aparece el bloque. No es el primer pantallazo, así que no va en la línea de tiempo de `intro.ts`.
+- **No se tocaron** el hero, la barra de vidrio (que refracta el texto que pasa debajo; es su diseño) ni la lógica del recorrido, las miniaturas, el proceso o fabricación: solo su entorno (fondos, márgenes, alineación de botones).
+- **Footer sin cambios:** el logo trae el lema dentro y además va el lema en texto; en el tamaño del footer el del logo no se lee, así que el texto se queda.
+
+**Pendiente.**
+- **Celular real:** medir el contacto con las fibras junto al resto (sigue lo de las fases 3 a 5).
+- El lema repetido en el footer (logo y texto) se resuelve con un logo sin lema en `public/`, que hoy no existe.
+- `CLAUDE.md` sigue desactualizado (fases anteriores) y ahora además: las fibras del hero también en el cierre de contacto (`components/fondo-contacto.tsx`) y el anillo de foco base.

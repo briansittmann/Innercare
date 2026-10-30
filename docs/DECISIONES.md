@@ -465,6 +465,18 @@ Rama `rediseno`. Fase 5 de la landing. Detalle en `docs/landing/BITACORA.md`.
 
 **Descartado.** Un canvas aparte para las miniaturas (un segundo contexto WebGL); copiar el canvas del recorrido a canvas 2D por tarjeta (lectura de píxeles en cada cuadro); 3D para el proceso (otro contexto, y la idea del borrador es de partículas); ensamble atado al scroll en lugar de dispararse (el pedido de la fase dice que se dispara al activarse la tarjeta).
 
+## 2026-10-30 · Pase visual de la home y fondo del contacto
+
+Rama `rediseno`. Fase 6 de la landing. Detalle, capturas y mediciones en `docs/landing/BITACORA.md`.
+
+**Decisión.**
+- Pulido de ejecución sin tocar composiciones del borrador: el fondo del recorrido se funde en el gris abajo (antes terminaba en un corte recto contra "Cómo trabajamos"), la pieza del proceso lleva la misma luz fija que las animaciones de fabricación, los enlaces tienen el anillo de foco del primario y las sedes, un halo por par.
+- El cierre de contacto lleva por detrás la cinta de fibras del hero (`GhostFibers`), en blanco sobre el azul: la página cierra con la pieza con la que abre. Se crea al acercarse el bloque, solo dibuja mientras se ve y se desvanece antes del texto.
+
+**Motivo.** Coherencia entre bandas y un cierre con la firma visual del sitio, sin código ni dependencias nuevas; en ese tramo ni el hero ni el recorrido están a la vista.
+
+**Descartado.** `Noise` de React Bits (único candidato en canvas 2D: ensucia el azul sin sumar), `Topography` (WebGL2 y 1 600 líneas nuevas, líneas de nivel que cruzaban la bajada) y fondos animados en habilitaciones y sedes (tablas de datos: el movimiento no tiene función ahí). Todos los fondos de React Bits evaluados, salvo `Noise`, son hoy WebGL2.
+
 ## Pendientes abiertos
 
 - ~~**Respaldo del 3D sin WebGL.**~~ Resuelto el 2026-10-29 con el prototipo de cabeza: se comprueba el contexto antes de montar el canvas, que va dentro de un límite de errores, y sin WebGL queda la imagen fija (`public/img/cuerpo-inicio.webp`).
