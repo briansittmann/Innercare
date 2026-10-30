@@ -1,9 +1,5 @@
 import Image from 'next/image'
-import Link from 'next/link'
-import { habilitaciones, sedePrincipal, tagline } from '@/content/company'
-import { getProducts } from '@/content/products'
-import { AnchorLink } from './anchor-link'
-import { contactHref, contactLabel, navLinks } from './nav-links'
+import { sedePrincipal, tagline } from '@/content/company'
 
 // Con Cache Components, `new Date()` no puede ir en el shell estático sin
 // decidir cuándo se calcula: 'use cache' lo fija y lo renueva según cacheLife.
@@ -14,18 +10,13 @@ async function CopyrightYear() {
 
 const telHref = (phone: string) => `tel:+${phone.replace(/\D/g, '')}`
 
-// Las mismas anclas de la barra superior y el contacto
-const sitio = [...navLinks, { href: contactHref, label: contactLabel }]
-
-const fabricacion = habilitaciones.find((h) => h.id === 'anmat-fabricacion')
-
-export async function SiteFooter() {
-  const products = await getProducts()
-
+// Footer del borrador de la landing (sección 3 del guion): marca, dirección
+// y teléfono, en tres bloques sobre un filete. El mismo en todo el sitio.
+export function SiteFooter() {
   return (
-    <footer className="border-t border-outline-variant/60 bg-surface-container-low">
-      <div className="page-container grid gap-xl py-xl md:grid-cols-12 md:py-section">
-        <div className="md:col-span-4">
+    <footer className="page-container pt-[2.5rem] pb-[3rem] text-[0.90625rem] text-on-surface-variant">
+      <div className="flex flex-wrap justify-between gap-x-[2.5rem] gap-y-[0.75rem] border-t border-outline-variant pt-[1.75rem]">
+        <div>
           <Image
             src="/logo.png"
             alt="Innercare"
@@ -34,77 +25,27 @@ export async function SiteFooter() {
             sizes="96px"
             className="h-9 w-auto"
           />
-          <p className="mt-md max-w-[36ch] text-body-sm text-on-surface-variant">
-            {tagline}. Fabricación de implantes ortopédicos modulares y a medida
-            del paciente.
-          </p>
+          <p className="mt-sm">{tagline}.</p>
         </div>
-
-        <nav aria-label="Productos" className="md:col-span-3">
-          <h2 className="font-label-md text-label-md text-on-surface">Productos</h2>
-          <ul className="mt-md flex flex-col gap-sm text-body-sm">
-            {products.map((product) => (
-              <li key={product.slug}>
-                <Link
-                  href={`/productos/${product.slug}`}
-                  className="text-on-surface-variant transition-colors hover:text-primary"
-                >
-                  {product.shortName}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <nav aria-label="Sitio" className="md:col-span-2">
-          <h2 className="font-label-md text-label-md text-on-surface">Sitio</h2>
-          <ul className="mt-md flex flex-col gap-sm text-body-sm">
-            {sitio.map((link) => (
-              <li key={link.href}>
-                <AnchorLink
-                  href={link.href}
-                  className="text-on-surface-variant transition-colors hover:text-primary"
-                >
-                  {link.label}
-                </AnchorLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div className="md:col-span-3">
-          <h2 className="font-label-md text-label-md text-on-surface">Laboratorio</h2>
-          <address className="mt-md text-body-sm not-italic text-on-surface-variant">
-            {sedePrincipal.calle}
-            <br />
-            {sedePrincipal.localidad}
-            <br />
-            {sedePrincipal.provincia}
-          </address>
-          <ul className="mt-md flex flex-col gap-xs font-data-mono text-data-mono tabular-nums">
+        <address className="not-italic">
+          {sedePrincipal.calle}, {sedePrincipal.localidad}
+          <br />
+          {sedePrincipal.provincia}
+        </address>
+        <div>
+          <ul className="font-data-mono tabular-nums">
             {sedePrincipal.phones.map((phone) => (
               <li key={phone}>
-                <a
-                  href={telHref(phone)}
-                  className="text-on-surface transition-colors hover:text-primary"
-                >
+                <a href={telHref(phone)} className="text-on-surface transition-colors hover:text-primary">
                   {phone}
                 </a>
               </li>
             ))}
           </ul>
-        </div>
-      </div>
-
-      <div className="page-container flex flex-col gap-xs border-t border-outline-variant/60 py-lg text-body-sm text-on-surface-variant md:flex-row md:justify-between">
-        <p>
-          © <CopyrightYear /> Innercare. Todos los derechos reservados.
-        </p>
-        {fabricacion && (
           <p>
-            Habilitado por {fabricacion.organismo}, {fabricacion.referencia}
+            © <CopyrightYear /> Innercare
           </p>
-        )}
+        </div>
       </div>
     </footer>
   )

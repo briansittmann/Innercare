@@ -1,8 +1,8 @@
 // Recorrido por el cuerpo de la home: seis paradas, de la cabeza al fémur
 // (docs/landing/LANDING_SPEC.md, sección 3, y AJUSTES.md). Textos del guion
-// (docs/landing/landing-borrador.html); los datos de cada producto y de cada
-// caso salen de products.ts y customCases.ts, sin agregar nada que no esté
-// en la fuente.
+// (docs/landing/landing-borrador.html), que cuentan cada caso con los datos
+// de customCases.ts; las fotos y sus textos alternativos salen de ahí y de
+// products.ts, sin agregar nada que no esté en la fuente.
 //
 // La fase 3 de la landing monta acá la escena 3D: el orden y los ids de las
 // paradas son los del guion de cámara (k = 1…6).
@@ -29,8 +29,6 @@ export type Parada = {
   // Paradas de catálogo: su ficha
   productoSlug?: string
   datasheetUrl?: string
-  // Paradas a medida: el caso documentado en la carpeta
-  caso?: { titulo: string; texto: string }
 }
 
 const caso = (id: string) => {
@@ -66,7 +64,6 @@ export const paradas: readonly Parada[] = [
       src: '/img/caso-craneo-3d.jpg',
       alt: 'Reconstrucción 3D del cráneo con el defecto a cubrir',
     },
-    caso: { titulo: craneo.title, texto: craneo.description },
   },
   {
     id: 'maxilar',
@@ -84,7 +81,6 @@ export const paradas: readonly Parada[] = [
       src: '/img/caso-anclaje-planificacion.jpg',
       alt: 'Planificación 3D de la estructura de anclaje sobre el cráneo del paciente',
     },
-    caso: { titulo: maxilar.title, texto: maxilar.description },
   },
   {
     id: 'hombro',
@@ -124,7 +120,6 @@ export const paradas: readonly Parada[] = [
       src: '/img/caso-acetabular-segmentacion.jpg',
       alt: 'Segmentación 3D de la cadera con la prótesis primaria',
     },
-    caso: { titulo: acetabulo.title, texto: acetabulo.description },
   },
   {
     id: 'femur',
@@ -164,7 +159,6 @@ export const paradas: readonly Parada[] = [
     ],
     miniatura: imagenIntercalar(2),
     escena: imagenIntercalar(1),
-    caso: { titulo: featuredCase.title, texto: featuredCase.guias },
   },
 ]
 

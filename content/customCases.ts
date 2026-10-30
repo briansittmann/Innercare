@@ -14,8 +14,8 @@ export const proceso: readonly ProcesoStep[] = [
     title: 'Estudio del paciente',
     description: 'Sobre la tomografía segmentamos la anatomía en 3D.',
     image: {
-      src: '/img/caso-craneo-tc.jpg',
-      alt: 'Corte de la tomografía de cráneo del paciente',
+      src: '/img/caso-intercalar-tc.jpg',
+      alt: 'Estudio tomográfico de los miembros inferiores del paciente',
     },
   },
   {
@@ -142,12 +142,3 @@ export const customCases: readonly CustomCase[] = [
     imageAlt: 'Craneoplastía a medida en titanio trabecular sobre el biomodelo del cráneo',
   },
 ]
-
-// Casos que no entran en el recorrido de la home: van como ejemplos en
-// "Cómo trabajamos" (docs/landing/AJUSTES.md), sin página propia.
-const idsEjemplos = ['biomodelos', 'correccion-desvio', 'estructura-porosa', 'craneoplastia-pmma']
-
-export const ejemplosProceso: readonly CustomCase[] = idsEjemplos.flatMap((id) => {
-  const found = customCases.find((c) => c.id === id)
-  return found ? [found] : []
-})

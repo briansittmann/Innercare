@@ -1,18 +1,13 @@
-import { SealCheckIcon } from '@phosphor-icons/react/ssr'
 import { habilitaciones, textosHome } from '@/content/company'
 
-// "Disposición 0999/17" → prefijo y número, para que el número se lea como
-// dato grande. Una referencia puede traer dos partes ("GLN … · Sub-GLN …").
-const partes = (referencia: string) =>
-  referencia.split(' · ').map((parte) => {
-    const match = /^(.*?)\s*(\d[\w/-]*)$/.exec(parte)
-    return match ? { prefijo: match[1] ?? '', numero: match[2] ?? parte } : { prefijo: '', numero: parte }
-  })
+// Bajo cada habilitación, quién la otorga (borrador): la ANMAT, o la
+// inscripción en el sistema de trazabilidad.
+const otorga = (organismo: string) => (organismo === 'ANMAT' ? 'ANMAT' : 'Inscripción')
 
-// Habilitados por ANMAT (#habilitaciones): las cuatro habilitaciones de la
-// carpeta, sin animación. A la izquierda el título, fijo mientras se recorre
-// la lista en escritorio; a la derecha, cada habilitación con su número de
-// disposición en grande, en cifras tabulares.
+// Habilitados por ANMAT (#habilitaciones), con la estructura del borrador de
+// la landing: a la izquierda el título y la bajada; a la derecha, la tabla de
+// las cuatro habilitaciones de la carpeta, con la referencia en el primario y
+// en cifras tabulares. Sin animación.
 export function Credentials() {
   const { titulo, texto } = textosHome.habilitaciones
 
@@ -20,45 +15,37 @@ export function Credentials() {
     <section
       id="habilitaciones"
       aria-labelledby="habilitaciones-titulo"
-      className="border-y border-outline-variant/60 bg-surface-container-lowest py-section md:py-[120px]"
+      className="bg-surface py-[clamp(5.5rem,13vh,9.375rem)]"
     >
-      <div className="page-container grid gap-xl lg:grid-cols-12 lg:gap-lg">
-        <div className="lg:col-span-5">
-          <div className="lg:sticky lg:top-[120px]">
-            <SealCheckIcon size={40} weight="light" aria-hidden className="text-primary" />
-            <h2
-              id="habilitaciones-titulo"
-              className="mt-lg max-w-[12ch] text-balance font-display-lg text-display-lg text-on-surface"
-            >
-              {titulo}
-            </h2>
-            <p className="mt-md max-w-[44ch] text-body-lg text-on-surface-variant">{texto}</p>
-          </div>
+      <div className="page-container grid items-start gap-[clamp(1.75rem,5vw,5rem)] md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <div>
+          <h2
+            id="habilitaciones-titulo"
+            className="max-w-[16ch] text-balance font-display-lg text-display-lg text-on-surface"
+          >
+            {titulo}
+          </h2>
+          <p className="mt-[1.25rem] max-w-[56ch] text-body-lg text-on-surface-variant">{texto}</p>
         </div>
 
-        <dl className="lg:col-span-7">
+        <dl className="border-t border-outline-variant">
           {habilitaciones.map((habilitacion) => (
             <div
               key={habilitacion.id}
-              className="grid gap-md border-t border-outline-variant py-lg first:border-t-0 first:pt-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:gap-lg lg:first:border-t lg:first:pt-lg"
+              className="grid gap-x-lg gap-y-[0.375rem] border-b border-outline-variant py-[1.25rem] md:grid-cols-[minmax(0,1fr)_auto]"
             >
-              <dt>
-                <span className="block text-body-sm font-semibold text-primary">
-                  {habilitacion.organismo}
-                </span>
-                <span className="mt-xs block max-w-[30ch] text-body-lg text-on-surface">
-                  {habilitacion.detalle}
-                </span>
+              <dt className="text-[1.09375rem] font-medium text-on-surface">
+                {habilitacion.detalle}
+                <small className="mt-[2px] block text-body-sm font-normal text-on-surface-variant">
+                  {otorga(habilitacion.organismo)}
+                </small>
               </dt>
-              <dd className="flex flex-col gap-xs sm:items-end">
-                {partes(habilitacion.referencia).map((parte) => (
-                  <span key={parte.numero} className="flex items-baseline gap-sm sm:justify-end">
-                    {parte.prefijo && (
-                      <span className="text-body-sm text-on-surface-variant">{parte.prefijo}</span>
-                    )}
-                    <span className="font-data-mono text-[clamp(1.25rem,1rem+0.9vw,1.75rem)] font-medium tabular-nums leading-tight tracking-tight text-on-surface">
-                      {parte.numero}
-                    </span>
+              {/* Una referencia puede tener dos partes (GLN y Sub-GLN):
+                  una por línea. */}
+              <dd className="font-data-mono font-medium tabular-nums text-primary md:text-right">
+                {habilitacion.referencia.split(' · ').map((parte) => (
+                  <span key={parte} className="block md:whitespace-nowrap">
+                    {parte}
                   </span>
                 ))}
               </dd>
