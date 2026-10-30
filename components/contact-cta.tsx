@@ -1,10 +1,12 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { FondoContacto } from './fondo-contacto'
 import { contactHref, contactLabel } from './nav-links'
 
 // Cierre de contacto, con la estructura del borrador de la landing
 // (sección 7 del guion): un bloque en el azul de la marca con una luz arriba
-// a la derecha (.cta-luz en globals.css). A la izquierda, el título y la
+// a la derecha (.cta-luz en globals.css) y, por detrás del contenido, la
+// cinta de fibras del hero en blanco (FondoContacto). A la izquierda, el título y la
 // bajada; a la derecha, el logo en versión clara y debajo un único botón.
 // Lo usan la home y las páginas de producto.
 export function ContactCta({
@@ -25,7 +27,10 @@ export function ContactCta({
       aria-labelledby={id ? `${id}-titulo` : undefined}
       className="page-container py-[clamp(5.5rem,13vh,9.375rem)]"
     >
-      <div className="cta-luz grid items-end gap-xl rounded-xl p-[clamp(2.25rem,6vw,5rem)] text-on-primary md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <div className="cta-luz relative isolate grid items-end gap-xl overflow-hidden rounded-xl p-[clamp(2.25rem,6vw,5rem)] text-on-primary md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        <div aria-hidden className="absolute inset-0 -z-10">
+          <FondoContacto />
+        </div>
         <div>
           <h2
             id={id ? `${id}-titulo` : undefined}
