@@ -150,6 +150,10 @@
   --shadow-boton-hundido: inset 0 2px 3px rgb(0 0 0 / 0.18);
   --shadow-boton-hundido-claro: inset 0 2px 3px rgb(13 27 42 / 0.08);
 
+  /* Tarjeta en reposo (docs/BOTONES.md, sección 6) */
+  --shadow-tarjeta: 0 1px 2px rgb(13 27 42 / 0.06), 0 4px 12px -4px rgb(0 60 111 / 0.14);
+  --shadow-lamina: 0 1px 2px rgb(13 27 42 / 0.06), 0 12px 32px -14px rgb(0 60 111 / 0.3);
+
   /* Panel de contacto: elevación y fondo detrás (oscurecido y desenfocado;
      opaco si el sistema pide reducir la transparencia). */
   --shadow-panel: 0 24px 48px -12px rgb(13 27 42 / 0.28), 0 2px 6px rgb(13 27 42 / 0.08);
@@ -664,6 +668,104 @@ body {
   .aviso-deslizar::after {
     animation: aviso-deslizar 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
   }
+}
+
+/* Recorrido por el cuerpo (components/home/tour-scroll.tsx).
+   - .escena-vista: las vistas de la escena fija, una por parada. La activa
+     (data-visible) entra con un fundido y un leve acercamiento; la que se va
+     se aleja y se apaga. Sin JS se ve la primera.
+   - .indice-riel: riel del índice anatómico. Un tramo del primario lo llena
+     de arriba hasta la parada activa (--avance, de 0 a 1).
+   - .tarjeta-parada: elevación de las tarjetas que pasan sobre la escena. */
+/* Cada vista lleva su propio fondo (el gris de la sección con una luz
+   blanca al centro): la opacidad y la escala aíslan el grupo, y sin fondo
+   el mix-blend-multiply de las imágenes no tendría con qué mezclarse. */
+.escena-vista {
+  background:
+    radial-gradient(closest-side, rgb(255 255 255 / 0.95), rgb(255 255 255 / 0)) center / 86% 86%
+      no-repeat,
+    var(--color-surface);
+  opacity: 0;
+  visibility: hidden;
+  scale: 0.97;
+  transition:
+    opacity 420ms var(--ease-out),
+    scale 600ms var(--ease-out),
+    visibility 0s 420ms;
+}
+
+.escena-vista[data-visible] {
+  opacity: 1;
+  visibility: visible;
+  scale: 1;
+  transition:
+    opacity 420ms var(--ease-out) 120ms,
+    scale 600ms var(--ease-out) 120ms,
+    visibility 0s;
+}
+
+.indice-riel::before,
+.indice-riel::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 1px;
+  background: var(--color-outline-variant);
+}
+
+.indice-riel::after {
+  width: 2px;
+  background: var(--color-primary);
+  transform-origin: top;
+  scale: 1 var(--avance, 0);
+  transition: scale 420ms var(--ease-out);
+}
+
+.tarjeta-parada {
+  box-shadow: var(--shadow-tarjeta);
+}
+
+/* Eje norte-sur de "Distribución a todo el país"
+   (components/home/locations.tsx): la línea se llena de arriba abajo
+   mientras la sección cruza la pantalla. Sin soporte de scroll-driven
+   animations, o con movimiento reducido, queda llena. */
+.eje-relleno {
+  transform-origin: top;
+}
+
+@keyframes eje-relleno {
+  from {
+    scale: 1 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .eje-relleno {
+      animation: eje-relleno linear both;
+      animation-timeline: view();
+      animation-range: entry 30% cover 55%;
+    }
+  }
+}
+
+/* Cierre de contacto (components/contact-cta.tsx): anillos concéntricos muy
+   tenues arriba a la derecha, como cortes de tomografía. Quietos. */
+.cta-cortes::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: repeating-radial-gradient(
+    circle at 88% 0%,
+    transparent 0 27px,
+    rgb(255 255 255 / 0.07) 27px 28px
+  );
+  -webkit-mask-image: radial-gradient(circle at 88% 0%, #000 0, transparent 70%);
+  mask-image: radial-gradient(circle at 88% 0%, #000 0, transparent 70%);
 }
 
 /* Entrada del header (components/site-header.tsx), solo si el sitio se carga

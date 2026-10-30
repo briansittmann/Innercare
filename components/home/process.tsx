@@ -1,53 +1,116 @@
 import Image from 'next/image'
-import { ContentIcon } from '@/components/icon'
-import { proceso } from '@/content/customCases'
+import type { CSSProperties } from 'react'
+import { ejemplosProceso, proceso } from '@/content/customCases'
 
+// Posición de cada lámina dentro del marco, en % (izquierda, arriba): en
+// escalera, de la tomografía a la pieza fabricada.
+const LAMINAS = [
+  [3, 4],
+  [28, 17],
+  [53, 30],
+] as const
+
+// Cómo trabajamos cada caso (#proceso): los tres pasos y, a la derecha, el
+// lugar de la pieza que se transforma (cortes de TC, hueso con la zona a
+// resecar, implante y guías), que hace la fase 5 de la landing. Mientras
+// tanto, ese marco muestra una lámina por paso, en escalera. Debajo, los
+// casos a medida que no entran en el recorrido, como ejemplos.
 export function Process() {
   return (
-    <section className="bg-surface-container-low">
-      <div className="page-container grid gap-xl py-section md:grid-cols-12">
-        <div className="md:col-span-5">
-          <div className="md:sticky md:top-28">
-            <h2 className="font-display-lg text-display-lg text-on-surface">
+    <section
+      id="proceso"
+      aria-labelledby="proceso-titulo"
+      className="bg-surface-container-low py-section md:py-[120px]"
+    >
+      <div className="page-container">
+        <div className="grid gap-xl lg:grid-cols-12 lg:items-center lg:gap-lg">
+          <div className="lg:col-span-5">
+            <h2
+              id="proceso-titulo"
+              className="max-w-[14ch] text-balance font-display-lg text-display-lg text-on-surface"
+            >
               Cómo trabajamos cada caso
             </h2>
-            <p className="mt-md max-w-[48ch] text-body-lg text-on-surface-variant">
-              Cada implante se desarrolla junto al equipo quirúrgico, desde el
-              estudio del paciente hasta la entrega de la pieza y su instrumental.
-            </p>
-            <div className="relative mt-xl aspect-[1031/868] overflow-hidden rounded-xl bg-surface-container-lowest ring-1 ring-outline-variant/50">
-              <Image
-                src="/img/femur-planificacion.jpg"
-                alt="Planificación quirúrgica 3D con el plano de resección femoral sugerido"
-                fill
-                sizes="(min-width: 768px) 40vw, 100vw"
-                className="object-contain"
-              />
-            </div>
+
+            <ol className="mt-xl">
+              {proceso.map((paso) => (
+                <li
+                  key={paso.step}
+                  className="grid grid-cols-[3.5rem_1fr] gap-x-md border-t border-outline-variant py-lg"
+                >
+                  <span
+                    aria-hidden
+                    className="font-data-mono text-headline-lg tabular-nums leading-none text-primary"
+                  >
+                    {paso.step}
+                  </span>
+                  <div>
+                    <h3 className="font-headline-sm text-headline-sm text-on-surface">
+                      {paso.title}
+                    </h3>
+                    <p className="mt-xs max-w-[44ch] text-body-md text-on-surface-variant">
+                      {paso.description}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {/* Lugar de la pieza animada (fase 5): marco de proporción fija,
+              para que la animación lo reemplace sin mover nada. */}
+          <div
+            data-pieza-proceso
+            className="relative aspect-[4/3] overflow-hidden rounded-xl bg-surface-container-lowest ring-1 ring-outline-variant/60 lg:col-span-7"
+          >
+            {proceso.map((paso, i) => {
+              const [left, top] = LAMINAS[i] ?? LAMINAS[0]
+              return (
+                <figure
+                  key={paso.step}
+                  className="absolute w-[44%] rounded-xl bg-surface-container-lowest p-xs shadow-lamina ring-1 ring-outline-variant/70"
+                  style={{ left: `${left}%`, top: `${top}%` } as CSSProperties}
+                >
+                  <div className="relative aspect-square overflow-hidden rounded-lg bg-surface-container-low">
+                    <Image
+                      src={paso.image.src}
+                      alt={paso.image.alt}
+                      fill
+                      sizes="(min-width: 1024px) 24vw, 44vw"
+                      className="object-contain mix-blend-multiply"
+                    />
+                  </div>
+                  <figcaption className="px-xs pb-[2px] pt-xs font-data-mono text-data-mono tabular-nums text-on-surface-variant">
+                    {paso.step}
+                  </figcaption>
+                </figure>
+              )
+            })}
           </div>
         </div>
 
-        {/* La secuencia la da el <ol> y la línea que une los pasos. */}
-        <ol className="md:col-span-6 md:col-start-7 md:pt-xs">
-          {proceso.map((paso) => (
-            <li key={paso.step} className="reveal grid grid-cols-[auto_1fr] gap-x-lg">
-              <div className="flex flex-col items-center">
-                <span className="flex size-12 items-center justify-center rounded-full bg-surface-container-lowest text-primary ring-1 ring-outline-variant/60">
-                  <ContentIcon name={paso.icon} size={24} />
-                </span>
-                <span aria-hidden className="w-px flex-1 bg-outline-variant [li:last-child_&]:hidden" />
-              </div>
-              <div className="pb-xl pt-sm [li:last-child_&]:pb-0">
-                <h3 className="font-headline-sm text-headline-sm text-on-surface">
-                  {paso.title}
-                </h3>
-                <p className="mt-sm max-w-[52ch] text-body-md text-on-surface-variant">
-                  {paso.description}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <div className="mt-section">
+          <h3 className="font-headline-md text-headline-md text-on-surface">
+            Otros desarrollos a medida
+          </h3>
+          <ul className="mt-lg grid gap-x-lg gap-y-xl sm:grid-cols-3 lg:grid-cols-5">
+            {ejemplosProceso.map((ejemplo, i) => (
+              <li key={ejemplo.id} className={i === 0 ? 'sm:col-span-3 lg:col-span-2' : ''}>
+                <div className="relative h-[13rem] overflow-hidden rounded-xl bg-surface-container-lowest ring-1 ring-outline-variant/60">
+                  <Image
+                    src={ejemplo.image}
+                    alt={ejemplo.imageAlt}
+                    fill
+                    sizes={i === 0 ? '(min-width: 1024px) 40vw, 100vw' : '(min-width: 640px) 33vw, 100vw'}
+                    className="object-contain p-md mix-blend-multiply"
+                  />
+                </div>
+                <h4 className="mt-md text-body-md font-semibold text-on-surface">{ejemplo.title}</h4>
+                <p className="mt-xs text-body-sm text-on-surface-variant">{ejemplo.description}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   )

@@ -4,27 +4,39 @@
 
 import type { CustomCase, FeaturedCase, ProcesoStep } from './types'
 
+// Cómo trabajamos cada caso: textos del guion de la landing
+// (docs/landing/landing-borrador.html). La imagen de cada paso ocupa el lugar
+// de la pieza animada (cortes de TC, hueso con zona a resecar, implante y
+// guías) hasta que exista.
 export const proceso: readonly ProcesoStep[] = [
   {
     step: '01',
-    icon: 'planificacion',
-    title: 'Planificación quirúrgica virtual 3D',
-    description:
-      'Sobre los estudios del paciente se segmenta la anatomía, se define el plano de resección y se acuerda la estrategia con el equipo quirúrgico.',
+    title: 'Estudio del paciente',
+    description: 'Sobre la tomografía segmentamos la anatomía en 3D.',
+    image: {
+      src: '/img/caso-craneo-tc.jpg',
+      alt: 'Corte de la tomografía de cráneo del paciente',
+    },
   },
   {
     step: '02',
-    icon: 'diseno',
-    title: 'Diseño del implante y del instrumental',
+    title: 'Planificación quirúrgica virtual',
     description:
-      'Se diseña el implante a medida junto con las guías de resección, biomodelos y accesorios que requiere el procedimiento.',
+      'Definimos con el equipo quirúrgico el plano de resección y la estrategia.',
+    image: {
+      src: '/img/hombro-planificacion-reseccion.jpg',
+      alt: 'Segmentación de la escápula con el plano de resección sugerido',
+    },
   },
   {
     step: '03',
-    icon: 'fabricacion',
-    title: 'Fabricación en titanio biocompatible',
+    title: 'Diseño y fabricación',
     description:
-      'Se fabrica por mecanizado CNC o impresión 3D, con estructura trabecular porosa en las áreas de contacto con el hueso.',
+      'Diseñamos el implante y las guías de resección, y los fabricamos en titanio biocompatible.',
+    image: {
+      src: '/img/caso-porosa-implante.jpg',
+      alt: 'Implante a medida en titanio con estructura porosa',
+    },
   },
 ]
 
@@ -130,3 +142,12 @@ export const customCases: readonly CustomCase[] = [
     imageAlt: 'Craneoplastía a medida en titanio trabecular sobre el biomodelo del cráneo',
   },
 ]
+
+// Casos que no entran en el recorrido de la home: van como ejemplos en
+// "Cómo trabajamos" (docs/landing/AJUSTES.md), sin página propia.
+const idsEjemplos = ['biomodelos', 'correccion-desvio', 'estructura-porosa', 'craneoplastia-pmma']
+
+export const ejemplosProceso: readonly CustomCase[] = idsEjemplos.flatMap((id) => {
+  const found = customCases.find((c) => c.id === id)
+  return found ? [found] : []
+})

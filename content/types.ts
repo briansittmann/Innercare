@@ -35,12 +35,18 @@ export type Manufactura = {
   id: 'sustractiva' | 'aditiva'
   kicker: string
   title: string
+  // Nombre corto y texto de la tarjeta de la home (guion de la landing)
+  nombre: string
+  texto: string
   image: string
   imageAlt: string
 }
 
 export type Sede = {
   id: string
+  // Latitud de la localidad (dato geográfico público, no de la carpeta):
+  // ubica la sede en el eje norte-sur de "Distribución a todo el país".
+  latitud: number
   tipo: string
   calle: string
   localidad: string
@@ -70,9 +76,9 @@ export type Product = {
 
 export type ProcesoStep = {
   step: string
-  icon: IconKey
   title: string
   description: string
+  image: Image
 }
 
 export type FeaturedCase = {

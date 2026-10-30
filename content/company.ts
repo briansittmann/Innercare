@@ -71,12 +71,35 @@ export const capacidades: readonly Capacidad[] = [
   },
 ]
 
+// Textos de las secciones de la home (guion de la landing,
+// docs/landing/landing-borrador.html).
+export const textosHome = {
+  fabricacion: {
+    titulo: 'Mecanizado e impresión 3D en la misma planta',
+    texto:
+      'Con las dos tecnologías resolvemos tanto series modulares como piezas únicas para un paciente.',
+  },
+  habilitaciones: {
+    titulo: 'Habilitados por ANMAT',
+    texto:
+      'Fabricamos, importamos y distribuimos productos médicos bajo habilitación de la ANMAT, y registramos cada unidad en el Sistema Nacional de Trazabilidad.',
+  },
+  distribucion: {
+    titulo: 'Distribución a todo el país',
+    texto:
+      'Proveemos a hospitales y clínicas mediante licitaciones y concursos en todo el país, desde nuestra planta y sucursales.',
+  },
+} as const
+
 // Tecnologías de fabricación (págs. 5 y 6).
 export const manufactura: readonly Manufactura[] = [
   {
     id: 'sustractiva',
     kicker: 'Manufactura sustractiva',
     title: 'Mecanizado CNC en titanio biocompatible',
+    nombre: 'Mecanizado CNC',
+    texto:
+      'Partimos de un bloque de titanio y retiramos material hasta la forma final. Así fabricamos los sistemas modulares, con medidas repetibles.',
     image: '/img/fabricacion-cnc-planta.jpg',
     imageAlt: 'Centros de mecanizado CNC en la planta industrial de Innercare',
   },
@@ -84,6 +107,9 @@ export const manufactura: readonly Manufactura[] = [
     id: 'aditiva',
     kicker: 'Manufactura aditiva',
     title: 'Impresión 3D en titanio biocompatible',
+    nombre: 'Impresión 3D en titanio',
+    texto:
+      'Construimos la pieza capa por capa. Permite estructura trabecular porosa donde el implante toca hueso y piezas únicas para un solo paciente.',
     image: '/img/fabricacion-impresion-3d.jpg',
     imageAlt: 'Equipo de impresión 3D en metal para implantes de titanio',
   },
@@ -97,6 +123,7 @@ export const sedePrincipal: Sede = {
   tipo: 'Laboratorio de productos de tecnología médica',
   calle: 'Aráoz de Lamadrid 2741',
   localidad: 'B1678EEC Caseros',
+  latitud: -34.61,
   provincia: 'Provincia de Buenos Aires',
   phones: telefonosLaboratorio,
   principal: true,
@@ -109,6 +136,7 @@ export const sedes: readonly Sede[] = [
     tipo: 'Planta industrial',
     calle: 'Av. Arquímedes Hernández 192, Parque Industrial N° 1',
     localidad: 'Alberti',
+    latitud: -35.03,
     provincia: 'Provincia de Buenos Aires',
     phones: [],
   },
@@ -117,6 +145,7 @@ export const sedes: readonly Sede[] = [
     tipo: 'Sucursal Caleta Olivia',
     calle: 'Av. Eva Perón 665',
     localidad: 'Caleta Olivia',
+    latitud: -46.44,
     provincia: 'Provincia de Santa Cruz',
     phones: [],
   },
@@ -125,6 +154,7 @@ export const sedes: readonly Sede[] = [
     tipo: 'Sucursal Comodoro Rivadavia',
     calle: 'Viamonte 275',
     localidad: 'Comodoro Rivadavia',
+    latitud: -45.86,
     provincia: 'Provincia de Chubut',
     phones: [],
   },
