@@ -448,6 +448,8 @@ Rama `rediseno`. Fase 3 de la landing. Detalle en `docs/landing/BITACORA.md`.
 
 **Motivo.** Fidelidad al borrador en el comportamiento, con la mejora en la ejecución (el cuerpo de vidrio real). Refractado, el titanio se veía azul oscuro y sin brillo.
 
+**Correcciones (mismo día).** El 3D del recorrido no se carga hasta que termina la entrada del hero y el recorrido asoma, y solo dibuja cuando cambia el progreso: un solo contexto anima a la vez. El vidrio del recorrido es propio (el del busto, más claro) con un borde de luz fresnel; el implante activo lleva un resplandor azul, como en el borrador, y los implantes tienen una luz propia por capa.
+
 **Descartado.** GSAP y `ScrollControls` (otro contenedor de scroll); `PerformanceMonitor` (con dibujo a demanda mide mal y bajaría la calidad sin motivo); vidrio sin profundidad para dibujar los implantes encima (el hueso también quedaba encima, blanco y fuerte).
 
 ## Pendientes abiertos

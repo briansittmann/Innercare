@@ -153,3 +153,35 @@ Memoria compartida entre las fases de la landing: cada fase deja acá qué hizo,
 - Imágenes de respaldo por parada (`public/img/cuerpo-<parada>.webp`, como dice la arquitectura): hoy el respaldo son las vistas de planificación de la fase 2 y la captura del busto.
 - Sin JS, las vistas de la escena no se ven (solo las tarjetas con su foto) y el fondo `.escenario` se estira a todo el alto: se lee bien, pero se podría pulir.
 - `CLAUDE.md` sigue desactualizado (fases 1 y 2) y ahora además: el recorrido 3D en "Dirección visual" y "Estado", y `cuerpo.glb` en `public/modelos/`.
+
+---
+
+## Fase 3 · Correcciones del verificador (2026-10-30)
+
+**Commits:** `4ac4a3b` Defer the tour 3D until the hero intro ends and draw only on progress changes · `9b10419` Give the tour body a light rim, a glowing active implant and a full-body fallback · y el commit de esta entrada (docs).
+
+**Qué se corrigió, en el orden del verificador.**
+1. **Rendimiento en el paso del hero al recorrido.** El recorrido pedía un cuadro en cada evento de scroll aunque el progreso no cambiara: mientras entra en pantalla (seg = 0) dibujaba el cuerpo entero junto con el busto y las fibras. Ahora solo dibuja si cambia el progreso (o el tamaño). Mientras entra, anima solo el hero; con la escena fija, el hero ya salió de pantalla y se detiene solo (su IntersectionObserver). Medido en el build de producción (Chrome con GPU del M1, 1440 × 900, dpr 2, bajando del hero al recorrido en 4 s): **antes 42,6 fps, ahora 52,5**. Bloqueando `cuerpo.glb`, 53,3, y bajando solo dentro del hero, 49,5: lo que queda es el costo del hero mismo (busto y fibras), que esta fase no toca. En el recorrido y quieto en una parada, 60. En 390 × 844, 60 en todo el paso.
+2. **Carga diferida de verdad.** Ni `cuerpo.glb` ni el contexto WebGL se piden hasta que la entrada del hero termina (`useIntroPhase() === 'done'`) **y** el recorrido asoma un 5 % de la pantalla. Con margen 0, el borde del recorrido, que toca el de la pantalla al cargar, ya contaba como visible. Medido: sin scroll, solo se piden `cabeza.glb` e `implantes.glb`.
+3. **Índice.** El riel se llena de forma continua con el progreso (de seg 1 a 6; JS escribe `--avance`, sin transición) en un azul tenue, y la parada activa lleva la barra de 2 px del borrador junto a su nombre (`.indice-enlace[aria-current]`). Ya no vuelve a 0 entre paradas y Cráneo tiene su marca.
+4. **El activo se destaca.** Resplandor azul detrás del implante activo (`Resplandor`: un sprite con degradé radial, `#3d6fe0`, opacidad 0,85 × peso, del tamaño de la pieza), como el `shadowBlur` del borrador. El anillo pasa a 2 px con sombra azul. Emisivo a 0,2.
+5. **Vecinos.** Los inactivos cercanos al activo se apagan según su distancia (hasta un 25 % de su opacidad de base): en Acetábulo, el clavo del intercalar y la endoprótesis ya no cruzan el halo.
+6. **Vidrio.** Vidrio propio del recorrido (el mismo `MeshTransmissionMaterial` del busto, más claro, con más atenuación azul en lo grueso y más reflejo) y un borde de luz fresnel blanco y celeste, sumado en una pasada aparte. La luz azul que sigue al cuerpo, más fuerte. El cuerpo se lee luminoso y con contorno sobre el fondo claro.
+7. **Titanio.** Luz propia de los implantes, en su capa (cielo blanco y dos luces direccionales; el vidrio y el hueso no la ven), metalness 0,94 (CNC) y 0,88 (impresión 3D), colores más claros y más reflejo del estudio. Brilla en la entrada, el cierre y las paradas.
+8. **Menores.**
+   - El canvas se desvanece bajo la barra de navegación (máscara de 1 a 5,5 rem): la barra de vidrio ya no refracta formas raras.
+   - Sin WebGL, la entrada y el cierre muestran el cuerpo entero: `public/img/cuerpo-entero.webp` (31 KB, captura del 3D en la toma de la entrada, fondo transparente, 440 × 900 a 1,5x), al alto de la escena y centrada al 68 %; en el celular, a dos tercios y con el centro al 74 % del alto.
+   - Desde 1100 px, el canvas también se desvanece hacia el borde izquierdo (1,5 a 15 rem): el cuerpo ya no pasa por encima del índice.
+   - Vaivén del borrador: ±1,5° de azimut, `sin(t × 0,5)`, solo con la escena fija en pantalla y sin movimiento reducido, a 30 cuadros por segundo. Con el hero fuera de pantalla no compite con él: 60 fps quieto en una parada.
+
+**Decidido sin preguntar.**
+- **Carga: lo más conservador.** Entrada terminada y además el recorrido a la vista, no en un momento ocioso después de la entrada. Si alguien baja muy rápido, ve un instante el lugar reservado (ahora el cuerpo entero) y el 3D entra con el fundido.
+- **El paso no llega a 60 en escritorio** porque el hero solo, al hacer scroll, ya está en unos 50 (medido igual con el recorrido bloqueado). Llevarlo a 60 es tocar el hero (por ejemplo, bajar la resolución de las fibras o del busto mientras se hace scroll), y esta fase no lo toca.
+- **Vidrio propio del recorrido**, en lugar del `Glass` del hero: el del busto, sobre el fondo claro de la escena y con el cuerpo más chico, quedaba azul sobre azul. Los mismos parámetros de base, solo más claro y con más profundidad, más el borde de luz.
+- **El borde de luz va sin prueba de profundidad**: suma también donde un brazo pasa delante del torso, como pasaría en vidrio. Es más barato que una pasada de profundidad aparte.
+- **Luces solo para los implantes**, por capa: así el vidrio y el hueso quedan con el lenguaje del busto.
+
+**Pendiente.**
+- 60 fps en escritorio en el paso del hero al recorrido: depende del hero (ver arriba).
+- Medir en un celular real (sigue).
+- La captura `cuerpo-entero.webp` hay que rehacerla si cambian el cuerpo, la cámara de la entrada o el material: `ARQUITECTURA_MODELO_3D.md`, sección 3, explica el procedimiento del busto. Para esta se ocultó todo menos el canvas, con fondos transparentes, en la toma de la entrada a 1440 × 900 y dpr 1,5, recortada centrada al 68 %.
