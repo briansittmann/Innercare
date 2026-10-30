@@ -5,8 +5,18 @@
 # Con una piel como tercer argumento, la piel se compone translúcida encima
 # del modelo, para revisar cómo encaja adentro (el esqueleto, por ejemplo).
 #
+# Para los implantes: `--extra <modelo.glb>` suma otro modelo a la escena
+# (por ejemplo, implantes-recorrido.glb sobre cuerpo.glb) y cada
+# `--zona <nombre> <x> <y> <z> <tamaño>` cambia las vistas de cuerpo entero
+# por primeros planos de esa zona (coordenadas de Blender, en metros: X a la
+# izquierda de la figura, -Y adelante, Z arriba; el tamaño es el alto del
+# encuadre), de frente, de costado (del lado de la zona), de tres cuartos y
+# de atrás. Las mallas implante_* salen en azul y el resto en gris, para que
+# se vea dónde apoya cada pieza; la malla `piel` del modelo no se dibuja.
+#
 # Uso:
 #   blender -b -P 3d/scripts/preview.py -- <modelo.glb> <carpeta_salida> [<piel.glb>]
+#       [--extra <otro.glb>]... [--zona <nombre> <x> <y> <z> <tamaño>]...
 
 import sys
 from pathlib import Path
@@ -18,14 +28,27 @@ from mathutils import Vector
 OPACIDAD_PIEL = 0.45
 
 args = sys.argv[sys.argv.index('--') + 1:]
-modelo = Path(args[0]).resolve()
-salida = Path(args[1]).resolve()
-ruta_piel = Path(args[2]).resolve() if len(args) > 2 else None
+posicionales, extras, zonas = [], [], []
+while args:
+    a = args.pop(0)
+    if a == '--extra':
+        extras.append(Path(args.pop(0)).resolve())
+    elif a == '--zona':
+        nombre, *numeros = args[:5]
+        del args[:5]
+        zonas.append((nombre, Vector([float(x) for x in numeros[:3]]), float(numeros[3])))
+    else:
+        posicionales.append(a)
+modelo = Path(posicionales[0]).resolve()
+salida = Path(posicionales[1]).resolve()
+ruta_piel = Path(posicionales[2]).resolve() if len(posicionales) > 2 else None
 salida.mkdir(parents=True, exist_ok=True)
 
 # Escena vacía
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=str(modelo))
+for extra in extras:
+    bpy.ops.import_scene.gltf(filepath=str(extra))
 mallas = [o for o in bpy.context.scene.objects if o.type == 'MESH']
 piel = []
 if ruta_piel:
@@ -115,6 +138,22 @@ def render(nombre, direccion, objetivo, escala):
     imagen.save()
     bpy.data.images.remove(imagen)
 
+
+if zonas:
+    # Primeros planos: implantes en azul, el resto en gris
+    escena.display.shading.color_type = 'OBJECT'
+    escena.render.resolution_y = escena.render.resolution_x
+    for o in mallas:
+        o.color = (0.2, 0.42, 0.85, 1) if o.name.startswith('implante_') else (0.82, 0.82, 0.8, 1)
+        if o.name == 'piel':
+            o.hide_render = True
+    for nombre, objetivo, escala in zonas:
+        costado = Vector((-1 if objetivo.x < 0 else 1, 0, 0))
+        render(f'{nombre}-frente', Vector((0, -1, 0)), objetivo, escala)
+        render(f'{nombre}-costado', costado, objetivo, escala)
+        render(f'{nombre}-3-4', (costado + Vector((0, -1, 0))).normalized(), objetivo, escala)
+        render(f'{nombre}-atras', Vector((0, 1, 0)), objetivo, escala)
+    sys.exit(0)
 
 # En glTF el frente mira a +Z, que en Blender queda como -Y
 render('frente', Vector((0, -1, 0)), centro, alto * 1.05)

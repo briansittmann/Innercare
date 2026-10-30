@@ -324,7 +324,9 @@ bm.to_mesh(craneo.data)
 bm.free()
 print(f'[implantes] cráneo: {len(borrar)} caras recortadas debajo del parche')
 
-# Exportar
+# Exportar el prototipo de cabeza (el hero): la craneoplastía sola y la
+# anatomía con el recorte del cráneo. cabeza.py parte de anatomia.glb, así
+# que el busto del hero no cambia con los implantes del recorrido.
 salida.mkdir(parents=True, exist_ok=True)
 
 
@@ -337,5 +339,544 @@ def exportar(objs, ruta):
 
 
 exportar([parche], salida / 'implantes.glb')
-exportar([o for o in bpy.context.scene.objects if o.type == 'MESH' and o is not parche],
-         salida / 'anatomia.glb')
+anatomia = [o for o in bpy.context.scene.objects if o.type == 'MESH' and o is not parche]
+exportar(anatomia, salida / 'anatomia.glb')
+
+
+# =============================================================================
+# Implantes del recorrido de la home (components/recorrido-3d/implantes.ts):
+# maxilar, hombro reverso, acetábulo, endoprótesis de fémur e intercalar de
+# fémur, en ese orden. Cada uno se arma con partes (sólidos de revolución,
+# placas caladas, celosías) a partir de las fotos y fichas de content/, y
+# recorta los huesos que reemplaza. Salen en implantes-recorrido.glb y la
+# anatomía con todos los recortes, en cuerpo.glb.
+#
+# Las medidas que no están en content/ (diámetros de cuerpos y cabezas,
+# glenosfera, ángulos de los tornillos) son estimadas desde las fotos: es un
+# boceto creíble, no un plano. Lo reemplaza el CAD de Innercare.
+# =============================================================================
+
+
+# --- Ayudas -------------------------------------------------------------------
+
+def unitario(v):
+    v = np.asarray(v, float)
+    return v / np.linalg.norm(v)
+
+
+def base_eje(eje, ref=(1, 0, 0)):
+    # Matriz (por columnas x, y, z) con z a lo largo del eje y x lo más
+    # parecida posible a `ref`
+    z = unitario(eje)
+    r = np.asarray(ref, float)
+    if abs(unitario(r) @ z) > 0.95:
+        r = np.array([0, 0, 1.0]) if abs(z[2]) < 0.9 else np.array([1.0, 0, 0])
+    x = unitario(r - (r @ z) * z)
+    return np.stack([x, np.cross(z, x), z], 1)
+
+
+class Pieza:
+    # Geometría acumulada en arreglos (vértices y caras): cada implante se
+    # arma sumando partes y se convierte en una sola malla al final.
+    def __init__(self):
+        self.co = np.zeros((0, 3))
+        self.caras = []
+
+    def sumar(self, co, caras, origen=(0, 0, 0), eje=None, ref=(1, 0, 0)):
+        co = np.asarray(co, float).reshape(-1, 3)
+        if eje is not None:
+            co = co @ base_eje(eje, ref).T
+        co = co + np.asarray(origen, float)
+        n = len(self.co)
+        self.co = np.vstack([self.co, co])
+        self.caras += [[i + n for i in c] for c in caras]
+        return self
+
+    def sumar_pieza(self, otra, **kw):
+        return self.sumar(otra.co, otra.caras, **kw)
+
+    def sumar_bm(self, bm):
+        bm.verts.index_update()
+        co = np.array([v.co[:] for v in bm.verts])
+        return self.sumar(co, [[v.index for v in f.verts] for f in bm.faces])
+
+    def bm(self):
+        bm = bmesh.new()
+        verts = [bm.verts.new(p) for p in self.co.tolist()]
+        for c in self.caras:
+            try:
+                bm.faces.new([verts[i] for i in c])
+            except ValueError:
+                pass  # cara repetida
+        return bm
+
+    def objeto(self, nombre, angulo_vivo=35):
+        obj = malla(nombre, self.co, self.caras)
+        normales_afuera(obj)
+        obj.data.shade_smooth()
+        obj.data.set_sharp_from_angle(angle=math.radians(angulo_vivo))
+        return obj
+
+
+def revolver(perfil, lados=32, cerrado=False, modular=None):
+    # Sólido de revolución alrededor de Z. `perfil`: puntos (r, z); r = 0
+    # cierra en un vértice. Con `cerrado`, el último punto se une con el
+    # primero (un anillo). `modular(theta, z)` multiplica el radio (estrías).
+    th = np.linspace(0, 2 * math.pi, lados, endpoint=False)
+    co, anillos = [], []
+    for r, z in perfil:
+        if r <= 0:
+            anillos.append([len(co)])
+            co.append((0, 0, z))
+            continue
+        rr = r * (modular(th, z) if modular else np.ones(lados))
+        anillos.append(list(range(len(co), len(co) + lados)))
+        co += list(zip(rr * np.cos(th), rr * np.sin(th), np.full(lados, z)))
+    pares = list(zip(anillos, anillos[1:]))
+    if cerrado:
+        pares.append((anillos[-1], anillos[0]))
+    caras = []
+    for a, b in pares:
+        if len(a) == 1 and len(b) == 1:
+            continue
+        if len(a) == 1:
+            caras += [[a[0], b[(k + 1) % lados], b[k]] for k in range(lados)]
+        elif len(b) == 1:
+            caras += [[a[k], a[(k + 1) % lados], b[0]] for k in range(lados)]
+        else:
+            caras += [[a[k], a[(k + 1) % lados], b[(k + 1) % lados], b[k]] for k in range(lados)]
+    if not cerrado:
+        if len(anillos[0]) > 1:
+            caras.append(anillos[0][::-1])
+        if len(anillos[-1]) > 1:
+            caras.append(anillos[-1])
+    return np.array(co), caras
+
+
+def arco(radio, desde, hasta, pasos, centro_z=0.0):
+    # Puntos (r, z) de un arco de circunferencia en el plano del perfil;
+    # el ángulo se mide desde el eje Z
+    a = np.linspace(math.radians(desde), math.radians(hasta), pasos)
+    return list(zip(radio * np.sin(a), centro_z + radio * np.cos(a)))
+
+
+def cilindro(radio, largo, lados=24, z0=0.0):
+    return revolver([(0, z0), (radio, z0), (radio, z0 + largo), (0, z0 + largo)], lados)
+
+
+def tornillo(largo, diametro, paso=None, cabeza=None, lados=10):
+    # Tornillo de punta en z = 0 y cabeza arriba, con la rosca como dientes
+    # de sierra (anillos: a esta escala se lee igual que una hélice).
+    # `cabeza`: (diámetro, alto), con forma de cúpula baja.
+    r = diametro / 2
+    nucleo = r * 0.7
+    paso = paso or max(diametro * 0.55, 1.4 * MM)
+    perfil = [(0, 0), (nucleo * 0.5, paso * 0.3)]
+    z = paso * 0.6
+    while z < largo - paso * 1.2:
+        perfil += [(nucleo, z), (r, z + paso * 0.5)]
+        z += paso
+    perfil += [(nucleo, z), (nucleo, largo)]
+    if cabeza:
+        dc, hc = cabeza
+        perfil += [(dc / 2, largo), (dc / 2, largo + hc * 0.45)]
+        perfil += [(dc / 2 * math.sin(a), largo + hc * 0.45 + hc * 0.55 * math.cos(a))
+                   for a in np.linspace(1.2, 0.0, 4)]
+    else:
+        perfil += [(0, largo)]
+    return revolver(perfil, lados)
+
+
+def placa(nodos, enlaces, radio, ancho, espesor, lados=14):
+    # Placa calada en el plano (a, b), de espesor w de 0 a `espesor`: un
+    # anillo por nodo (o un disco, si su agujero es 0) y barras entre nodos.
+    # nodos: [((a, b), agujero)]; enlaces: [(i, j)]. Las partes se superponen
+    # sin booleanos: el metal es opaco y no se nota.
+    p = Pieza()
+    for (a, b), agujero in nodos:
+        if agujero > 0:
+            perfil = [(agujero, 0), (radio, 0), (radio, espesor), (agujero, espesor)]
+            co, caras = revolver(perfil, lados, cerrado=True)
+        else:
+            co, caras = cilindro(radio, espesor, lados)
+        p.sumar(co, caras, origen=(a, b, 0))
+    for i, j in enlaces:
+        pa, pb = np.array(nodos[i][0]), np.array(nodos[j][0])
+        largo = np.linalg.norm(pb - pa)
+        t = (pb - pa) / largo
+        n = np.array([-t[1], t[0]]) * ancho / 2
+        tramos = max(1, int(largo / (1.5 * MM)))
+        co, caras = [], []
+        for k in range(tramos + 1):
+            c = pa + t * largo * k / tramos
+            for s in (-1, 1):
+                for w in (0, espesor):
+                    co.append((*(c + s * n), w))
+        for k in range(tramos):
+            a0, b0 = 4 * k, 4 * (k + 1)
+            # vértices de cada sección: (-n, 0), (-n, e), (+n, 0), (+n, e)
+            caras += [[a0 + 0, a0 + 2, b0 + 2, b0 + 0], [a0 + 1, b0 + 1, b0 + 3, a0 + 3],
+                      [a0 + 0, b0 + 0, b0 + 1, a0 + 1], [a0 + 2, a0 + 3, b0 + 3, b0 + 2]]
+        caras += [[0, 1, 3, 2], [4 * tramos + 0, 4 * tramos + 2, 4 * tramos + 3, 4 * tramos + 1]]
+        p.sumar(co, caras)
+    return p
+
+
+def barrido(puntos, radio, lados=16, tapas=True):
+    # Tubo a lo largo de una polilínea (marcos de transporte paralelo), con
+    # radio fijo o uno por punto; las tapas son cúpulas bajas
+    puntos = np.asarray(puntos, float)
+    radios = np.broadcast_to(np.asarray(radio, float), (len(puntos),))
+    tangentes = np.gradient(puntos, axis=0)
+    tangentes /= np.linalg.norm(tangentes, axis=1, keepdims=True)
+    x = base_eje(tangentes[0])[:, 0]
+    th = np.linspace(0, 2 * math.pi, lados, endpoint=False)
+    co, caras = [], []
+    for k, (p, t, r) in enumerate(zip(puntos, tangentes, radios)):
+        x = unitario(x - (x @ t) * t)
+        y = np.cross(t, x)
+        co += list(p + r * (np.cos(th)[:, None] * x + np.sin(th)[:, None] * y))
+        if k:
+            a, b = (k - 1) * lados, k * lados
+            caras += [[a + i, a + (i + 1) % lados, b + (i + 1) % lados, b + i] for i in range(lados)]
+    if tapas:
+        for k, signo in ((0, -1), (len(puntos) - 1, 1)):
+            centro = len(co)
+            co.append(puntos[k] + signo * tangentes[k] * radios[k] * 0.5)
+            anillo = k * lados
+            caras += [[anillo + i, anillo + (i + 1) % lados, centro] for i in range(lados)]
+    return np.array(co), caras
+
+
+def perforar(bm, centros, borde):
+    # Celosía: la estrella de caras de cada vértice de `centros` se disuelve
+    # en un polígono, se le hace un borde (inset) y se borra el centro. Las
+    # estrellas no pueden compartir caras.
+    usadas, poligonos = set(), []
+    for v in centros:
+        caras = list(v.link_faces)
+        if len(caras) < 5 or v.is_boundary or any(f in usadas for f in caras):
+            continue
+        usadas.update(caras)
+        poligonos += [f for f in bmesh.ops.dissolve_faces(bm, faces=caras, use_verts=True)['region']]
+    bmesh.ops.inset_individual(bm, faces=poligonos, thickness=borde, use_even_offset=True)
+    bmesh.ops.delete(bm, geom=poligonos, context='FACES')
+    return len(poligonos)
+
+
+def vertices_mundo(obj):
+    co = vertices(obj)
+    m = np.array(obj.matrix_world)
+    return co @ m[:3, :3].T + m[:3, 3]
+
+
+def componentes(obj):
+    # Índices de vértices de cada pieza suelta de la malla
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bm.verts.ensure_lookup_table()
+    pendientes = set(range(len(bm.verts)))
+    piezas = []
+    while pendientes:
+        frente = [pendientes.pop()]
+        pieza = set(frente)
+        while frente:
+            v = bm.verts[frente.pop()]
+            for e in v.link_edges:
+                w = e.other_vert(v).index
+                if w in pendientes:
+                    pendientes.remove(w)
+                    pieza.add(w)
+                    frente.append(w)
+        piezas.append(np.array(sorted(pieza)))
+    bm.free()
+    return piezas
+
+
+def ajustar_esfera(p):
+    a = np.c_[2 * p, np.ones(len(p))]
+    s = np.linalg.lstsq(a, (p ** 2).sum(1), rcond=None)[0]
+    return s[:3], math.sqrt(s[3] + s[:3] @ s[:3])
+
+
+def seccion(obj, punto, normal):
+    # Centro y radio medio del corte del hueso con un plano
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    res = bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+                                 plane_co=punto, plane_no=normal)
+    p = np.array([v.co[:] for v in res['geom_cut'] if isinstance(v, bmesh.types.BMVert)])
+    bm.free()
+    if len(p) < 3:
+        return None, None
+    # Solo el contorno más cercano al punto (un plano puede cortar otras partes)
+    p = p[np.linalg.norm(p - punto, axis=1) < 0.04]
+    c = p.mean(0)
+    return c, np.linalg.norm(p - c, axis=1).mean()
+
+
+def borrar_caras(obj, dentro):
+    # Borra las caras con algún vértice marcado y los vértices sueltos
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bm.verts.ensure_lookup_table()
+    borrar = [f for f in bm.faces if any(dentro[v.index] for v in f.verts)]
+    bmesh.ops.delete(bm, geom=borrar, context='FACES')
+    sueltos = [v for v in bm.verts if not v.link_faces]
+    bmesh.ops.delete(bm, geom=sueltos, context='VERTS')
+    bm.to_mesh(obj.data)
+    bm.free()
+    return len(borrar)
+
+
+def tapar_corte(bm, bordes):
+    tapa = bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=False, edges=bordes)
+    for f in tapa['geom']:
+        if isinstance(f, bmesh.types.BMFace):
+            f.smooth = False
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+
+
+def cortar(obj, punto, normal):
+    # Borra la parte del hueso del lado de la normal y tapa el corte
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    caras = len(bm.faces)
+    res = bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+                                 plane_co=punto, plane_no=normal, clear_outer=True)
+    tapar_corte(bm, [e for e in res['geom_cut'] if isinstance(e, bmesh.types.BMEdge)])
+    bm.to_mesh(obj.data)
+    print(f'[implantes] {obj.name}: corte, {caras} -> {len(bm.faces)} caras')
+    bm.free()
+
+
+def cortar_tramo(obj, p0, p1):
+    # Borra el tramo del hueso entre dos planos perpendiculares a p0 -> p1
+    # y tapa los dos cortes
+    eje = unitario(np.asarray(p1) - p0)
+    largo = np.linalg.norm(np.asarray(p1) - p0)
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    for p in (p0, p1):
+        bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+                               plane_co=p, plane_no=eje)
+    t = lambda co: (np.array(co) - p0) @ eje  # noqa: E731
+    borrar = [f for f in bm.faces if 0 < t(f.calc_center_median()) < largo]
+    bmesh.ops.delete(bm, geom=borrar, context='FACES')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    for extremo in (0, largo):
+        bordes = [e for e in bm.edges if e.is_boundary
+                  and all(abs(t(v.co) - extremo) < 1e-5 for v in e.verts)]
+        tapar_corte(bm, bordes)
+    bm.to_mesh(obj.data)
+    print(f'[implantes] {obj.name}: tramo de {largo * 1000:.0f} mm, {len(borrar)} caras borradas')
+    bm.free()
+
+
+def suavizar(grilla, sigma, paso, ejes=(0, 1), periodico=()):
+    radio = int(math.ceil(3 * sigma / paso))
+    nucleo = np.exp(-0.5 * (np.arange(-radio, radio + 1) * paso / sigma) ** 2)
+    nucleo /= nucleo.sum()
+    for eje in ejes:
+        modo = 'wrap' if eje in periodico else 'edge'
+        grilla = np.apply_along_axis(
+            lambda f: np.convolve(np.pad(f, radio, mode=modo), nucleo, 'valid'), eje, grilla)
+    return grilla
+
+
+class Envoltura:
+    # Superficie de un hueso en coordenadas (a, b), para apoyar placas y
+    # celosías: por cada (a, b), un rayo desde afuera (`origen`) hacia el
+    # hueso (`direccion`, unitaria). La distancia hasta el hueso se muestrea
+    # en una grilla y se suaviza (el atlas tiene escalones); `punto` devuelve
+    # la superficie corrida `w` hacia afuera.
+    def __init__(self, bvh, origen, direccion, a, b, paso=1 * MM, sigma=2.5 * MM,
+                 periodo_a=None, alcance=0.3):
+        self.origen, self.direccion, self.paso = origen, direccion, paso
+        self.periodo_a = periodo_a
+        self.ga = np.arange(a[0], a[1] + paso / 2, paso)
+        self.gb = np.arange(b[0], b[1] + paso / 2, paso)
+        ab = np.stack(np.meshgrid(self.ga, self.gb, indexing='ij'), -1).reshape(-1, 2)
+        o, d = origen(ab), direccion(ab)
+        t = np.full(len(ab), np.nan)
+        for k in range(len(ab)):
+            # `alcance`: más lejos no cuenta (un rayo que pasa por un hueco,
+            # como la apertura nasal, toca hueso del fondo)
+            hit = bvh.ray_cast(o[k].tolist(), d[k].tolist(), alcance)
+            if hit[0] is not None:
+                t[k] = hit[3]
+        t = t.reshape(len(self.ga), len(self.gb))
+        self.huecos = np.isnan(t).mean()
+        # Huecos (el rayo no tocó hueso): el promedio de los vecinos
+        for _ in range(200):
+            faltan = np.isnan(t)
+            if not faltan.any():
+                break
+            relleno = np.pad(t, 1, mode='edge')
+            vecinos = np.stack([relleno[:-2, 1:-1], relleno[2:, 1:-1], relleno[1:-1, :-2], relleno[1:-1, 2:]])
+            media = np.nanmean(np.where(np.isnan(vecinos), np.nan, vecinos), 0)
+            t[faltan] = media[faltan]
+        self.t = suavizar(t, sigma, paso, periodico=(0,) if periodo_a else ())
+
+    def distancia(self, ab):
+        fa = np.clip((ab[:, 0] - self.ga[0]) / self.paso, 0, len(self.ga) - 1.001)
+        fb = np.clip((ab[:, 1] - self.gb[0]) / self.paso, 0, len(self.gb) - 1.001)
+        i, j = fa.astype(int), fb.astype(int)
+        ta, tb = fa - i, fb - j
+        t = self.t
+        return (t[i, j] * (1 - ta) * (1 - tb) + t[i + 1, j] * ta * (1 - tb)
+                + t[i, j + 1] * (1 - ta) * tb + t[i + 1, j + 1] * ta * tb)
+
+    def punto(self, ab, w=0.0):
+        ab = np.asarray(ab, float).reshape(-1, 2)
+        t = self.distancia(ab) - w
+        return self.origen(ab) + self.direccion(ab) * t[:, None]
+
+
+def envolver(pieza, envoltura, holgura=0.4 * MM):
+    # Lleva una pieza armada en el plano (a, b, w) a la superficie del hueso
+    co = pieza.co.copy()
+    pieza.co = envoltura.punto(co[:, :2], co[:, 2] + holgura)
+    return pieza
+
+
+def bvh_de(obj):
+    return BVHTree.FromObject(obj, bpy.context.evaluated_depsgraph_get())
+
+
+def resumen(obj):
+    tri = sum(len(p.vertices) - 2 for p in obj.data.polygons)
+    print(f'[implantes] {obj.name}: {tri} triángulos')
+    return obj
+
+
+for o in objetos.values():
+    assert np.allclose(np.array(o.matrix_world), np.eye(4)), f'{o.name} tiene transformación'
+
+nuevos = []
+
+
+# --- 2. Maxilar: reconstrucción para anclaje dentario --------------------------
+# Estructura subperióstica de titanio impreso sobre la cara vestibular del
+# maxilar derecho, con tres postes para los implantes dentarios donde faltan
+# las piezas. Foto: public/img/caso-anclaje-dentario.jpg (placa de eslabones
+# calados sobre el reborde alveolar, brazos que suben al pilar cigomático y
+# al borde de la apertura nasal, una Y debajo de la nariz y tres postes cortos
+# hacia abajo). Se borran los dientes del incisivo central al segundo
+# premolar derechos y el reborde alveolar debajo de la placa.
+#
+# La placa se arma en el plano (a, b): a es el ángulo alrededor del arco
+# dentario por un radio de referencia (positivo hacia la derecha de la
+# figura) y b, la altura sobre la cadena inferior.
+MAX_CENTRO = np.array([0.0, -0.050])  # centro del arco dentario en planta (x, y)
+MAX_RADIO = 0.035  # a = ángulo × MAX_RADIO
+MAX_Z0 = 1.5365  # altura de la cadena inferior, justo arriba del reborde
+MAX_REBORDE = 1.534  # el reborde alveolar se reseca debajo de esta altura
+MAX_ESLABON = 2.1 * MM  # radio de cada eslabón de la placa
+MAX_AGUJERO = 0.8 * MM
+MAX_BARRA = 1.4 * MM
+MAX_ESPESOR = 1.4 * MM
+MAX_POSTE = (3.6 * MM, 9 * MM)  # diámetro y largo de los postes
+
+
+def maxilar():
+    hueso = objetos['hueso_maxilar']
+    co = vertices(hueso)
+    bvh = bvh_de(hueso)  # el maxilar entero, antes del recorte
+    cx, cy = MAX_CENTRO
+
+    def angulo(p):
+        # 0 adelante, positivo hacia la derecha de la figura (-X)
+        return np.arctan2(-(p[..., 0] - cx), -(p[..., 1] - cy))
+
+    def origen(ab):
+        phi = ab[:, 0] / MAX_RADIO
+        u = np.stack([-np.sin(phi), -np.cos(phi), np.zeros_like(phi)], 1)
+        return np.c_[np.full(len(ab), cx), np.full(len(ab), cy), MAX_Z0 + ab[:, 1]] + u * 0.07
+
+    def direccion(ab):
+        phi = ab[:, 0] / MAX_RADIO
+        return -np.stack([-np.sin(phi), -np.cos(phi), np.zeros_like(phi)], 1)
+
+    env = Envoltura(bvh, origen, direccion, (-14 * MM, 50 * MM), (-4 * MM, 20 * MM),
+                    paso=0.8 * MM, sigma=1.6 * MM, alcance=0.046)
+    print(f'[implantes] maxilar: {env.huecos:.0%} de rayos sin hueso')
+
+    # Dientes: las piezas sueltas de 38 a 60 vértices
+    piezas = componentes(hueso)
+    dientes = [p for p in piezas if 38 <= len(p) <= 60]
+    centros = np.array([co[p].mean(0) for p in dientes])
+    quitar = [i for i, c in enumerate(centros) if c[0] < 0 and c[1] < -0.066]
+    phi_dientes = sorted(float(angulo(centros[i])) for i in quitar)
+    phi0, phi1 = phi_dientes[0] - 0.12, phi_dientes[-1] + 0.09
+    print(f'[implantes] maxilar: {len(dientes)} dientes, se quitan {len(quitar)}')
+
+    # Placa: cadena inferior, puntal de la apertura nasal, Y central,
+    # reticulado triangulado hasta el pilar cigomático
+    nodos, enlaces = [], []
+
+    def nodo(a, b, agujero=MAX_AGUJERO):
+        nodos.append(((a * MM, b * MM), agujero))
+        return len(nodos) - 1
+
+    inferior = {a: nodo(a, 0) for a in range(-8, 43, 5)}
+    claves = sorted(inferior)
+    enlaces += [(inferior[a], inferior[b]) for a, b in zip(claves, claves[1:])]
+    y_central = nodo(0, 5)
+    enlaces += [(y_central, inferior[-3]), (y_central, inferior[2])]
+    nasal = [nodo(11, 7), nodo(14, 14)]
+    enlaces += [(inferior[7], nasal[0]), (nasal[0], nasal[1])]
+    pilar = [nodo(41, 6.5), nodo(42.5, 12.5)]
+    enlaces += [(inferior[42], pilar[0]), (pilar[0], pilar[1])]
+    arriba = [nodo(19, 7), nodo(28, 7), nodo(36, 6.5)]
+    enlaces += [(nasal[0], arriba[0]), (arriba[0], arriba[1]), (arriba[1], arriba[2]),
+                (arriba[2], pilar[0])]
+    enlaces += [(arriba[0], inferior[17]), (arriba[0], inferior[22]), (arriba[1], inferior[27]),
+                (arriba[1], inferior[32]), (arriba[2], inferior[37])]
+    estructura = envolver(placa(nodos, enlaces, MAX_ESLABON, MAX_BARRA, MAX_ESPESOR), env)
+
+    # Postes: en el lugar del incisivo central, el canino y el segundo
+    # premolar, con un puente desde la placa hasta cada uno
+    elegidos = sorted(quitar, key=lambda i: angulo(centros[i]))
+    elegidos = [elegidos[0], elegidos[2], elegidos[-1]]
+    d, largo = MAX_POSTE
+    perfil = [(0, 0), (d * 0.32, 0.15 * MM), (d * 0.45, 0.6 * MM), (d / 2, 1.2 * MM),
+              (d / 2, largo - 1.6 * MM), (d * 0.62, largo - 1.2 * MM), (d * 0.62, largo),
+              (0, largo)]
+    co_poste, caras_poste = revolver(perfil, 18)
+    for i in elegidos:
+        c = centros[i]
+        tope = np.array([c[0], c[1], MAX_REBORDE + 0.4 * MM])
+        estructura.sumar(co_poste, caras_poste, origen=tope - np.array([0, 0, largo]),
+                         eje=(0, 0, 1))
+        # Puente: de la cadena (sobre la cara vestibular) al tope del poste
+        a = float(angulo(c)) * MAX_RADIO
+        pie = env.punto([[a, -0.6 * MM]], MAX_ESPESOR / 2 + 0.4 * MM)[0]
+        eje = pie - tope
+        co_p, caras_p = cilindro(1.1 * MM, np.linalg.norm(eje), 10)
+        co_p[:, 0] *= 1.6  # plano: más ancho que alto
+        estructura.sumar(co_p, caras_p, origen=tope, eje=eje, ref=(0, 0, 1))
+
+    obj = resumen(estructura.objeto('implante_maxilar'))
+
+    # Recorte: los dientes y el reborde alveolar entre esos ángulos
+    phi = angulo(co)
+    dentro = np.zeros(len(co), bool)
+    for i in quitar:
+        dentro[dientes[i]] = True
+    for p in piezas:  # astillas sueltas del atlas en la misma zona
+        if len(p) < 38:
+            c = co[p].mean(0)
+            if phi0 < angulo(c) < phi1 and c[2] < 1.548:
+                dentro[p] = True
+    dentro |= (phi > phi0) & (phi < phi1) & (co[:, 2] < MAX_REBORDE) & (co[:, 1] < cy)
+    print(f'[implantes] maxilar: {borrar_caras(hueso, dentro)} caras recortadas')
+    return obj
+
+
+nuevos.append(maxilar())
+
+
+exportar(nuevos, salida / 'implantes-recorrido.glb')
+exportar([o for o in bpy.context.scene.objects if o.type == 'MESH' and o not in nuevos and o is not parche],
+         salida / 'cuerpo.glb')
