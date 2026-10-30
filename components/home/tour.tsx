@@ -81,7 +81,7 @@ function TarjetaParada({ parada, indice }: { parada: Parada; indice: number }) {
     <article
       data-tarjeta={indice}
       aria-labelledby={`${ancla(parada)}-titulo`}
-      className="recorrido-tarjeta w-full rounded-xl bg-surface-container-lowest px-[1.125rem] py-md shadow-escena ring-1 ring-outline-variant/70 min-[820px]:px-lg min-[820px]:py-[1.375rem]"
+      className="recorrido-tarjeta w-full overflow-hidden rounded-xl bg-surface-container-lowest px-[1.125rem] py-md shadow-escena ring-1 ring-outline-variant/70 min-[820px]:px-lg min-[820px]:py-[1.375rem]"
     >
       <div className="mb-[0.75rem] flex items-center justify-between gap-[0.625rem]">
         <span
@@ -103,9 +103,10 @@ function TarjetaParada({ parada, indice }: { parada: Parada; indice: number }) {
         {parada.titulo}
       </h3>
 
-      {/* Lugar de la miniatura 3D (ensamble de partículas, fase 5): por
-          ahora, la foto de la pieza sobre la luz del borrador, con los bordes
-          desvanecidos. Alto fijo para que el cambio no mueva la tarjeta. */}
+      {/* Miniatura 3D: el ensamble de partículas, dibujado por el canvas del
+          recorrido a través de este hueco (components/recorrido-3d/
+          miniaturas.tsx). Sin WebGL o mientras carga, la foto de la pieza
+          sobre la luz del borrador. Alto fijo: el cambio no mueve nada. */}
       <div
         data-miniatura-3d={parada.id}
         className="mini-parada relative my-[0.625rem] h-[6.5rem] overflow-hidden rounded-xl min-[820px]:mt-md min-[820px]:mb-[0.875rem] min-[820px]:aspect-[16/10] min-[820px]:h-auto min-[820px]:max-h-[24dvh]"

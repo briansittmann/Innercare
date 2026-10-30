@@ -36,6 +36,7 @@ import {
 } from './camara'
 import { estadoRecorrido } from './estado'
 import { IMPLANTES, type Implante } from './implantes'
+import { Miniaturas } from './miniaturas'
 
 // Escena 3D del recorrido (#recorrido): el cuerpo de vidrio entero con el
 // esqueleto tenue y los seis implantes. La cámara sale del progreso del
@@ -437,7 +438,11 @@ function Implantes() {
 // sin brillo; así se lee como metal y el implante es lo más nítido de la
 // escena. El hueso queda adentro del vidrio, tenue, como en el busto del hero.
 function Pasadas() {
-  useFrame(({ gl, scene, camera }) => {
+  useFrame(({ gl, scene, camera, size }) => {
+    // Las miniaturas (miniaturas.tsx) dibujan después, cada una recortada a
+    // su lugar: el cuadro arranca con el canvas entero
+    gl.setScissorTest(false)
+    gl.setViewport(0, 0, size.width, size.height)
     gl.render(scene, camera)
     const autoClear = gl.autoClear
     gl.autoClear = false
@@ -591,6 +596,7 @@ function Escena({ calidad, alListo }: { calidad: Quality; alListo: () => void })
       <Suspense fallback={null}>
         <Cuerpo calidad={calidad} fondo={fondo} />
         <Implantes />
+        <Miniaturas />
         <Listo alListo={alListo} />
       </Suspense>
     </>

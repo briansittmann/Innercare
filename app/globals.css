@@ -1018,9 +1018,14 @@ body {
   mask-image: radial-gradient(closest-side, #000 70%, transparent);
 }
 
-/* Miniatura de las tarjetas del recorrido (lugar del ensamble de
-   partículas de la fase 3): la foto de la pieza, en color, sobre la luz del
-   borrador, con los bordes desvanecidos para que no quede un recorte duro. */
+/* Miniatura de las tarjetas del recorrido. Sin WebGL o mientras carga, la
+   foto de la pieza, en color, sobre la luz del borrador, con los bordes
+   desvanecidos. Con la escena 3D lista (data-listo), la miniatura la dibuja
+   el canvas del recorrido, que está debajo de las tarjetas
+   (components/recorrido-3d/miniaturas.tsx): la tarjeta pierde el fondo y la
+   miniatura lo pinta alrededor con una sombra extendida, recortada por el
+   borde redondeado de la tarjeta. Queda un hueco con la forma de la
+   miniatura por el que se ve el canvas. */
 .mini-parada {
   background: radial-gradient(80% 90% at 50% 45%, rgb(34 96 161 / 0.14), transparent 70%);
 }
@@ -1029,6 +1034,30 @@ body {
   mix-blend-mode: multiply;
   -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent);
   mask-image: radial-gradient(closest-side, #000 72%, transparent);
+}
+
+.recorrido-escena[data-listo] .recorrido-tarjeta {
+  background-color: transparent;
+}
+
+/* El contenido de la tarjeta va por encima de la sombra de la miniatura
+   (que es posicionada y si no la taparía). El filete interior de 2 px tapa
+   la costura entre el hueco y el recorte del canvas, que va a píxel entero. */
+.recorrido-escena[data-listo] .recorrido-tarjeta > * {
+  position: relative;
+  z-index: 1;
+}
+
+.recorrido-escena[data-listo] .mini-parada {
+  z-index: 0;
+  background: none;
+  box-shadow:
+    0 0 0 100vmax var(--color-surface-container-lowest),
+    inset 0 0 0 2px var(--color-surface-container-lowest);
+}
+
+.recorrido-escena[data-listo] .mini-imagen {
+  visibility: hidden;
 }
 
 /* Animaciones de fabricación (components/home/animacion-fabricacion.tsx):
