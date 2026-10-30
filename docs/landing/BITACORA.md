@@ -226,3 +226,35 @@ Memoria compartida entre las fases de la landing: cada fase deja acá qué hizo,
 - La captura de respaldo `public/img/cuerpo-entero.webp` muestra las primitivas viejas: rehacerla con el procedimiento de la fase 3 (entrada a 1440 × 900, dpr 1,5).
 - Si se quiere el inserto del hombro en blanco o la base de la glenosfera mate, el contrato tendría que admitir más de un acabado por pieza (submallas `_pulido` / `_trabecular`).
 - `CLAUDE.md` sigue desactualizado (fases anteriores) y ahora además: `implantes-recorrido.glb` y `cuerpo.glb` en `public/modelos/`.
+
+---
+
+## Fase 4 · Correcciones del verificador (2026-10-30)
+
+**Commits:** `ae2d21d` Keep the acetabular screws inside the pelvis and perforate the cup face · `1fbd558` Correct the intercalar, endoprosthesis, shoulder and maxillary implants · `14f5c0a` Frame the maxillary stop closer so the implant reads · y el commit de esta entrada (respaldo `cuerpo-entero.webp` y docs).
+
+**Qué se corrigió, en el orden del verificador.**
+1. **Tornillos acetabulares dentro del hueso.** Ya no hay ángulos ni largos fijos: para cada tornillo se busca, en un cono alrededor de su dirección, la que entra más largo sin salir del coxal (puntos cada 2 mm, del lado de adentro de la superficie más cercana con 0,8 mm de margen), de 20 a 55 mm, separados al menos 20° (`buscar_tornillo`, `dentro_del_hueso`). Quedaron ocho en la copa (cuatro hacia el ilíaco y cuatro hacia abajo, al isquion y al pubis, como en la imagen del caso) y uno en el ala. Las vistas `atras` y `frente` ya no muestran tornillos sueltos.
+2. **Clavo al ras del trocánter.** La entrada sale de un rayo desde el canal hacia arriba, donde el clavo sale del hueso (3 mm adentro): 0,887 m. Ya no asoma.
+3. **Maxilar legible.** La toma de la parada en `camara.ts` se cerró (`vis` de 150 a 82 unidades, objetivo centrado en la pieza, azimut −0,42): pasó de cerca del 8 % a cerca del 14 % del ancho de la escena. La placa tiene más cuerpo (eslabones de 2,5 mm de radio y 1,8 mm de espesor, barras de 1,9 mm) y postes de Ø4,2 mm.
+4. **Acetábulo como en la foto.** Además del abanico hacia abajo (punto 1), la cara interna es una media esfera calada con agujeros chicos, sobre la capa trabecular de poros grandes: ya no es lisa ni espejada. El ala se inclina hasta apoyar en el ilíaco.
+5. **Intercalar con la forma del caso.** Se ensancha en los extremos que apoyan en el hueso (16 % el distal, hacia la metáfisis; 8 % el proximal), tiene zonas macizas (cuatro filas en cada extremo y una banda por delante y afuera, la de los alojamientos) y porosas, y el clavo tiene una leve curva anterior (3 mm) y agujeros de bloqueo (uno oblongo y uno redondo arriba, dos abajo). La posición en la diáfisis no cambió.
+6. **Sin rendijas.** El tramo de fémur que se borra es 3 mm más corto de cada lado (el hueso queda adentro de los extremos del intercalar) y el fémur de la endoprótesis se corta 2 mm adentro del suplemento.
+7. **Maxilar:** la punta del borde lateral era el puntal del pilar cigomático apoyado fuera del hueso; el puntal y el final de la cadena se corrieron hacia adelante (de 42 a 35 mm de arco) y la Y bajo la nariz bajó para que no caiga en la apertura nasal.
+8. **Hombro:** vástago más grueso (radio de 7,2 a 5,6 mm a lo largo, antes 5,6 a 4,2), en la proporción de la foto.
+
+**Respaldo sin WebGL.** `public/img/cuerpo-entero.webp` se volvió a capturar con los implantes reales (mismo procedimiento que la fase 3: toma de la entrada a 1440 × 900 y dpr 1,5, todo oculto salvo el canvas, fondo transparente, 440 × 900 centrado al 68 %; `cwebp -q 82 -alpha_q 90`, 32 KB). Comprobado con Chrome sin WebGL: la entrada muestra el cuerpo con los seis implantes.
+
+**Peso y triángulos.** `implantes-recorrido.glb`: 313 KB (195 KB con gzip), unos 40 900 triángulos (antes 46 000): maxilar 3 600, hombro 5 100, acetábulo 12 400, endoprótesis 5 500, intercalar 14 300. `cuerpo.glb`: 902 KB. El recorrido dibuja unos 222 000 triángulos, un 11 % arriba del objetivo de partida (antes un 14 %). Para bajarlo hay que agrandar la celda de las dos celosías o simplificar más el esqueleto. `cabeza.glb` e `implantes.glb` (hero) siguen idénticos byte a byte.
+
+**Comprobado.** Renders de control nuevos en `3d/salida/preview/implantes/` (zonas `maxilar`, `hombro`, `acetabulo`, `femur`, `femur-corte`, `intercalar`, `intercalar-cerca`, `clavo` y `trocanter`, cada una con su `-encima`) y capturas en `navegador/` (`escritorio-*` con WebGL y `sin-*` sin WebGL). Build de producción en el puerto 3100, Chrome con la GPU del M1: las seis paradas bien, sin errores de consola. Build, lint y `tsc` sin errores.
+
+**Decidido sin preguntar.**
+- **Tocar `camara.ts`** (solo la toma del maxilar): el pedido era cerrar el encuadre de esa parada, y la toma vive ahí, no en `implantes.ts`.
+- **Agujeros del clavo como prismas de estadio de una pieza:** con dos cilindros superpuestos para el oblongo, el booleano exacto borraba el clavo entero (quedaba en 0 caras). El script imprime las caras del clavo antes y después para detectarlo.
+- **Un solo tornillo en el ala:** para el segundo no hay hueso en ningún ángulo razonable desde ese agujero (el ilíaco del atlas es fino ahí). El agujero queda libre.
+
+**Pendiente.**
+- El optimizador de imágenes del `next dev` del usuario puede seguir sirviendo el `cuerpo-entero.webp` viejo hasta borrar `.next/dev/cache/images`. No lo borré porque la consigna era no tocar `.next/dev`.
+- El ala acetabular todavía queda un poco separada del hueso en la vista de frente: apoya de canto y no copia la curva del ilíaco.
+- Sigue lo de la entrada anterior: celular real, CAD y medidas con Innercare, y `CLAUDE.md` desactualizado.
