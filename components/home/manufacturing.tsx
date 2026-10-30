@@ -32,7 +32,7 @@ export function Manufacturing() {
       <div className="page-container">
         <h2
           id="fabricacion-titulo"
-          className="max-w-[16ch] text-balance font-display-lg text-display-lg text-on-surface"
+          className="max-w-[22ch] text-balance font-display-lg text-display-lg text-on-surface"
         >
           {titulo}
         </h2>
@@ -62,7 +62,7 @@ export function Manufacturing() {
                 >
                   {tecnica.nombre}
                 </h3>
-                <p className="mt-[0.625rem] max-w-[46ch] text-body-md text-on-surface-variant">
+                <p className="mt-[0.625rem] max-w-[58ch] text-body-md text-on-surface-variant">
                   {tecnica.texto}
                 </p>
               </AnimacionFabricacion>

@@ -84,13 +84,15 @@ export function AnimacionFabricacion({
   }, [modo])
 
   return (
-    <div ref={tarjeta}>
+    // Columna de alto completo: con textos de distinto largo, "Volver a ver"
+    // queda a la misma altura en las dos tarjetas.
+    <div ref={tarjeta} className="flex h-full flex-col">
       <div className="fab-escena relative aspect-[4/3] overflow-hidden rounded-xl">
         <div className="fab-respaldo absolute inset-0">{respaldo}</div>
         <canvas ref={lienzo} aria-hidden className="fab-lienzo absolute inset-0 size-full" />
       </div>
-      <div className="px-sm pt-[1.125rem]">
-        {children}
+      <div className="flex flex-1 flex-col items-start px-sm pt-[1.125rem]">
+        <div className="flex-1">{children}</div>
         <button
           type="button"
           onClick={() => reproducir.current()}

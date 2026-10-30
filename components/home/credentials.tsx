@@ -42,7 +42,7 @@ export function Credentials() {
               </dt>
               {/* Una referencia puede tener dos partes (GLN y Sub-GLN):
                   una por línea. */}
-              <dd className="font-data-mono font-medium tabular-nums text-primary md:text-right">
+              <dd className="font-data-mono text-[0.96875rem] font-semibold tabular-nums text-primary md:text-right">
                 {habilitacion.referencia.split(' · ').map((parte) => (
                   <span key={parte} className="block md:whitespace-nowrap">
                     {parte}

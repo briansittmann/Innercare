@@ -38,6 +38,7 @@ function ubicar(lista: readonly Sede[]) {
     const media = grupo.reduce((sum, sede) => sum + yDe(sede.latitud), 0) / grupo.length
     return grupo.map((sede, i) => ({
       sede,
+      media,
       punto: yDe(sede.latitud),
       etiqueta: media + (i - (grupo.length - 1) / 2) * PASO_ETIQUETA,
     }))
@@ -111,6 +112,18 @@ export function Locations() {
               />
             ))}
           </svg>
+
+          {/* Halo de cada grupo de sedes (el del borrador, que rodea el
+              punto): uno por par, centrado entre sus puntos, para que el par
+              se lea como un lugar y no como dos puntos sueltos. */}
+          {[...new Set(ubicadas.map(({ media }) => media))].map((media) => (
+            <span
+              key={media}
+              aria-hidden
+              className="absolute left-0 size-[1.5rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/[0.09] ring-1 ring-primary/15"
+              style={{ top: `${media}rem` }}
+            />
+          ))}
 
           {/* Puntos chicos y con un borde del color del fondo: los de cada par
               están a unos 6 px y tienen que leerse como dos. */}

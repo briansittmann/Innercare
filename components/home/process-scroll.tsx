@@ -103,7 +103,7 @@ export function ProcessScroll({
 
   return (
     <div ref={ref} className="relative h-full">
-      <div className="sticky top-0 mx-auto grid h-dvh max-w-[83.75rem] grid-rows-[auto_1fr] content-start gap-sm px-[clamp(1.25rem,5vw,4.5rem)] pt-[5.25rem] pb-[2.5rem] md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:grid-rows-1 md:content-center md:items-center md:gap-[clamp(1.5rem,5vw,4.5rem)] md:pt-[6rem]">
+      <div className="sticky top-0 mx-auto grid h-dvh max-w-[83.75rem] grid-rows-[auto_1fr] content-start gap-md px-[clamp(1.25rem,5vw,4.5rem)] pt-[5.25rem] pb-[2.5rem] md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:grid-rows-1 md:content-center md:items-center md:gap-[clamp(1.5rem,5vw,4.5rem)] md:pt-[6rem]">
         <div>
           {titulo}
           <ol className="mt-[0.875rem] grid gap-xs md:mt-[2.25rem]">
@@ -145,6 +145,7 @@ export function ProcessScroll({
           data-pieza-proceso
           className="relative order-first h-[38vh] md:order-none md:h-[min(74vh,43.75rem)]"
         >
+          <div aria-hidden className="proceso-luz absolute inset-0 bottom-[2rem]" />
           <div aria-hidden className="proceso-respaldo absolute inset-0 bottom-[2rem]">
             {respaldo}
           </div>

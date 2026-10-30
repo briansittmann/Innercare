@@ -214,6 +214,19 @@ body {
   font-family: var(--font-source-sans-3), sans-serif;
 }
 
+/* Foco de teclado de enlaces y controles sin estilo propio (enlaces de las
+   tarjetas, índice del recorrido, teléfonos): el anillo del primario de los
+   botones (BOTONES.md), en vez del del navegador, que cambia según el
+   sistema. En la capa base, para que los componentes que definen el suyo
+   (.boton, .boton-vidrio, PillNav) ganen. */
+@layer base {
+  :where(a, button, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -721,6 +734,7 @@ body {
 .escenario {
   background:
     linear-gradient(var(--color-surface), transparent 7rem),
+    linear-gradient(to top, var(--color-surface), transparent 7rem),
     radial-gradient(120% 90% at 68% 42%, var(--color-stage-to), var(--color-surface) 68%);
 }
 
@@ -837,12 +851,18 @@ body {
 
 .recorrido-luz {
   opacity: 0;
-  background: radial-gradient(
-    circle 60vmax at var(--luz-x, 68%) var(--luz-y, 50%),
-    rgb(34 96 161 / 0.3),
-    rgb(34 96 161 / 0.08) 45%,
-    rgb(34 96 161 / 0)
-  );
+  /* Abajo se apaga en el gris, como .escenario: cuando la escena fija se
+     suelta, el recorrido termina en el gris de "Cómo trabajamos" sin un
+     corte recto. Es una capa del mismo fondo y no una máscara: la luz se
+     repinta en cada cuadro del scroll y la máscara costaba un 3 %. */
+  background:
+    linear-gradient(to top, var(--color-surface), transparent 9rem),
+    radial-gradient(
+      circle 60vmax at var(--luz-x, 68%) var(--luz-y, 50%),
+      rgb(34 96 161 / 0.3),
+      rgb(34 96 161 / 0.08) 45%,
+      rgb(34 96 161 / 0)
+    );
   transition: opacity 700ms var(--ease-out);
 }
 
@@ -1081,6 +1101,13 @@ body {
   .fab-escena + div > .boton {
     display: none;
   }
+}
+
+/* Luz detrás de la pieza de "Cómo trabajamos": la misma de las animaciones de
+   fabricación y de las miniaturas del recorrido (la del borrador), para que
+   las tres piezas de partículas se lean sobre el mismo fondo. Fija. */
+.proceso-luz {
+  background: radial-gradient(closest-side, rgb(34 96 161 / 0.13), transparent);
 }
 
 /* Pieza de "Cómo trabajamos" (components/home/process-scroll.tsx): con JS,
