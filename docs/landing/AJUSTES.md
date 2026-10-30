@@ -30,6 +30,17 @@ Tres intenciones nada más: recorrer, ver ficha y contactar.
 - Cierre del recorrido: un solo botón, "Plantear un caso". Sin "Ver catálogo" ni "Ver casos a medida".
 - Los casos que no entran en el recorrido (biomodelos, corrección de desvío, estructura porosa, craneoplastía en PMMA) pueden ir como ejemplos en "Cómo trabajamos", sin página propia.
 
+## Diseño
+
+- **Prioridad: que la página se vea moderna y atractiva.** Es lo que la va a vender. Se busca un nivel visual de producto actual, no de web institucional genérica.
+- Esto reemplaza dos reglas de `CLAUDE.md`: React Bits ya no es "solo acento puntual" (se puede usar donde sume, a través del MCP de shadcn) y el movimiento puede subir por encima de "motion 4".
+- Se pueden usar fondos animados (React Bits u otros) donde queden bien, como las fibras del hero.
+- Lo que se mantiene:
+  - Credibilidad de fabricante médico: datos reales, sin copy de marketing hueco, tipografía y tokens de marca (`globals.css`), primario `#003c6f`.
+  - El procedimiento de React Bits de `CLAUDE.md`: código con `shadcn view` (nunca `shadcn add`), dependencias justificadas, colores y fuentes propios reemplazados por los tokens y `prefers-reduced-motion`.
+  - Nada de fade-up genérico en cada sección: el movimiento tiene que tener una idea.
+- Rendimiento: el hero ya tiene WebGL y fibras. Los fondos nuevos van livianos (CSS o canvas 2D antes que otro contexto WebGL), se pausan fuera de pantalla y nunca hay más de uno visible a la vez con el 3D.
+
 ## Navegación
 
 - Menú de la barra superior: Implantes, Cómo trabajamos, Fabricación, Habilitaciones (anclas a las secciones de la home).
