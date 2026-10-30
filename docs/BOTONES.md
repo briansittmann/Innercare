@@ -125,6 +125,8 @@ Una clase base lee custom properties. Cada variante define solo sus valores. El 
 - **Tarjeta que se ilumina** con el mouse sin ser link: acá sí va la sombra en `::after` por opacidad (no hay borde que se pueda romper). Sombra en reposo `0 1px 2px rgb(0 0 0 / .06), 0 4px 12px -4px <color de marca /.14>`. Con hover, `0 2px 4px rgb(0 0 0 / .05), 0 18px 36px -14px <color de marca /.26>`. Aparece en 400 ms `ease-in-out` y se va en 300 ms `ease-out`. No sube.
 - **Tarjeta que es un link entero**: la misma sombra, más `translate: 0 -3px` y un borde del color de marca al 35 %, en 400 ms `ease-in-out` (300 ms `ease-out` al salir). Con `:focus-visible`, lo mismo.
 
+- **Enlace de texto subrayado** (CTA secundario suelto, como "Ver catálogo" en fabricación propia): clase `.enlace`. Con el puntero encima, texto y subrayado pasan al primario y el subrayado pasa de 1 a 2 px, en 160 ms. El subrayado en reposo es `outline`; sobre el degradé del hero, `on-surface-variant` (`--enlace-subrayado`).
+
 ## 7. Adaptación a Innercare
 
 ### Ya aplicado
@@ -170,6 +172,14 @@ Contraste del primario: texto blanco sobre el tono más claro del degradado (`#0
 - Se quitaron las flechas a la derecha de los primarios: el sistema pide íconos a la izquierda y solo si ayudan a entender la acción. El de descarga se queda (a la izquierda, 20 px).
 - El botón de menú móvil pasó a 48 px de área táctil.
 - La barra de vidrio pasó a 64 px de alto para que "Contactar" tenga 48 px.
+
+### Excepción: crecer con el hover (2026-10-29)
+
+- "Ver catálogo" del hero crece a 1,04 con el puntero encima (`.boton-crece`), además del cambio de color. Lo pidió el usuario. Es solo para ese botón: el resto sigue cambiando únicamente el color. Usa la propiedad `scale` para sumarse al efecto de apretar.
+
+### Excepción: botón de vidrio (2026-10-30)
+
+- "Ver casos a medida" del hero es de vidrio (`BotonVidrio`, `.boton-vidrio`), como "Ver la demo" de Mango. Lo pidió el usuario. Mismas medidas que `.boton`; vidrio blanco esmerilado (`backdrop-filter: blur(22px) saturate(180%)`) con un brillo arriba y sin sombra exterior (la de Mango lo hacía resaltar). En el hero, los dos botones van más grandes que el resto (texto de 18 px y 56 px de alto los dos; la jerarquía la marca el relleno, no el tamaño). Con el puntero encima sube 2 px, un brillo y un borde del primario siguen al puntero y las letras ruedan hacia arriba. Con movimiento reducido no sube ni rueda; con transparencia reducida, fondo opaco. Es solo para ese botón.
 
 ### Pendiente
 

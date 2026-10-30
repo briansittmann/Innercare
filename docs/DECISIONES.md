@@ -312,6 +312,85 @@ Rama `rediseno`. Reemplaza las dos entradas anteriores en cuanto a la segunda ci
 
 **Motivo.** El usuario filmó las dos variantes y se quedó con una.
 
+## 2026-10-29 · Fibras con más detalle, brillo y pulso al hacer clic
+
+Rama `rediseno`. Reemplaza el dibujo a 1x de "Cinta de fibras detrás del hero".
+
+**Decisión.**
+- La cinta se dibuja a 2x, con menos profundidad de campo (0,45) y destellos (`sparkle` 0,6).
+- Al hacer clic fuera de enlaces y botones, un pulso de luz corre por las fibras desde el punto del clic.
+- Cambio propio en `GhostFibers`: en modo claro, los reflejos (pliegues, destellos y pulso) se separan de la tinta por su color, se suavizan con el resplandor del modo oscuro y se componen en `lineColor` (blanco) por encima de las fibras. De fábrica, el modo claro solo dibuja tinta y apaga el resplandor, así que ni los reflejos ni el pulso se veían sobre el degradé.
+
+**Motivo.** El usuario quería la textura y el brillo del original, y el pulso al hacer clic. A 1x y con la profundidad de campo de fábrica, la cinta se veía borrosa.
+
+**Costo.** El 3D baja de unos 186 a unos 108 fps sin tope en el M1 (medianas de mediciones ruidosas). Con tope sigue en 60. Queda medir en el celular, donde también se dibuja a 2x.
+
+**Textura.** Después, 96 hilos (de fábrica, 72) y un estilo de fibra propio, `strands`: hilos casi continuos con cortes cortos, entre `dashes` y `lines`. Se compararon capturas de cerca de cinco variantes. Con más hilos o con grano casi no cambiaba la textura. `dashes` y `dots` la volvían un flujo de datos o una trama de semitono y dejaba de leerse como fibra.
+
+## 2026-10-29 · Titular del hero plegado con FoldText
+
+Rama `rediseno`.
+
+**Decisión.**
+- El titular del hero usa `FoldText` de React Bits (`components/fold-text.tsx`) con el aspecto de la demo (*Paper*): entra desplegándose letra por letra desde arriba y, con el mouse cerca, las letras se vuelven a plegar un poco (`hoverRefold`). Reemplaza al `rise-in` del titular; el párrafo y los botones lo conservan.
+- Peso 500 solo en ese titular (el resto sigue en 400), para que el pliegue se marque.
+- Escalonado de 30 ms por letra (de fábrica, 45): con 43 letras, la entrada dura unos 2 s en vez de 2,6.
+- Primera dependencia de animación: `gsap`, que el componente necesita para el escalonado, las curvas y el ticker. Sin `ScrollTrigger`: el disparo por scroll se resolvió con un `IntersectionObserver`.
+- El HTML del servidor trae el texto visible. Con JS, el CSS oculta las letras desde el primer cuadro (`@media (scripting: enabled)`) hasta que el componente toma el control, y si el JS no llega aparecen solas a los 2,5 s. De fábrica venían con opacidad 0 en línea: sin JS, el titular no se veía.
+- El repliegue solo con puntero fino, como el resto de los `hover`.
+
+**Motivo.** El usuario pidió el efecto completo de la demo en el texto y más trazo.
+
+**Costo.** El titular se ve recién al hidratar y no con el primer pintado. Según el usuario no importa: va a haber una pantalla de carga y las animaciones arrancan cuando se va (ver la entrada siguiente).
+
+## 2026-10-29 · Entrada de la home orquestada
+
+Rama `rediseno`. Reemplaza los `rise-in` del hero y la entrada propia de la barra.
+
+**Decisión.**
+- Una sola línea de tiempo (`components/intro.ts`, tiempos en `intro-timeline.ts`), en el orden que pidió el usuario:
+  1. A los 0 ms, header, busto y fibras a la vez, más el índice lateral (a los 750 ms, cuando la barra empieza a estirarse).
+  2. A los 1100 ms, mientras eso termina, el título letra por letra (unos 1,7 s, con un escalonado de 25 ms).
+  3. A los 2300 ms, el subtítulo.
+  4. A los 2700 ms, los botones, de a uno. Fin a los 3600 ms.
+- Fases en `data-intro`: `waiting` (oculto, solo con JS), `running` y `done` (sin animaciones, para que `<Activity>` no las repita al volver a la home).
+- Busto: aparece desenfocado (14 px) y un poco más chico (0,94) en 1,6 s, y desde la escena gira 55° hasta la pose de perfil, subiendo 2,5 cm, en 2,6 s con curva cúbica. Con una cuártica o con `--ease-out`, casi todo pasaba con el busto todavía transparente.
+- Textos y botones: suben 14 px con un desenfoque de 6 px que se aclara (`.intro-in`).
+- "Ver catálogo" crece a 1,04 con el puntero encima (`.boton-crece`). Es una excepción a `docs/BOTONES.md`, donde el hover cambia solo el color, y la pidió el usuario. Con `scale`, que se suma al `transform` del `:active`. Con movimiento reducido no crece.
+- El índice lateral pasa a vidrio más transparente (`backgroundOpacity` 0,2; la barra sigue en 0,4).
+- Arranque: hoy lo dispara `Hero3D` cuando el 3D está listo, y entonces el busto entra girando. Si tarda más de 2,5 s, entra la imagen fija y el 3D la reemplaza después, ya en su pose. Si se llega a la home desde otra página, con movimiento reducido o sin WebGL, arranca enseguida. Cuando haya pantalla de carga, la dispara ella al irse con `startIntro()`.
+
+**Motivo.** El usuario quería una entrada moderna y orquestada, con el 3D incluido.
+
+**Descartado.** La animación en un contenedor común para el vidrio y la lista del índice: la opacidad de un ancestro deja al `backdrop-filter` sin nada detrás durante el fundido.
+
+**Costo.** Sin pantalla de carga, el hero se ve vacío (solo el degradé) hasta que el 3D está listo, como mucho 2,5 s.
+
+## 2026-10-30 · Titular quieto, enlaces con hover visible y fibras a 1x en el celular
+
+Rama `rediseno`. Cambia parte de "Titular del hero plegado con FoldText" y de "Fibras con más detalle".
+
+**Decisión.**
+- El titular del hero conserva la entrada plegada letra por letra, pero después queda quieto: sin el repliegue bajo el mouse (`hoverRefold`).
+- Los enlaces de texto subrayados (CTA secundarios: "Ver casos a medida", "Ver catálogo" en fabricación propia y los del contacto) pasan a una clase, `.enlace` (`@layer components`). Con el puntero encima, texto y subrayado van al primario y el subrayado pasa de 1 a 2 px, en 160 ms. Antes solo se oscurecía el subrayado y casi no se notaba.
+- Las fibras se dibujan a 2x en escritorio y a 1x en el celular (menos de 48 rem). Se montan recién en el cliente, porque `GhostFibers` lee la resolución una sola vez. `?fibras=no|1x|2x` las apaga o fija la resolución, para medir.
+- La medición en el celular se pasa al cuerpo entero.
+
+**Motivo.** El usuario no quería que el titular se moviera con el mouse y notó que "Ver casos a medida" no respondía al hover. En las fibras, 1x es una precaución: en la Mac ya costaban bastante y no tienen ajuste automático como el vidrio. La medición en el teléfono quedó trabada por el firewall de macOS, y con el cuerpo entero los números van a cambiar igual.
+
+## 2026-10-30 · "Ver casos a medida" del hero, botón de vidrio
+
+Rama `rediseno`. Reemplaza, para ese enlace, el `.enlace` de la entrada anterior.
+
+**Decisión.**
+- "Ver casos a medida" del hero pasa de enlace subrayado a botón de vidrio (`BotonVidrio` en `components/boton-vidrio.tsx`, `.boton-vidrio` en `globals.css`), copiado de "Ver la demo" de Mango (`liquid-glass` + `landing-demo`) y adaptado a la marca: vidrio blanco esmerilado, brillo y borde del primario que siguen al puntero, sube 2 px y las letras ruedan hacia arriba. Sin el estado de carga de Mango.
+- Mismas medidas que `.boton`, y 16 px entre los dos botones (antes 32 px, pensados para un enlace).
+- Es una excepción a "el vidrio solo en la navegación".
+- Con la sombra de Mango ganaba protagonismo y parecía flotar más arriba que "Ver catálogo": primero la sombra exterior quedó a la mitad y, como seguía resaltando, se quitó.
+- Los dos botones del hero, más grandes que los del resto del sitio para acompañar al titular, con texto de 18 px y 56 px de alto los dos. Primero "Ver casos a medida" tenía 52, para que el principal pesara más, pero la diferencia se leía como un error: en un par, la jerarquía la marca el relleno.
+
+**Motivo.** Al usuario no le gustaba el enlace subrayado y quería el par de Mango: "Empezar" lleno y "Ver la demo" de vidrio.
+
 ## Pendientes abiertos
 
 - ~~**Respaldo del 3D sin WebGL.**~~ Resuelto el 2026-10-29 con el prototipo de cabeza: se comprueba el contexto antes de montar el canvas, que va dentro de un límite de errores, y sin WebGL queda la imagen fija (`public/img/cuerpo-inicio.webp`).

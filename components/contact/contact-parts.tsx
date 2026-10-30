@@ -63,7 +63,7 @@ export function ContactChannels({ index, className = '' }: { index: number; clas
             href={`https://wa.me/${whatsappNumber}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-sm text-on-surface underline decoration-outline underline-offset-[6px] transition-colors hover:decoration-on-surface"
+            className="inline-flex items-center gap-sm enlace"
           >
             <WhatsappLogoIcon size={20} weight="light" aria-hidden />
             WhatsApp {whatsappDisplay}
@@ -73,7 +73,7 @@ export function ContactChannels({ index, className = '' }: { index: number; clas
           <li key={phone}>
             <a
               href={telHref(phone)}
-              className="inline-flex items-center gap-sm text-on-surface underline decoration-outline underline-offset-[6px] transition-colors hover:decoration-on-surface"
+              className="inline-flex items-center gap-sm enlace"
             >
               <PhoneIcon size={20} weight="light" aria-hidden />
               {phone}

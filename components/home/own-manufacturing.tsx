@@ -11,7 +11,7 @@ export async function OwnManufacturing() {
         <h2 className="font-display-lg text-display-lg text-on-surface">Fabricación propia</h2>
         <Link
           href="/productos"
-          className="text-body-md text-on-surface underline decoration-outline underline-offset-[6px] transition-colors hover:decoration-on-surface"
+          className="text-body-md enlace"
         >
           Ver catálogo
         </Link>

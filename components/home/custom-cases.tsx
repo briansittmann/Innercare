@@ -52,7 +52,7 @@ export function CustomCasesTeaser() {
 
       <Link
         href="/casos-a-medida"
-        className="mt-xl inline-block text-body-md text-on-surface underline decoration-outline underline-offset-[6px] transition-colors hover:decoration-on-surface"
+        className="mt-xl inline-block text-body-md enlace"
       >
         Ver casos a medida
       </Link>

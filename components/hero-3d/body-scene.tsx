@@ -28,6 +28,18 @@ const TURN_PERIOD = 22 // segundos, ida y vuelta
 // Altura del centro de la cabeza: el modelo está en metros, con los pies en 0
 const HEAD_HEIGHT = 1.56
 
+// Entrada (components/intro.ts): el busto llega girando desde más atrás hasta
+// la pose de perfil, subiendo un poco, y frena suave. El desenfoque y la
+// escala van en el CSS (.intro-3d). Al terminar arranca el giro lento.
+// - hold: espera en la pose de partida, oculto por el CSS.
+// - play: corre la entrada.
+// - skip: sin entrada (movimiento reducido, o el 3D llegó tarde y entró la
+//   imagen fija, que ya está en la pose final).
+export type Entrance = 'hold' | 'play' | 'skip'
+const ENTRY_TURN = MathUtils.degToRad(55)
+const ENTRY_RISE = 0.025 // metros
+const ENTRY_SECONDS = 2.6
+
 // Fondo del hero: degradé vertical de azules de la marca, el mismo que
 // --color-stage-from y --color-stage-to en globals.css. Lo pinta el CSS de la
 // sección y el canvas es transparente; la escena lo dibuja solo en el buffer
@@ -52,6 +64,7 @@ export type Framing = {
 
 export type SceneSettings = {
   animate: boolean
+  entrance: Entrance
   active: boolean
   framing: Framing
   // Dibuja el tramo del degradé también en el canvas (?fondo), para comprobar
@@ -73,21 +86,41 @@ export type FrameStats = {
   quality: Quality
 }
 
-function Bust({ animate, quality, boneOpacity, stage }: {
+function Bust({ animate, entrance, quality, boneOpacity, stage }: {
   animate: boolean
+  entrance: Entrance
   quality: Quality
   boneOpacity: number
   stage: Texture
 }) {
   const ref = useRef<Group>(null)
   const time = useRef(0)
+  // Avance de la entrada, de 0 a 1. Una vez empezada, termina aunque cambie
+  // la fase.
+  const entry = useRef(entrance === 'skip' ? 1 : 0)
 
   useFrame((_, delta) => {
     const group = ref.current
     if (!group || !animate) return
+    const step = Math.min(delta, 0.1)
+    if (entry.current < 1) {
+      if (entrance === 'hold' && entry.current === 0) {
+        group.rotation.y = TURN_PROFILE + ENTRY_TURN
+        group.position.y = -ENTRY_RISE
+        return
+      }
+      entry.current =
+        entrance === 'skip' && entry.current === 0 ? 1 : Math.min(1, entry.current + step / ENTRY_SECONDS)
+      // Cúbica de salida: arranca rápido y se asienta despacio. Con una
+      // cuártica, casi todo el giro pasaba con el busto todavía transparente.
+      const rest = (1 - entry.current) ** 3
+      group.rotation.y = TURN_PROFILE + ENTRY_TURN * rest
+      group.position.y = -ENTRY_RISE * rest
+      if (entry.current < 1) return
+    }
     // El tiempo se acumula solo mientras se renderiza: al volver a la
     // pantalla sigue desde donde quedó, sin saltos.
-    time.current += Math.min(delta, 0.1)
+    time.current += step
     const k = (1 - Math.cos((time.current / TURN_PERIOD) * Math.PI * 2)) / 2
     group.rotation.y = MathUtils.lerp(TURN_PROFILE, TURN_FRONT, k)
   })
@@ -202,10 +235,11 @@ function CameraFraming({ focusX }: { focusX: number }) {
 }
 
 // Todo lo que va dentro del canvas y depende del encuadre
-function Scene({ framing, showStage, animate, quality, boneOpacity, onReady }: {
+function Scene({ framing, showStage, animate, entrance, quality, boneOpacity, onReady }: {
   framing: Framing
   showStage: boolean
   animate: boolean
+  entrance: Entrance
   quality: Quality
   boneOpacity: number
   onReady: () => void
@@ -216,7 +250,7 @@ function Scene({ framing, showStage, animate, quality, boneOpacity, onReady }: {
       <CameraFraming focusX={framing.focusX} />
       {showStage && <primitive attach="background" object={stage} />}
       <Suspense fallback={null}>
-        <Bust animate={animate} quality={quality} boneOpacity={boneOpacity} stage={stage} />
+        <Bust animate={animate} entrance={entrance} quality={quality} boneOpacity={boneOpacity} stage={stage} />
         <ReadySignal onReady={onReady} />
       </Suspense>
     </>
@@ -225,6 +259,7 @@ function Scene({ framing, showStage, animate, quality, boneOpacity, onReady }: {
 
 export default function BodyScene({
   animate,
+  entrance,
   active,
   framing,
   showStage,
@@ -261,6 +296,7 @@ export default function BodyScene({
         framing={framing}
         showStage={showStage}
         animate={animate}
+        entrance={entrance}
         quality={quality}
         boneOpacity={boneOpacity}
         onReady={onReady}

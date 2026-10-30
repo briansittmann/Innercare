@@ -1,19 +1,27 @@
 'use client';
 
-// GhostFibers de React Bits (@react-bits/GhostFibers-TS-TW), sin cambios de
-// lógica. Copiado del registro a mano: `shadcn add` corrompe las cadenas de
-// sombras y colores. Conserva el estilo de código original; solo se añadieron
-// aserciones no nulas (`!`) y claves de uniformes tipadas para
-// `noUncheckedIndexedAccess`, y la prop `placements` (propia): la ubicación de
-// cada cinta, [desplazamiento, profundidad, pendiente, fase], que de fábrica
-// es fija. WebGL2 propio, sin dependencias. Con
-// `prefers-reduced-motion` dibuja un cuadro fijo, sin intro ni interacción.
+// GhostFibers de React Bits (@react-bits/GhostFibers-TS-TW). Copiado del
+// registro a mano: `shadcn add` corrompe las cadenas de sombras y colores.
+// Conserva el estilo de código original. Cambios propios:
+// - Aserciones no nulas (`!`) y claves de uniformes tipadas para
+//   `noUncheckedIndexedAccess`.
+// - La prop `placements`: la ubicación de cada cinta, [desplazamiento,
+//   profundidad, pendiente, fase], que de fábrica es fija.
+// - En modo claro, los reflejos (pliegues, destellos y pulso) brillan en
+//   lineColor por encima de la tinta, con resplandor. De fábrica, el modo
+//   claro solo dibuja tinta y no tiene resplandor.
+// - El estilo de fibra `strands`: hilos casi continuos con cortes cortos, entre
+//   `dashes` y `lines`.
+// - La prop `introStart`: mientras sea false, la intro espera en su comienzo
+//   (sin fibras), para arrancarla con la entrada de la home.
+// WebGL2 propio, sin dependencias. Con `prefers-reduced-motion` dibuja un
+// cuadro fijo, sin intro ni interacción.
 // La regla desactivada marca el ref con los ajustes actuales, que se lee en el
 // bucle de dibujo y funciona bien en ejecución.
 /* eslint-disable react-hooks/refs */
 import { useEffect, useRef, type HTMLAttributes } from 'react';
 
-export type GhostFibersFiberStyle = 'dots' | 'dashes' | 'lines';
+export type GhostFibersFiberStyle = 'dots' | 'dashes' | 'strands' | 'lines';
 
 export type GhostFibersGradient = 'depth' | 'along' | 'across';
 
@@ -54,6 +62,7 @@ export interface GhostFibersProps extends HTMLAttributes<HTMLDivElement> {
   mouseStrength?: number;
   pulseOnClick?: boolean;
   intro?: boolean;
+  introStart?: boolean;
   lightMode?: boolean;
   paused?: boolean;
   dpr?: number;
@@ -95,6 +104,7 @@ type Settings = {
   mouseStrength: number;
   pulseOnClick: boolean;
   intro: boolean;
+  introStart: boolean;
   lightMode: boolean;
   paused: boolean;
   dpr?: number;
@@ -116,7 +126,7 @@ const CAMERA = 7.5;
 const FOV = 0.56;
 const RIBBON_LENGTH = 24;
 const HOVER_EFFECTS: Record<GhostFibersHoverEffect, number> = { focus: 0, part: 1, none: 2 };
-const FIBER_STYLES: Record<GhostFibersFiberStyle, number> = { dots: 0, dashes: 0.45, lines: 1 };
+const FIBER_STYLES: Record<GhostFibersFiberStyle, number> = { dots: 0, dashes: 0.45, strands: 0.75, lines: 1 };
 const GRADIENTS: Record<GhostFibersGradient, number> = { depth: 0, along: 1, across: 2 };
 const RIBBON_TINT = [0, 0.75, 0.35];
 const PLACEMENTS = [
@@ -391,12 +401,29 @@ void main() {
   gl_Position = vec4(p, 0.0, 1.0);
 }`;
 
+// Modo claro (propio): la parte de la luz que es reflejo (pliegues, destellos y
+// pulso), separada de la tinta por su color, según cuánto se acerca a
+// uLineColor. El tono secundario queda por debajo del umbral.
+const GLINT = `
+uniform vec3 uGlowColor;
+uniform vec3 uLineColor;
+float glint(vec4 c) {
+  if (c.a < 1e-4) return 0.0;
+  vec3 axis = uLineColor - uGlowColor;
+  float t = dot(c.rgb / c.a - uGlowColor, axis) / max(dot(axis, axis), 1e-4);
+  return clamp((t - 0.2) / 0.8, 0.0, 1.0) * c.a;
+}
+`;
+
 const BRIGHT_FRAGMENT = `${HEADER}
+${GLINT}
 uniform sampler2D uSource;
 uniform vec2 uTexel;
+uniform float uLightMode;
 in vec2 vUv;
 out vec4 outColor;
 vec3 pick(vec2 uv) {
+  if (uLightMode > 0.5) return vec3(glint(texture(uSource, uv)));
   vec3 c = texture(uSource, uv).rgb;
   float peak = max(max(c.r, c.g), c.b);
   return c * smoothstep(0.35, 1.2, peak);
@@ -441,6 +468,7 @@ void main() {
 }`;
 
 const COMPOSITE_FRAGMENT = `${HEADER}
+${GLINT}
 uniform sampler2D uScene;
 uniform sampler2D uBloom;
 uniform float uGlow;
@@ -479,7 +507,10 @@ void main() {
     ink = clamp(ink * (1.0 + grain * uGrain * 2.0), 0.0, 1.0);
     vec3 hue = clamp(scene.rgb / max(scene.a, 1e-4), 0.0, 1.0);
     vec3 tone = hue * mix(1.0, 0.72, clamp(amount * 0.35, 0.0, 1.0));
-    outColor = vec4(tone * ink, ink);
+    // Los reflejos, con su resplandor, van en uLineColor por encima de la tinta
+    float shine = (glint(scene) + bloom.r * uGlow) * uBrightness;
+    float lit = (1.0 - exp(-shine * 1.5)) * mask;
+    outColor = vec4(tone * ink * (1.0 - lit) + uLineColor * lit, ink + lit * (1.0 - ink));
     return;
   }
   vec3 color = (1.0 - exp(-light * 1.25)) * mask;
@@ -550,6 +581,7 @@ const DUST_UNIFORMS = [
   'uSecondaryColor'
 ] as const;
 const PASS_UNIFORMS = ['uSource', 'uTexel'] as const;
+const BRIGHT_UNIFORMS = [...PASS_UNIFORMS, 'uLightMode', 'uGlowColor', 'uLineColor'] as const;
 const COMPOSITE_UNIFORMS = [
   'uScene',
   'uBloom',
@@ -560,7 +592,9 @@ const COMPOSITE_UNIFORMS = [
   'uVignette',
   'uFrame',
   'uView',
-  'uDpr'
+  'uDpr',
+  'uGlowColor',
+  'uLineColor'
 ] as const;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -679,6 +713,7 @@ const GhostFibers = ({
   mouseStrength = 1,
   pulseOnClick = true,
   intro = true,
+  introStart = true,
   lightMode = false,
   paused = false,
   dpr,
@@ -723,6 +758,7 @@ const GhostFibers = ({
     mouseStrength: Math.max(0, mouseStrength),
     pulseOnClick,
     intro,
+    introStart,
     lightMode,
     paused,
     dpr,
@@ -746,7 +782,7 @@ const GhostFibers = ({
     const floatTargets = !!gl.getExtension('EXT_color_buffer_float');
     const dots = link(gl, DOT_VERTEX, DOT_FRAGMENT, DOT_UNIFORMS);
     const dust = link(gl, DUST_VERTEX, DOT_FRAGMENT, DUST_UNIFORMS);
-    const bright = link(gl, FULLSCREEN, BRIGHT_FRAGMENT, PASS_UNIFORMS);
+    const bright = link(gl, FULLSCREEN, BRIGHT_FRAGMENT, BRIGHT_UNIFORMS);
     const down = link(gl, FULLSCREEN, DOWN_FRAGMENT, PASS_UNIFORMS);
     const up = link(gl, FULLSCREEN, UP_FRAGMENT, PASS_UNIFORMS);
     const composite = link(gl, FULLSCREEN, COMPOSITE_FRAGMENT, COMPOSITE_UNIFORMS);
@@ -998,7 +1034,7 @@ const GhostFibers = ({
       }
       gl.disable(gl.BLEND);
 
-      const blooming = s.glow > 0.001 && !s.lightMode;
+      const blooming = s.glow > 0.001;
       gl.bindVertexArray(vao);
       if (blooming) {
         chain.forEach((target, index) => {
@@ -1008,6 +1044,10 @@ const GhostFibers = ({
             Math.max(1, Math.round(canvas.height / 2 ** (index + 1)))
           );
         });
+        gl.useProgram(bright.program);
+        gl.uniform1f(bright.uniforms.uLightMode, s.lightMode ? 1 : 0);
+        gl.uniform3f(bright.uniforms.uGlowColor, state.glow[0]!, state.glow[1]!, state.glow[2]!);
+        gl.uniform3f(bright.uniforms.uLineColor, state.line[0]!, state.line[1]!, state.line[2]!);
         drawPass(bright, chain[0]!, scene, [0.5 / scene.width, 0.5 / scene.height]);
         for (let index = 1; index < BLOOM_LEVELS; index += 1) {
           drawPass(down, chain[index]!, chain[index - 1]!, [1 / chain[index - 1]!.width, 1 / chain[index - 1]!.height]);
@@ -1035,6 +1075,8 @@ const GhostFibers = ({
       gl.uniform1f(c.uGlow, blooming ? s.glow : 0);
       gl.uniform1f(c.uBrightness, s.brightness);
       gl.uniform1f(c.uLightMode, s.lightMode ? 1 : 0);
+      gl.uniform3f(c.uGlowColor, state.glow[0]!, state.glow[1]!, state.glow[2]!);
+      gl.uniform3f(c.uLineColor, state.line[0]!, state.line[1]!, state.line[2]!);
       gl.uniform1f(c.uGrain, s.grain);
       gl.uniform1f(c.uVignette, s.vignette);
       gl.uniform1f(c.uFrame, state.frame % 977);
@@ -1061,7 +1103,7 @@ const GhostFibers = ({
         state.time += dt * s.speed;
         state.roll += dt * s.speed * s.rollSpeed;
         state.flow += dt * s.flow * 12;
-        state.intro += Math.min(elapsed, 1);
+        if (s.introStart) state.intro += Math.min(elapsed, 1);
       } else if (state.intro < INTRO_SECONDS) {
         state.intro = INTRO_SECONDS;
       }

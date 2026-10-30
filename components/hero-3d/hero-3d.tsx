@@ -11,7 +11,8 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from 'react'
-import type { FrameStats, Framing } from './body-scene'
+import { getIntroPhase, INTRO_MAX_WAIT, loadedAtHome, startIntro, useIntroPhase } from '../intro'
+import type { Entrance, FrameStats, Framing } from './body-scene'
 import type { Quality } from './materials'
 
 // three.js solo existe en el navegador: la escena se carga aparte y sin SSR,
@@ -111,8 +112,8 @@ function readTuning(): Tuning {
 // El degradé es el fondo de la sección del hero (CSS). Se mide qué tramo
 // vertical queda detrás del canvas, para que el vidrio refracte ese mismo
 // tramo, y en qué punto del ancho va la figura (--hero-3d-foco). Con
-// offsetTop y no getBoundingClientRect: la entrada (.rise-in) mueve el canvas
-// con transform y desplazaría la medida.
+// offsetTop y no getBoundingClientRect: la entrada (.intro-3d) escala el
+// canvas y desplazaría la medida.
 function measureFraming(node: HTMLElement): Framing | null {
   const section = node.closest('section')
   if (!section || section.offsetHeight === 0) return null
@@ -178,6 +179,12 @@ export function Hero3D({ className = '' }: { className?: string }) {
   const webgl = useWebGL()
   const [mount, setMount] = useState(false)
   const [ready, setReady] = useState(false)
+  // El 3D estuvo listo antes de que arrancara la entrada: entra girando. Si
+  // no, entra la imagen fija y el 3D la reemplaza después, ya en su pose.
+  const [sceneFirst, setSceneFirst] = useState(false)
+  const phase = useIntroPhase()
+  const entrance: Entrance =
+    reducedMotion ? 'skip' : phase === 'waiting' ? 'hold' : sceneFirst ? 'play' : 'skip'
   // Fuera de pantalla no se renderiza: ahorra GPU y batería.
   const [visible, setVisible] = useState(false)
   const [framing, setFraming] = useState<Framing | null>(null)
@@ -224,6 +231,22 @@ export function Hero3D({ className = '' }: { className?: string }) {
     return () => observer.disconnect()
   }, [])
 
+  // Arranque de la entrada de la home (components/intro.ts), mientras no haya
+  // pantalla de carga: cuando el 3D está listo (en onReady), o a los
+  // INTRO_MAX_WAIT ms si tarda. Enseguida si no hay 3D, si se pide menos
+  // movimiento o si se llegó a la home desde otra página. Se lee del
+  // navegador y no de los hooks, que en la hidratación todavía dan el valor
+  // del servidor.
+  useEffect(() => {
+    if (getIntroPhase() !== 'waiting') return
+    if (!loadedAtHome || !hasWebGL() || window.matchMedia(reducedMotionQuery).matches) {
+      startIntro()
+      return
+    }
+    const id = setTimeout(startIntro, INTRO_MAX_WAIT)
+    return () => clearTimeout(id)
+  }, [])
+
   // Carga diferida: el 3D se monta cuando el navegador queda libre, después
   // del contenido de la página.
   useEffect(() => {
@@ -266,6 +289,7 @@ export function Hero3D({ className = '' }: { className?: string }) {
           >
             <BodyScene
               animate={!reducedMotion}
+              entrance={entrance}
               active={visible}
               framing={framing}
               showStage={tuning.showStage}
@@ -273,6 +297,10 @@ export function Hero3D({ className = '' }: { className?: string }) {
               boneOpacity={tuning.boneOpacity}
               onReady={() => {
                 setReady(true)
+                if (getIntroPhase() === 'waiting') {
+                  setSceneFirst(true)
+                  startIntro()
+                }
                 setTimes((t) => ({ ...t, ready: t.ready ?? performance.now() }))
               }}
               onStats={tuning.measure ? setStats : undefined}

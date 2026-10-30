@@ -30,20 +30,25 @@ function Logo({ className }: { className: string }) {
 // barra = 72 px, lo que descuenta el hero. Con los 8 px de relleno del vidrio
 // quedan 48 px para "Contactar", el mínimo táctil del sistema de botones.
 //
-// Entrada de escritorio (.nav-intro-* en globals.css), solo al cargar el sitio
-// por la home (NavIntro): la barra arranca como una píldora con el logo y se
-// estira hasta su ancho. El contenido se maqueta siempre al ancho final
+// Entrada (.nav-intro-* en globals.css), solo al cargar el sitio por la home
+// (NavIntro) y a la vez que el busto del hero (components/intro.ts). En el
+// celular, la barra baja con un fundido. En escritorio, arranca como una
+// píldora con el logo y se estira hasta su ancho. El contenido se maqueta siempre al ancho final
 // (100cqw de .nav-intro) y el vidrio lo recorta, así nada se reacomoda
 // mientras crece.
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 md:pointer-events-none md:pt-2">
-      <div className="barra-movil md:hidden">
-        <div className="page-container flex h-16 items-center justify-between gap-lg">
-          <Logo className="h-8 w-auto" />
-          <MobileNav />
+      <NavIntro className="md:hidden">
+        {/* La entrada va en el contenido: la barra ya tiene su propia
+            animación, la del esmerilado con el scroll. */}
+        <div className="barra-movil">
+          <div className="nav-intro-movil page-container flex h-16 items-center justify-between gap-lg">
+            <Logo className="h-8 w-auto" />
+            <MobileNav />
+          </div>
         </div>
-      </div>
+      </NavIntro>
 
       <div className="page-container hidden md:block">
         {/* Centrada con flex y no con mx-auto: en el rebote la barra se pasa
