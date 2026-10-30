@@ -1113,6 +1113,112 @@ def acetabulo():
 nuevos.append(acetabulo())
 
 
+# --- 5. Fémur proximal: endoprótesis modular (catálogo) ------------------------
+# Las piezas de la ficha (public/endoprotesis-modular-femur-innercare.pdf),
+# pulidas de CNC, en el fémur izquierdo: cabeza sobre el cono morse 12-14,
+# cuerpo principal de 60 mm a 135° con alas para sutura y el tornillo de
+# cierre arriba, un suplemento de 60 mm y el vástago cementado de Ø11 ×
+# 140 mm, estriado como en la foto de los componentes (femur-componentes.jpg).
+# Largos, ángulo y vástago son de la ficha; diámetros del cuerpo y del
+# cuello, y la cabeza (que llena el acetábulo del atlas), estimados. Se borra
+# el fémur por encima del suplemento (el plano de resección).
+END_CABEZA = 21 * MM  # radio
+END_CUERPO = (11 * MM, 60 * MM)  # radio y largo
+END_SUPLEMENTO = 60 * MM
+END_VASTAGO = (5.5 * MM, 140 * MM)  # radio y largo
+END_CUELLO = 7 * MM  # radio del brazo del cuello
+END_ARRIBA = 12 * MM  # cuánto sube el cuerpo por encima del eje del cuello
+
+
+def endoprotesis():
+    femur = objetos['hueso_femur_izq']
+    co = vertices(femur)
+    alto = co[co[:, 2] > 0.86]
+    F, _ = ajustar_esfera(alto[alto[:, 0] < np.percentile(alto[:, 0], 40)])
+    # Eje de la diáfisis: centros de cortes horizontales
+    centros = []
+    for z in np.arange(0.58, 0.80, 0.02):
+        c, _ = seccion(femur, np.array([0.095 + (z - 0.58) / 0.22 * 0.02, 0.0, z]), (0, 0, 1))
+        if c is not None:
+            centros.append(c)
+    centros = np.array(centros)
+    p_eje = centros.mean(0)
+    u = unitario(np.linalg.svd(centros - p_eje)[2][0])
+    if u[2] < 0:
+        u = -u  # hacia arriba
+    rel = F - p_eje
+    largo_eje = rel @ u
+    perp = rel - largo_eje * u
+    offset = np.linalg.norm(perp)
+    m = perp / offset  # hacia la cabeza (medial)
+    J = p_eje + u * (largo_eje - offset)  # el cuello sale a 135° de la diáfisis
+    n = unitario(m + u)
+    k = np.cross(u, m)
+    largo_cuello = np.linalg.norm(F - J)
+    print(f'[implantes] endoprótesis: offset {offset * 1000:.0f} mm, cuello de {largo_cuello * 1000:.0f} mm')
+
+    pieza = Pieza()
+    # Cabeza truncada abajo, donde entra el cono
+    rh = END_CABEZA
+    base_cabeza = -0.62 * rh
+    alfa = math.degrees(math.acos(base_cabeza / rh))
+    pieza.sumar(*revolver([(0, base_cabeza)] + arco(rh, alfa, 0, 22), 48), origen=F, eje=n)
+    # Brazo del cuello y cono morse (entra en la cabeza)
+    cono = largo_cuello + base_cabeza - 7 * MM
+    rn = END_CUELLO
+    pieza.sumar(*revolver([(0, 0), (rn, 0), (rn, cono - 2 * MM), (7 * MM, cono),
+                           (6 * MM, cono + 14 * MM), (0, cono + 14 * MM)], 32), origen=J, eje=n)
+    # Cuerpo principal, con el tornillo de cierre arriba
+    rb, lb = END_CUERPO
+    ch = 0.8 * MM
+    abajo_cuerpo = END_ARRIBA - lb
+    pieza.sumar(*revolver([(0, abajo_cuerpo), (rb - ch, abajo_cuerpo), (rb, abajo_cuerpo + ch),
+                           (rb, END_ARRIBA - ch), (rb - ch, END_ARRIBA), (4.5 * MM, END_ARRIBA),
+                           (4.5 * MM, END_ARRIBA + 1.6 * MM), (3.6 * MM, END_ARRIBA + 2.2 * MM),
+                           (0, END_ARRIBA + 2.2 * MM)], 48),
+                origen=J, eje=u, ref=m)
+    # Alas para sutura: arriba del lado de afuera y abajo del lado de adentro
+    espesor = 4 * MM
+
+    def ala(lado, alturas):
+        nodos = [((z * MM, rb + 3.4 * MM), 1.5 * MM) for z in alturas]
+        nodos += [((z * MM, rb - 2 * MM), 0) for z in alturas]
+        n_al = len(alturas)
+        enlaces = [(i, i + 1) for i in range(n_al - 1)] + [(i, i + n_al) for i in range(n_al)]
+        p = placa(nodos, enlaces, 3.3 * MM, 6.6 * MM, espesor, lados=16)
+        a_, b_, w_ = p.co[:, 0:1], p.co[:, 1:2], p.co[:, 2:3]
+        pieza.sumar(J + a_ * u + b_ * lado + (w_ - espesor / 2) * k, p.caras)
+
+    ala(-m, [7, -0.5, -8, -15.5])
+    ala(m, [-22, -29.5, -37, -44.5])
+    # Suplemento, con chaflanes que marcan la unión con el cuerpo
+    s0 = abajo_cuerpo - END_SUPLEMENTO
+    pieza.sumar(*revolver([(0, s0), (rb - ch, s0), (rb, s0 + ch), (rb, abajo_cuerpo - ch),
+                           (rb - ch, abajo_cuerpo), (0, abajo_cuerpo)], 48), origen=J, eje=u, ref=m)
+    # Vástago cementado estriado (eje hacia abajo)
+    rv, lv = END_VASTAGO
+
+    def estrias(th, z):
+        f = np.ones_like(th)
+        if 18 * MM < z < lv - 12 * MM:
+            f -= 0.1 * np.clip(np.cos(10 * th), 0, 1) ** 6
+        return f
+
+    perfil = [(0, -1 * MM), (8.2 * MM, -1 * MM), (8 * MM, 4 * MM), (rv + 0.4 * MM, 16 * MM),
+              (rv, 22 * MM), (rv * 0.86, lv - 10 * MM), (rv * 0.7, lv - 3 * MM),
+              (rv * 0.35, lv - 0.6 * MM), (0, lv)]
+    abajo = J + u * s0
+    pieza.sumar(*revolver(perfil, 50, modular=estrias), origen=abajo, eje=-u, ref=m)
+
+    obj = resumen(pieza.objeto('implante_femur'))
+    # Resección: el fémur por encima del suplemento
+    cortar(femur, abajo - u * 1 * MM, u)
+    return obj
+
+
+nuevos.append(endoprotesis())
+
+
 exportar(nuevos, salida / 'implantes-recorrido.glb')
 exportar([o for o in bpy.context.scene.objects if o.type == 'MESH' and o not in nuevos and o is not parche],
          salida / 'cuerpo.glb')
