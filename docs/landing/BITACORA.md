@@ -290,3 +290,27 @@ Memoria compartida entre las fases de la landing: cada fase deja acá qué hizo,
 - **Caché de Turbopack:** los cambios de `globals.css` no entraban al build hasta borrar `.next/` (salvo `.next/dev`, el del servidor del usuario). Pasó tres veces.
 - Las miniaturas no tienen imagen fija propia sin WebGL: queda la foto de la pieza (fase 2), que es real y se lee bien. Si se quiere una captura del 3D, el procedimiento es el de `cuerpo-entero.webp`.
 - `CLAUDE.md` sigue desactualizado (fases anteriores) y ahora además: las animaciones de proceso y fabricación (canvas 2D, `components/animaciones/`) y las miniaturas en el canvas del recorrido.
+
+---
+
+## Fase 5 · Correcciones del verificador (2026-10-30)
+
+**Commits:** `0b1e4c2` Open the thumbnail hole only once the tour canvas is visible · `d4e1d27` Restore wide cut planes and boxed guides in the process piece · `6b8ee29` Refine the printed acetabular cup and balance the two pieces · y el commit de esta entrada (docs).
+
+**Qué se corrigió, en el orden del verificador.**
+1. **Cuadro vacío y corte de la luz en las miniaturas.** El hueco de la tarjeta se abría con `data-listo`, mientras el canvas todavía hacía su fundido de 700 ms: por un instante se veía la escena vacía. Ahora se abre con `data-minis`, 760 ms después, la foto se funde encima en 360 ms y el ensamble espera a que el hueco esté abierto (`estadoRecorrido.minis`). Probado cuadro a cuadro a 1440 y a 390 px, entrando directo a una parada antes de que cargue el 3D: foto, fundido a la nube y ensamble, sin cuadros vacíos. La luz azul de la miniatura (en el shader y en el respaldo CSS, `closest-side`) se desvanece del todo dentro del recuadro: no quedan cortes rectos.
+2. **Planos de corte del proceso:** planos punteados de unas tres veces el ancho del hueso (168 × 104 unidades), en el azul del hueso como en el borrador, en un grupo aparte (categoría 3) para que en el paso 3 pasen a guías y no queden como hueso. Ya no se confunden con la zona a resecar.
+3. **Guías:** marcos en caja de 96 unidades de ancho (el rectángulo del borrador; el hueso mide unas 52), con las doce aristas, la ranura de corte en la cara de adelante y dos vainas para clavijas.
+4. **Contraste del proceso:** partículas de 2 px como mínimo (antes 1,3) y opacidades de 0,5 a 1 según la profundidad (antes 0,34 a 0,9). Cortes de TC: 20 en lugar de 26, con las partículas concentradas en el contorno de la cortical y el del canal; se leen como anillos dobles.
+5. **Fabricación:** la copa se dibuja al 60 % del recuadro y la endoprótesis al 90 % (antes las dos al 84 %): pesos parecidos. El ala de la copa es una lengüeta curva con punta redonda y tres agujeros avellanados, apoyada en la copa. Los poros son trabeculares: unos 110 polígonos irregulares de tamaños distintos, con semilla fija (la máscara de las partículas y el metal coinciden), oscuros y hundidos, y los del borde lo rompen. Secuencia y tiempos sin cambios.
+6. **Miniaturas:** titanio de metal pleno (`metalness` 1) con poco relleno y un contraluz: toma los reflejos oscuros y los brillos del estudio y ya no queda blanco sobre blanco. Al quedar sólida, las partículas casi desaparecen (contorno limpio). Encuadre: las piezas largas giran en el plano de la pantalla hasta el ángulo que más llena la miniatura (en diagonal en escritorio, acostadas en la hoja del celular), con el vaivén alrededor de su eje largo, y la distancia sale de sus medidas reales.
+7. **Menores:** sin JS se oculta la leyenda Hueso / Zona a resecar / Implante y guías (`.proceso-leyenda`). El bucle de cuadros de las miniaturas ya no corre siempre: arranca cuando una se ensambla y se detiene cuando ninguna lo hace o cuando el canvas deja de dibujar (recorrido fuera de pantalla).
+
+**Comprobado** (build de producción, Chrome con la GPU del M1): 1440 × 900 y 390 × 844, con y sin movimiento reducido y sin JS. Recorrido con tope: 59,6 a 59,8 fps, p95 de 16,7 a 16,8 ms, en escritorio y en el celular. Sin errores de consola. Build, lint y tsc sin errores.
+
+**Decidido sin preguntar.**
+- **Planos en el azul del hueso** (como el borrador) y no en otro color de marca: la leyenda tiene tres colores y el borrador los dibuja así. Se distinguen por la forma (planos anchos punteados).
+- **El ensamble espera al hueco abierto:** si no, al cargar el 3D en una parada ya activa se perdía detrás de la foto.
+
+**Pendiente.**
+- Lo que seguía de la entrada anterior: medir en un celular real, la caché de Turbopack con `globals.css` y `CLAUDE.md` desactualizado.
