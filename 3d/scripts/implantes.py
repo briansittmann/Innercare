@@ -3,9 +3,13 @@
 # bocetos hechos desde las fotos de content/: cuando Innercare pase los 3D
 # originales, reemplazan a estos respetando el nombre de malla.
 #
-# Por ahora, solo la craneoplastía (implante_craneoplastia): parche
-# parieto-temporal derecho en titanio trabecular, de 2 mm, con malla
-# triangular, borde macizo y pestañas con agujeros para tornillos.
+# Los seis implantes del recorrido de la home, en su orden: craneoplastía,
+# maxilar, hombro reverso, acetábulo, endoprótesis de fémur e intercalar de
+# fémur (cada uno con su sección más abajo).
+#
+# Craneoplastía (implante_craneoplastia): parche parieto-temporal derecho en
+# titanio trabecular, de 2 mm, con malla triangular, borde macizo y pestañas
+# con agujeros para tornillos.
 # 1. Se arma plano, en un sistema (u, v, w) en metros: u hacia adelante, v
 #    hacia arriba y w el espesor. Borde y pestañas salen de una curva polar;
 #    la malla, de una red triangular con el modificador Wireframe, recortada
@@ -16,8 +20,13 @@
 # 3. El cráneo se recorta debajo del parche: el defecto es el contorno del
 #    parche achicado, para que el borde apoye sobre el hueso.
 #
-# Exporta implantes.glb (los implantes) y anatomia.glb (la piel y el
-# esqueleto con los recortes).
+# Exporta:
+# - implantes.glb: la craneoplastía sola, y anatomia.glb: la piel y el
+#   esqueleto con el recorte del cráneo. Son el prototipo de cabeza del hero
+#   (cabeza.py parte de anatomia.glb): no cambian con los otros implantes.
+# - implantes-recorrido.glb: los otros cinco (implante_<parada>), y
+#   cuerpo.glb: la piel y el esqueleto con todos los recortes. Son los del
+#   recorrido de la home (components/recorrido-3d/implantes.ts).
 #
 # Uso:
 #   blender -b -P 3d/scripts/implantes.py -- <piel.glb> <esqueleto.glb> <carpeta_salida>
