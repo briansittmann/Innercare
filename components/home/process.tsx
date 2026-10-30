@@ -10,11 +10,12 @@ const LEYENDA = [
 ] as const
 
 // Cómo trabajamos cada caso (#proceso). Estructura del borrador: ver
-// process-scroll.tsx. Hasta que la fase 5 haga la pieza que se transforma
-// (cortes de TC, hueso con la zona a resecar, implante y guías), cada paso
-// muestra una vista con el mismo tratamiento que la escena del recorrido
-// (.visor-imagen).
+// process-scroll.tsx. La pieza que se transforma (cortes de TC, hueso con la
+// zona a resecar, implante y guías) está en components/animaciones/
+// proceso.ts; sin JS, en su lugar va la imagen del primer paso, con el mismo
+// tratamiento que la escena del recorrido (.visor-imagen).
 export function Process() {
+  const primerPaso = proceso[0]
   return (
     <section id="proceso" aria-labelledby="proceso-titulo" className="relative h-[340vh] bg-surface">
       <ProcessScroll
@@ -27,16 +28,17 @@ export function Process() {
           </h2>
         }
         pasos={proceso.map(({ step, title, description }) => ({ step, title, description }))}
-        vistas={proceso.map((paso) => (
-          <Image
-            key={paso.step}
-            src={paso.image.src}
-            alt=""
-            fill
-            sizes="(min-width: 768px) 55vw, 100vw"
-            className="visor-imagen object-contain"
-          />
-        ))}
+        respaldo={
+          primerPaso && (
+            <Image
+              src={primerPaso.image.src}
+              alt=""
+              fill
+              sizes="(min-width: 768px) 55vw, 100vw"
+              className="visor-imagen object-contain"
+            />
+          )
+        }
         leyenda={
           <ul className="absolute bottom-0 left-0 flex flex-wrap gap-x-[1.125rem] gap-y-xs text-[0.84375rem] text-on-surface-variant">
             {LEYENDA.map((item) => (

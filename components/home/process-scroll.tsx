@@ -1,64 +1,108 @@
 'use client'
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { ajustar, clamp } from '@/components/animaciones/lienzo'
+import {
+  N_PROCESO_CELULAR,
+  N_PROCESO_ESCRITORIO,
+  PiezaProceso,
+  pasoActivo,
+} from '@/components/animaciones/proceso'
 
-// Cómo trabajamos cada caso, con la estructura del borrador de la landing
-// (docs/landing/landing-borrador.html): la sección mide 3,4 pantallas y su
-// contenido queda fijo (sticky) mientras se recorre. A la izquierda, el
-// título y los tres pasos; el activo se resalta. A la derecha, la pieza que
-// se transforma (fase 5) con su leyenda; hasta que exista, una vista por paso.
-// En el celular, la pieza arriba y los pasos abajo, con el texto solo del
-// activo.
+// Cómo trabajamos cada caso, con la estructura y el comportamiento del
+// borrador de la landing (docs/landing/landing-borrador.html): la sección
+// mide 3,4 pantallas y su contenido queda fijo (sticky) mientras se recorre.
+// A la izquierda, el título y los tres pasos; el activo se resalta. A la
+// derecha, la pieza que se transforma (components/animaciones/proceso.ts)
+// con su leyenda. En el celular, la pieza arriba y los pasos abajo, con el
+// texto solo del activo.
 //
-// Paso activo: cada tercio de la sección tiene un marcador; el que cruza la
-// mitad de la pantalla manda (IntersectionObserver, sin escuchar el scroll).
-// La fase 5 lo reemplaza por el progreso del scroll que mueve la pieza.
+// Una sola fuente: el progreso del scroll de la sección decide el paso
+// activo y la forma de la pieza. La pieza se dibuja solo con la sección en
+// pantalla (el vaivén es continuo; con movimiento reducido, quieta y sin
+// transiciones: cada paso muestra su forma).
 //
-// Sin JS (o antes de llegar a la sección) no hay paso activo: los tres se
-// ven enteros y la pieza muestra el primero.
+// Sin JS no hay paso activo: los tres se ven enteros y, en lugar de la
+// pieza, la vista del primer paso (`respaldo`, oculta con JS por CSS).
 export function ProcessScroll({
   titulo,
   pasos,
-  vistas,
+  respaldo,
   leyenda,
 }: {
   titulo: ReactNode
   pasos: readonly { step: string; title: string; description: string }[]
-  vistas: readonly ReactNode[]
+  respaldo: ReactNode
   leyenda: ReactNode
 }) {
   const ref = useRef<HTMLDivElement>(null)
+  const lienzo = useRef<HTMLCanvasElement>(null)
   const [activo, setActivo] = useState<number | null>(null)
 
   useEffect(() => {
     const root = ref.current
-    if (!root) return
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) setActivo(Number(entry.target.getAttribute('data-tramo')))
-        }
-      },
-      { rootMargin: '-50% 0px -50% 0px' },
-    )
-    for (const tramo of root.querySelectorAll('[data-tramo]')) observer.observe(tramo)
-    return () => observer.disconnect()
-  }, [])
+    const cv = lienzo.current
+    const g = cv?.getContext('2d')
+    if (!root || !cv || !g) return
+    const movimiento = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const pieza = new PiezaProceso(window.innerWidth < 820 ? N_PROCESO_CELULAR : N_PROCESO_ESCRITORIO)
+    let medida = ajustar(cv)
+    let visible = false
+    let cuadro = 0
+    let q = 0
+    let ultimoPaso = -1
 
-  const visible = activo ?? 0
+    const leer = () => {
+      const r = root.getBoundingClientRect()
+      const recorrido = r.height - window.innerHeight
+      q = recorrido > 0 ? clamp(-r.top / recorrido) : 0
+      const paso = pasoActivo(q)
+      if (paso !== ultimoPaso) {
+        ultimoPaso = paso
+        setActivo(paso)
+      }
+    }
+
+    const pintar = (ahora: number) => {
+      cuadro = 0
+      const reducido = movimiento.matches
+      pieza.dibujar(g, medida.w, medida.h, medida.dpr, q, ahora / 1000, reducido)
+      // El vaivén sigue mientras la sección se ve
+      if (visible && !reducido) cuadro = requestAnimationFrame(pintar)
+    }
+    const pedir = () => {
+      if (!cuadro) cuadro = requestAnimationFrame(pintar)
+    }
+    const alMover = () => {
+      leer()
+      if (visible) pedir()
+    }
+
+    const observador = new IntersectionObserver(([e]) => {
+      visible = Boolean(e?.isIntersecting)
+      if (visible) alMover()
+    })
+    observador.observe(root)
+    const tamano = new ResizeObserver(() => {
+      medida = ajustar(cv)
+      alMover()
+    })
+    tamano.observe(cv)
+
+    leer()
+    window.addEventListener('scroll', alMover, { passive: true })
+    movimiento.addEventListener('change', alMover)
+    return () => {
+      observador.disconnect()
+      tamano.disconnect()
+      window.removeEventListener('scroll', alMover)
+      movimiento.removeEventListener('change', alMover)
+      cancelAnimationFrame(cuadro)
+    }
+  }, [])
 
   return (
     <div ref={ref} className="relative h-full">
-      {pasos.map((paso, i) => (
-        <div
-          key={paso.step}
-          aria-hidden
-          data-tramo={i}
-          className="absolute left-0 w-px"
-          style={{ top: `${(i * 100) / pasos.length}%`, height: `${100 / pasos.length}%` }}
-        />
-      ))}
-
       <div className="sticky top-0 mx-auto grid h-dvh max-w-[83.75rem] grid-rows-[auto_1fr] content-start gap-sm px-[clamp(1.25rem,5vw,4.5rem)] pt-[5.25rem] pb-[2.5rem] md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:grid-rows-1 md:content-center md:items-center md:gap-[clamp(1.5rem,5vw,4.5rem)] md:pt-[6rem]">
         <div>
           {titulo}
@@ -95,22 +139,17 @@ export function ProcessScroll({
           </ol>
         </div>
 
-        {/* Lugar de la pieza animada (fase 5): alto fijo, para que la
-            animación lo reemplace sin mover nada. */}
+        {/* La pieza: canvas sobre el alto fijo de la columna. Sin JS, la
+            vista del primer paso (.proceso-respaldo). */}
         <div
           data-pieza-proceso
           className="relative order-first h-[38vh] md:order-none md:h-[min(74vh,43.75rem)]"
         >
-          <div aria-hidden className="absolute inset-0 bottom-[2rem]">
-            {vistas.map((vista, i) => (
-              <div
-                key={i}
-                data-visible={i === visible || undefined}
-                className="escena-vista absolute inset-0 bg-surface"
-              >
-                {vista}
-              </div>
-            ))}
+          <div aria-hidden className="proceso-respaldo absolute inset-0 bottom-[2rem]">
+            {respaldo}
+          </div>
+          <div aria-hidden className="proceso-lienzo absolute inset-0 bottom-[2rem]">
+            <canvas ref={lienzo} className="block size-full" />
           </div>
           {leyenda}
         </div>

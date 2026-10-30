@@ -1052,6 +1052,20 @@ body {
   }
 }
 
+/* Pieza de "Cómo trabajamos" (components/home/process-scroll.tsx): con JS,
+   el canvas; sin JS, la imagen del primer paso. */
+@media (scripting: enabled) {
+  .proceso-respaldo {
+    display: none;
+  }
+}
+
+@media (scripting: none) {
+  .proceso-lienzo {
+    display: none;
+  }
+}
+
 /* Cierre de contacto (components/contact-cta.tsx): el azul de marca con
    una luz arriba a la derecha, como en el borrador. */
 .cta-luz {
