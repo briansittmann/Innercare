@@ -548,17 +548,37 @@ def barrido(puntos, radio, lados=16, tapas=True):
     return np.array(co), caras
 
 
-def perforar(bm, centros, borde):
-    # Celosía: la estrella de caras de cada vértice de `centros` se disuelve
-    # en un polígono, se le hace un borde (inset) y se borra el centro. Las
-    # estrellas no pueden compartir caras.
-    usadas, poligonos = set(), []
-    for v in centros:
-        caras = list(v.link_faces)
-        if len(caras) < 5 or v.is_boundary or any(f in usadas for f in caras):
-            continue
-        usadas.update(caras)
-        poligonos += [f for f in bmesh.ops.dissolve_faces(bm, faces=caras, use_verts=True)['region']]
+def perforar(bm, semillas, borde):
+    # Celosía: se eligen vértices cuyas estrellas (caras alrededor) no se
+    # tocan, creciendo desde una semilla hacia los vértices que comparten dos
+    # vecinos con uno ya elegido (en una red triangular, eso da la red de
+    # hexágonos perfecta). Cada estrella se disuelve en un polígono, se le
+    # hace un borde (inset) y se borra el centro.
+    usadas, estrellas = set(), []
+
+    def libre(v):
+        return (not v.is_boundary and len(v.link_faces) >= 5
+                and not any(f in usadas for f in v.link_faces))
+
+    def vecinos(v):
+        return {e.other_vert(v) for e in v.link_edges}
+
+    for semilla in semillas:
+        cola = [semilla]
+        while cola:
+            v = cola.pop(0)
+            if not libre(v):
+                continue
+            usadas.update(v.link_faces)
+            estrellas.append(list(v.link_faces))
+            cerca = vecinos(v)
+            for w in cerca:
+                for x in vecinos(w):
+                    if x is not v and x not in cerca and len(vecinos(x) & cerca) == 2:
+                        cola.append(x)
+    poligonos = []
+    for caras in estrellas:
+        poligonos += bmesh.ops.dissolve_faces(bm, faces=caras)['region']
     bmesh.ops.inset_individual(bm, faces=poligonos, thickness=borde, use_even_offset=True)
     bmesh.ops.delete(bm, geom=poligonos, context='FACES')
     return len(poligonos)
@@ -997,6 +1017,100 @@ def hombro():
 
 
 nuevos.append(hombro())
+
+
+# --- 4. Acetábulo: reconstrucción en titanio trabecular (a medida) -------------
+# Del diseño del caso (public/img/caso-acetabular-tornillos.jpg) y del
+# implante poroso (caso-porosa-implante.jpg): copa con la cara interna maciza,
+# la externa trabecular (celosía), un borde macizo, un ala superior con dos
+# agujeros sobre el ilíaco y tornillos de 25 a 55 mm que salen en abanico
+# hacia el ilíaco, el isquion y el pubis. Va en la cadera derecha, alrededor
+# de la cabeza femoral (que se conserva: el intercalar entra por arriba del
+# mismo fémur). Se borra el acetábulo debajo de la copa.
+ACE_INTERIOR = 25 * MM  # la cabeza femoral del atlas tiene 23 mm de radio
+ACE_CASCARA = 26.5 * MM  # cara interna maciza
+ACE_POROSO = 29 * MM  # capa trabecular
+ACE_ABERTURA = (-0.62, -0.25, -0.70)  # afuera, adelante y abajo: unos 45° de inclinación
+ACE_TORNILLO = 5.5 * MM
+# Tornillos: ángulo desde el polo de la copa y azimut desde arriba (0°,
+# hacia el ilíaco; 90°, hacia atrás), en grados, y largo en mm (los de la
+# imagen del caso)
+ACE_TORNILLOS = [(18, 0, 50), (42, 25, 40), (40, -40, 55), (58, 70, 35), (55, -85, 40),
+                 (62, 145, 30), (60, -150, 35), (48, 180, 25)]
+
+
+def acetabulo():
+    coxal = objetos['hueso_coxal_der']
+    femur = objetos['hueso_femur_der']
+    co_f = vertices(femur)
+    alto = co_f[co_f[:, 2] > 0.86]
+    c, radio_cabeza = ajustar_esfera(alto[alto[:, 0] > np.percentile(alto[:, 0], 60)])
+    a = unitario(ACE_ABERTURA)
+    polo = -a
+    base = base_eje(polo, ref=(0, 0, 1))  # x local: hacia arriba
+    print(f'[implantes] acetábulo: cabeza femoral de {radio_cabeza * 1000:.1f} mm de radio')
+
+    pieza = Pieza()
+    # Cara interna maciza
+    perfil = arco(ACE_CASCARA, 0, 90, 18) + arco(ACE_INTERIOR, 90, 0, 18)
+    pieza.sumar(*revolver(perfil, 56), origen=c, eje=polo, ref=(0, 0, 1))
+    # Capa trabecular: media icoesfera calada, con espesor hacia adentro
+    bm = bmesh.new()
+    bmesh.ops.create_icosphere(bm, subdivisions=4, radius=ACE_POROSO)
+    bmesh.ops.delete(bm, geom=[f for f in bm.faces if min(v.co.z for v in f.verts) < -0.2 * MM],
+                     context='FACES')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    centros = sorted(bm.verts, key=lambda v: -v.co.z)
+    huecos = perforar(bm, centros, 0.5 * MM)
+    bmesh.ops.solidify(bm, geom=bm.faces[:], thickness=ACE_POROSO - ACE_CASCARA + 0.3 * MM)
+    trabecular = Pieza().sumar_bm(bm)
+    bm.free()
+    pieza.sumar_pieza(trabecular, origen=c, eje=polo, ref=(0, 0, 1))
+    print(f'[implantes] acetábulo: {huecos} poros')
+    # Borde macizo
+    r_sup = math.sqrt(ACE_INTERIOR ** 2 - (3.5 * MM) ** 2)
+    pieza.sumar(*revolver([(ACE_INTERIOR, -0.8 * MM), (ACE_POROSO + 0.4 * MM, -0.8 * MM),
+                           (ACE_POROSO + 0.4 * MM, 3.5 * MM), (r_sup, 3.5 * MM)], 56, cerrado=True),
+                origen=c, eje=polo, ref=(0, 0, 1))
+    # Tornillos en abanico, con la cabeza hundida en la cara interna
+    for alfa, beta, largo in ACE_TORNILLOS:
+        al, be = math.radians(alfa), math.radians(beta)
+        d = base @ np.array([math.sin(al) * math.cos(be), math.sin(al) * math.sin(be), math.cos(al)])
+        cabeza = (ACE_TORNILLO * 1.5, 2 * MM)
+        pieza.sumar(*tornillo(largo * MM, ACE_TORNILLO, cabeza=cabeza),
+                    origen=c + d * (ACE_INTERIOR + 0.3 * MM + largo * MM + cabeza[1]), eje=-d)
+
+    # Ala superior: una lengüeta plana en el plano del borde, hacia el
+    # ilíaco, con dos agujeros que miran a la abertura (como en la imagen
+    # del caso) y sus tornillos hacia arriba y adentro
+    arriba = unitario(np.array([0, 0, 1.0]) - a[2] * a)
+    lado = unitario(np.cross(a, arriba))
+    borde = c + arriba * (ACE_POROSO - 1 * MM) - a * 1.5 * MM
+    agujeros = [(-6.5, 11), (6.5, 11)]
+    nodos = [((-8 * MM, -3 * MM), 0), ((0, -4 * MM), 0), ((8 * MM, -3 * MM), 0)]
+    nodos += [((x * MM, y * MM), 2.9 * MM) for x, y in agujeros]
+    ala = placa(nodos, [(0, 1), (1, 2), (0, 3), (1, 3), (1, 4), (2, 4), (3, 4)],
+                5 * MM, 7 * MM, 3 * MM, lados=24)
+    marco = np.stack([lado, arriba, a], 1)
+    pieza.sumar(ala.co @ marco.T + borde, ala.caras)
+    for x, y in agujeros:
+        sup = borde + marco @ np.array([x * MM, y * MM, 3 * MM])
+        d = unitario(-a + arriba * 0.8)
+        largo = 40 * MM
+        pieza.sumar(*tornillo(largo, ACE_TORNILLO, cabeza=(ACE_TORNILLO * 1.6, 2.2 * MM)),
+                    origen=sup + d * (largo - 0.5 * MM), eje=-d)
+
+    obj = resumen(pieza.objeto('implante_acetabulo'))
+
+    # Recorte: el acetábulo debajo de la copa
+    co = vertices(coxal)
+    rel = co - c
+    dentro = (np.linalg.norm(rel, axis=1) < ACE_POROSO + 0.5 * MM) & (rel @ polo > -2 * MM)
+    print(f'[implantes] acetábulo: {borrar_caras(coxal, dentro)} caras recortadas')
+    return obj
+
+
+nuevos.append(acetabulo())
 
 
 exportar(nuevos, salida / 'implantes-recorrido.glb')

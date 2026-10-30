@@ -13,6 +13,8 @@
 # encuadre), de frente, de costado (del lado de la zona), de tres cuartos y
 # de atrás. Las mallas implante_* salen en azul y el resto en gris, para que
 # se vea dónde apoya cada pieza; la malla `piel` del modelo no se dibuja.
+# Cada vista sale dos veces: con el hueso tapando lo que queda adentro, y
+# con los implantes encima (`-encima`), como los dibuja el recorrido.
 #
 # Uso:
 #   blender -b -P 3d/scripts/preview.py -- <modelo.glb> <carpeta_salida> [<piel.glb>]
@@ -147,12 +149,37 @@ if zonas:
         o.color = (0.2, 0.42, 0.85, 1) if o.name.startswith('implante_') else (0.82, 0.82, 0.8, 1)
         if o.name == 'piel':
             o.hide_render = True
+    implantes = [o for o in mallas if o.name.startswith('implante_')]
+
+    def vista(nombre, direccion, objetivo, escala):
+        render(nombre, direccion, objetivo, escala)
+        # Los implantes solos, con fondo transparente, encima de la vista
+        ruta = salida / f'{modelo.stem}-{nombre}.png'
+        fondo = pixeles(ruta)
+        otros = [o for o in mallas if o not in implantes and not o.hide_render]
+        ocultar(otros, True)
+        escena.render.film_transparent = True
+        escena.render.filepath = str(salida / f'{modelo.stem}-{nombre}-encima.png')
+        bpy.ops.render.render(write_still=True)
+        escena.render.film_transparent = False
+        ocultar(otros, False)
+        arriba = pixeles(escena.render.filepath)
+        alfa = arriba[:, 3:]
+        mezcla = fondo * (1 - alfa) + arriba * alfa
+        mezcla[:, 3] = 1
+        imagen = bpy.data.images.new('encima', escena.render.resolution_x, escena.render.resolution_y)
+        imagen.pixels.foreach_set(mezcla.ravel())
+        imagen.filepath_raw = escena.render.filepath
+        imagen.file_format = 'PNG'
+        imagen.save()
+        bpy.data.images.remove(imagen)
+
     for nombre, objetivo, escala in zonas:
         costado = Vector((-1 if objetivo.x < 0 else 1, 0, 0))
-        render(f'{nombre}-frente', Vector((0, -1, 0)), objetivo, escala)
-        render(f'{nombre}-costado', costado, objetivo, escala)
-        render(f'{nombre}-3-4', (costado + Vector((0, -1, 0))).normalized(), objetivo, escala)
-        render(f'{nombre}-atras', Vector((0, 1, 0)), objetivo, escala)
+        vista(f'{nombre}-frente', Vector((0, -1, 0)), objetivo, escala)
+        vista(f'{nombre}-costado', costado, objetivo, escala)
+        vista(f'{nombre}-3-4', (costado + Vector((0, -1, 0))).normalized(), objetivo, escala)
+        vista(f'{nombre}-atras', Vector((0, 1, 0)), objetivo, escala)
     sys.exit(0)
 
 # En glTF el frente mira a +Z, que en Blender queda como -Y
