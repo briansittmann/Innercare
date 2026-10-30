@@ -73,8 +73,9 @@ type Parada3D = Toma & { vis: number }
 export const TOMAS_PARADA: Record<ParadaId, Parada3D> = {
   // Craneoplastía parieto-temporal derecha: de tres cuartos y desde arriba
   craneo: { objetivo: [-0.047, 1.622, -0.006], vis: 170 * UNIDAD, azimut: -1.02, elevacion: 0.38 },
-  // Maxilar superior, de frente y apenas desde abajo
-  maxilar: { objetivo: [0, 1.535, 0.06], vis: 150 * UNIDAD, azimut: -0.3, elevacion: -0.06 },
+  // Maxilar superior derecho, de frente y apenas desde abajo. Más cerca que
+  // en el borrador: la estructura mide unos 5 cm y a 150 se perdía
+  maxilar: { objetivo: [-0.013, 1.537, 0.066], vis: 82 * UNIDAD, azimut: -0.42, elevacion: -0.06 },
   // Hombro derecho: la articulación y el vástago en el húmero
   hombro: { objetivo: [-0.158, 1.3, -0.016], vis: 290 * UNIDAD, azimut: -0.62, elevacion: 0.08 },
   // Acetábulo derecho
