@@ -212,38 +212,87 @@ function hexagono(g: Ctx, x: number, y: number, r: number, color: string, alfa: 
 }
 
 // --- Reconstrucción acetabular trabecular (impresión 3D) ------------------
-// Copa en media esfera con la capa externa porosa (tres filas de poros
-// hexagonales), cara interna maciza con agujeros para tornillos, reborde y
-// el ala superior con sus dos agujeros.
+// Copa en media esfera con la capa externa trabecular (poros irregulares,
+// de tamaños distintos, que llegan a romper el borde), cara interna maciza
+// con agujeros para tornillos, reborde y el ala superior: una lengüeta
+// curva que sale de la copa hacia el ilíaco, con tres agujeros en fila.
 const COPA = { x: 150, y: 196, r: 110, interior: 80 }
-const ALA: readonly (readonly [number, number])[] = [
-  [68, 132],
-  [118, 43],
-  [190, 52],
-  [176, 118],
-]
+
+// Ala: la base apoya en la copa y la punta es redonda
+const ALA = {
+  base1: [69.8, 120.7] as const,
+  base2: [139.6, 86.5] as const,
+  punta: [92, 36] as const,
+  radio: 21,
+  control1: [71, 80] as const,
+  control2: [121, 66] as const,
+}
 const AGUJEROS_ALA = [
-  [124, 80],
-  [161, 72],
+  [100.9, 83.3, 5.2],
+  [96.6, 60.5, 5.2],
+  [92, 36, 5],
 ] as const
 
-function porosCopa(cada: (x: number, y: number, r: number) => void) {
-  let fila = 0
-  for (const radio of [92, 99, 106]) {
-    const desfase = fila++ % 2 ? 0.0185 : 0
-    for (let a = 1.035 + desfase; a < 1.97; a += 0.037) {
-      cada(COPA.x + Math.cos(a * Math.PI) * radio, COPA.y + Math.sin(a * Math.PI) * radio, 2.7)
-    }
+function trazarAla(g: Ctx) {
+  const { base1, base2, punta, radio, control1, control2 } = ALA
+  g.beginPath()
+  g.moveTo(base1[0], base1[1])
+  g.quadraticCurveTo(control1[0], control1[1], punta[0] - radio, punta[1])
+  g.arc(punta[0], punta[1], radio, Math.PI, Math.PI * 2)
+  g.quadraticCurveTo(control2[0], control2[1], base2[0], base2[1])
+  g.closePath()
+}
+
+// Poros trabeculares: posiciones, tamaños y formas al azar pero con semilla
+// fija, para que la máscara de las partículas y la pieza en metal coincidan
+function semilla(n: number) {
+  let a = n >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0
+    let t = a
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+const POROS: readonly (readonly (readonly [number, number])[])[] = (() => {
+  const azar = semilla(29)
+  const centros: { x: number; y: number; r: number }[] = []
+  for (let intento = 0; intento < 4000 && centros.length < 110; intento++) {
+    const a = (1.03 + azar() * 0.94) * Math.PI
+    const rr = 1.5 + azar() ** 1.6 * 2.6
+    const radio = 88 + azar() * 21.5
+    const x = COPA.x + Math.cos(a) * radio
+    const y = COPA.y + Math.sin(a) * radio
+    if (y > COPA.y - 6) continue
+    if (centros.some((c) => Math.hypot(c.x - x, c.y - y) < c.r + rr + 1.7)) continue
+    centros.push({ x, y, r: rr })
+  }
+  // Cada poro, un polígono de 5 a 7 lados con los vértices corridos
+  return centros.map(({ x, y, r }) => {
+    const lados = 5 + Math.floor(azar() * 3)
+    const giro = azar() * Math.PI * 2
+    return Array.from({ length: lados }, (_, i) => {
+      const a = giro + (i / lados) * Math.PI * 2
+      const rv = r * (0.72 + azar() * 0.5)
+      return [x + Math.cos(a) * rv, y + Math.sin(a) * rv] as const
+    })
+  })
+})()
+
+function trazarPoros(g: Ctx) {
+  g.beginPath()
+  for (const poro of POROS) {
+    poro.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y)))
+    g.closePath()
   }
 }
 
 const TORNILLOS_COPA = [1.25, 1.5, 1.75] as const
 
 function siluetaAcetabulo(g: Ctx) {
-  g.beginPath()
-  g.moveTo(ALA[0]?.[0] ?? 0, ALA[0]?.[1] ?? 0)
-  for (const [x, y] of ALA.slice(1)) g.lineTo(x, y)
-  g.closePath()
+  trazarAla(g)
   g.fill()
   g.beginPath()
   g.arc(COPA.x, COPA.y, COPA.r, Math.PI, Math.PI * 2)
@@ -255,23 +304,26 @@ function siluetaAcetabulo(g: Ctx) {
     g.arc(COPA.x, COPA.y, COPA.interior, Math.PI, Math.PI * 2)
     g.closePath()
     g.fill()
-    for (const [x, y] of AGUJEROS_ALA) circulo(g, x, y, 7.5)
-    porosCopa((x, y, r) => circulo(g, x, y, r))
+    for (const [x, y, r] of AGUJEROS_ALA) circulo(g, x, y, r)
+    trazarPoros(g)
+    g.fill()
   })
 }
 
 function metalAcetabulo(g: Ctx) {
-  // Ala, por detrás de la copa
-  const ala = g.createLinearGradient(68, 40, 180, 130)
-  ala.addColorStop(0, METAL_CLARO)
-  ala.addColorStop(0.55, METAL_MEDIO)
-  ala.addColorStop(1, METAL_OSCURO)
+  // Ala, por detrás de la copa: degradé de través (es una lámina curva) y
+  // un filete de luz en el canto
+  const [px, py] = ALA.punta
+  const ala = g.createLinearGradient(px - 30, py + 20, px + 34, py + 4)
+  ala.addColorStop(0, METAL_OSCURO)
+  ala.addColorStop(0.42, METAL_CLARO)
+  ala.addColorStop(1, METAL_MEDIO)
   g.fillStyle = ala
-  g.beginPath()
-  g.moveTo(ALA[0]?.[0] ?? 0, ALA[0]?.[1] ?? 0)
-  for (const [x, y] of ALA.slice(1)) g.lineTo(x, y)
-  g.closePath()
+  trazarAla(g)
   g.fill()
+  g.lineWidth = 0.9
+  g.strokeStyle = 'rgba(62,74,96,0.45)'
+  g.stroke()
   // Copa: esfera mate (titanio impreso), luz arriba a la izquierda
   const copa = g.createRadialGradient(COPA.x - 40, COPA.y - 80, 4, COPA.x, COPA.y, COPA.r * 1.05)
   copa.addColorStop(0, METAL_CLARO)
@@ -294,7 +346,7 @@ function metalAcetabulo(g: Ctx) {
     g.arc(COPA.x, COPA.y, COPA.interior, Math.PI, Math.PI * 2)
     g.closePath()
     g.fill()
-    for (const [x, y] of AGUJEROS_ALA) circulo(g, x, y, 7.5)
+    for (const [x, y, r] of AGUJEROS_ALA) circulo(g, x, y, r)
   })
   // Cara interna: un filete de luz
   g.lineWidth = 1.2
@@ -302,21 +354,43 @@ function metalAcetabulo(g: Ctx) {
   g.beginPath()
   g.arc(COPA.x, COPA.y, COPA.interior + 0.8, Math.PI * 1.03, Math.PI * 1.97)
   g.stroke()
-  // Poros: hondos, no transparentes (la capa trabecular tiene profundidad)
+  // Poros: hondos, no transparentes (la capa trabecular tiene profundidad);
+  // los que rompen el borde, recortados contra el fondo
+  g.save()
+  g.beginPath()
+  g.arc(COPA.x, COPA.y, COPA.r - 2.5, Math.PI, Math.PI * 2)
+  g.closePath()
+  g.clip()
   g.fillStyle = METAL_HONDO
-  g.globalAlpha = 0.72
-  porosCopa((x, y, r) => circulo(g, x, y, r))
-  g.globalAlpha = 1
+  g.globalAlpha = 0.74
+  trazarPoros(g)
+  g.fill()
+  g.restore()
+  recortar(g, (g) => {
+    g.beginPath()
+    g.rect(0, 0, U, U)
+    g.moveTo(COPA.x + COPA.r - 2.5, COPA.y)
+    g.arc(COPA.x, COPA.y, COPA.r - 2.5, Math.PI * 2, Math.PI, true)
+    g.closePath()
+    g.clip('evenodd')
+    trazarPoros(g)
+    g.fill()
+  })
   // Agujeros para tornillos en la cara maciza
   for (const a of TORNILLOS_COPA) {
-    hexagono(g, COPA.x + Math.cos(a * Math.PI) * 86, COPA.y + Math.sin(a * Math.PI) * 86, 3.2, METAL_HONDO, 0.7)
+    hexagono(g, COPA.x + Math.cos(a * Math.PI) * 84, COPA.y + Math.sin(a * Math.PI) * 84, 2.6, METAL_HONDO, 0.7)
   }
-  // Agujeros del ala: borde de luz abajo
-  g.lineWidth = 1
-  g.strokeStyle = 'rgba(255,255,255,0.7)'
-  for (const [x, y] of AGUJEROS_ALA) {
+  // Agujeros del ala: avellanados, con el borde de abajo iluminado
+  for (const [x, y, r] of AGUJEROS_ALA) {
+    g.lineWidth = 1.6
+    g.strokeStyle = 'rgba(62,74,96,0.35)'
     g.beginPath()
-    g.arc(x, y, 7.5, 0.1 * Math.PI, 0.9 * Math.PI)
+    g.arc(x, y, r + 1.4, 0, Math.PI * 2)
+    g.stroke()
+    g.lineWidth = 1
+    g.strokeStyle = 'rgba(255,255,255,0.75)'
+    g.beginPath()
+    g.arc(x, y, r, 0.1 * Math.PI, 0.9 * Math.PI)
     g.stroke()
   }
 }
@@ -389,7 +463,10 @@ export class AnimacionFabricacion {
   // Encuadre de la caja de la pieza en el canvas (w × h en px de CSS)
   private encuadre(w: number, h: number) {
     const { x0, y0, x1, y1 } = this.caja
-    const sc = Math.min(w / (x1 - x0), h / (y1 - y0)) * 0.84
+    // Peso visual parejo entre las dos tarjetas: la endoprótesis es alta y
+    // angosta y llena el alto; la copa es ancha y va más chica
+    const llenado = this.modo === 'sustractiva' ? 0.9 : 0.6
+    const sc = Math.min(w / (x1 - x0), h / (y1 - y0)) * llenado
     const ox = (w - (x1 - x0) * sc) / 2 - x0 * sc
     const oy = (h - (y1 - y0) * sc) / 2 - y0 * sc
     return { sc, ox, oy }
