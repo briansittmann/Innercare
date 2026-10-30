@@ -1127,6 +1127,29 @@ body {
   }
 }
 
+/* Cinta de fibras del cierre de contacto (components/contact-cta.tsx): deriva
+   en diagonal mientras el bloque cruza la pantalla, atada al scroll (fuera de
+   pantalla o sin scroll no corre, y va en el compositor). Escalada para que
+   el desplazamiento no deje ver el borde de la imagen. Sin soporte de
+   animation-timeline o con movimiento reducido, quieta. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .cta-cinta {
+      animation: cta-cinta linear both;
+      animation-timeline: view();
+    }
+  }
+}
+
+@keyframes cta-cinta {
+  from {
+    transform: translate(-3%, 4%) scale(1.08);
+  }
+  to {
+    transform: translate(3%, -4%) scale(1.08);
+  }
+}
+
 /* Cierre de contacto (components/contact-cta.tsx): el azul de marca con
    una luz arriba a la derecha, como en el borrador. */
 .cta-luz {
