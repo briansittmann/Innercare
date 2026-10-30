@@ -1031,6 +1031,27 @@ body {
   mask-image: radial-gradient(closest-side, #000 72%, transparent);
 }
 
+/* Animaciones de fabricación (components/home/animacion-fabricacion.tsx):
+   el canvas sobre la luz del borrador. Sin JS, la foto de planta en su
+   lugar y sin "Volver a ver". */
+.fab-escena {
+  background:
+    radial-gradient(70% 80% at 50% 50%, rgb(34 96 161 / 0.12), transparent 72%);
+}
+
+@media (scripting: enabled) {
+  .fab-respaldo {
+    display: none;
+  }
+}
+
+@media (scripting: none) {
+  .fab-lienzo,
+  .fab-escena + div > .boton {
+    display: none;
+  }
+}
+
 /* Cierre de contacto (components/contact-cta.tsx): el azul de marca con
    una luz arriba a la derecha, como en el borrador. */
 .cta-luz {

@@ -1,10 +1,10 @@
 import { PlantPhoto } from '@/components/plant-photo'
 import { manufactura, textosHome } from '@/content/company'
+import { AnimacionFabricacion } from './animacion-fabricacion'
 
-// Foto de cada tecnología: el lugar de su animación (fase 5: la fresa que
-// barre el bloque y el material que se desprende; la pieza que crece capa
-// por capa). Misma proporción que la del borrador (4:3), para que el cambio
-// no mueva nada. Fotos de planta: siempre con PlantPhoto (CLAUDE.md).
+// Foto de cada tecnología: se ve solo sin JS, en el lugar de su animación
+// (la fresa que barre el bloque y el material que se desprende; la pieza que
+// crece capa por capa). Fotos de planta: siempre con PlantPhoto (CLAUDE.md).
 const fotos = {
   sustractiva: {
     src: '/img/fabricacion-cnc-maquina.jpg',
@@ -18,8 +18,8 @@ const fotos = {
 
 // Mecanizado e impresión 3D en la misma planta (#fabricacion), con la
 // estructura del borrador de la landing: título y bajada, y dos tarjetas
-// iguales, cada una con su animación arriba, su título y su texto. La fase 5
-// replica las animaciones del borrador y suma "Volver a ver".
+// iguales, cada una con su animación arriba (components/animaciones/
+// fabricacion.ts), su título, su texto y "Volver a ver".
 export function Manufacturing() {
   const { titulo, texto } = textosHome.fabricacion
 
@@ -45,14 +45,17 @@ export function Manufacturing() {
               aria-labelledby={`fabricacion-${tecnica.id}`}
               className="rounded-xl bg-surface-container-lowest p-[1.125rem] pb-[1.625rem] shadow-escena ring-1 ring-outline-variant/70"
             >
-              <PlantPhoto
-                src={fotos[tecnica.id].src}
-                alt={fotos[tecnica.id].alt}
-                sizes="(min-width: 768px) 50vw, 100vw"
-                className="aspect-[4/3]"
-                data-animacion-fabricacion={tecnica.id}
-              />
-              <div className="px-sm pt-[1.125rem]">
+              <AnimacionFabricacion
+                modo={tecnica.id}
+                respaldo={
+                  <PlantPhoto
+                    src={fotos[tecnica.id].src}
+                    alt={fotos[tecnica.id].alt}
+                    sizes="(min-width: 768px) 50vw, 100vw"
+                    className="h-full"
+                  />
+                }
+              >
                 <h3
                   id={`fabricacion-${tecnica.id}`}
                   className="font-headline-lg text-[1.625rem] leading-tight tracking-[-0.02em] text-on-surface"
@@ -62,7 +65,7 @@ export function Manufacturing() {
                 <p className="mt-[0.625rem] max-w-[46ch] text-body-md text-on-surface-variant">
                   {tecnica.texto}
                 </p>
-              </div>
+              </AnimacionFabricacion>
             </article>
           ))}
         </div>
