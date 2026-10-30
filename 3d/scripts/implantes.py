@@ -548,7 +548,7 @@ def barrido(puntos, radio, lados=16, tapas=True):
     return np.array(co), caras
 
 
-def perforar(bm, semillas, borde):
+def perforar(bm, semillas, borde, permitido=lambda v: True):
     # Celosía: se eligen vértices cuyas estrellas (caras alrededor) no se
     # tocan, creciendo desde una semilla hacia los vértices que comparten dos
     # vecinos con uno ya elegido (en una red triangular, eso da la red de
@@ -557,7 +557,7 @@ def perforar(bm, semillas, borde):
     usadas, estrellas = set(), []
 
     def libre(v):
-        return (not v.is_boundary and len(v.link_faces) >= 5
+        return (permitido(v) and not v.is_boundary and len(v.link_faces) >= 5
                 and not any(f in usadas for f in v.link_faces))
 
     def vecinos(v):
@@ -1217,6 +1217,118 @@ def endoprotesis():
 
 
 nuevos.append(endoprotesis())
+
+
+# --- 6. Diáfisis femoral: implante intercalar (a medida) -----------------------
+# El caso destacado (content/customCases.ts, featuredCase; fotos
+# caso-intercalar-implante.jpg y caso-intercalar-guias.jpg): segmento de
+# titanio impreso con la forma del hueso que reemplaza, la pared calada con
+# poros hexagonales, bandas macizas en los extremos y alojamientos oblicuos
+# arriba y abajo para tornillos de Ø3,5 mm; adentro, el clavo endomedular
+# anterógrado de Ø10 × 360 mm, que entra por el trocánter. En el fémur
+# derecho; se borra el tramo de diáfisis que ocupa el segmento.
+INT_TRAMO = (0.600, 0.730)  # alturas del segmento (largo estimado: 130 mm)
+INT_CELDA = 3.8 * MM
+INT_BORDE = 0.9 * MM
+INT_ESPESOR = 2 * MM
+INT_CLAVO = (5 * MM, 360 * MM)  # radio y largo
+INT_TORNILLO = 3.5 * MM
+INT_ENTRADA = 0.893  # altura de la entrada del clavo, en la fosa del trocánter
+
+
+def intercalar():
+    femur = objetos['hueso_femur_der']
+    bvh = bvh_de(femur)  # entero, antes del recorte
+    # Canal: centros de cortes horizontales, ajustados con una parábola
+    centros = []
+    for z in np.arange(0.54, 0.83, 0.02):
+        c, _ = seccion(femur, np.array([-(0.095 + (z - 0.58) / 0.22 * 0.02), 0.0, z]), (0, 0, 1))
+        if c is not None:
+            centros.append(c)
+    centros = np.array(centros)
+    ajuste_x = np.polyfit(centros[:, 2], centros[:, 0], 2)
+    ajuste_y = np.polyfit(centros[:, 2], centros[:, 1], 2)
+
+    def canal(z):
+        z = np.asarray(z, float)
+        return np.stack([np.polyval(ajuste_x, z), np.polyval(ajuste_y, z), z], -1)
+
+    # Segmento: red triangular sobre el hueso (filas a lo largo, columnas
+    # alrededor, cada fila corrida media celda), con el radio de cada punto
+    # medido con un rayo desde afuera y suavizado
+    z0, z1 = INT_TRAMO
+    radio_medio = 15 * MM
+    columnas = 3 * round(2 * math.pi * radio_medio / INT_CELDA / 3)
+    filas = round((z1 - z0) / (INT_CELDA * math.sqrt(3) / 2)) + 1
+    th = 2 * math.pi * (np.arange(columnas)[None, :] + 0.5 * (np.arange(filas)[:, None] % 2)) / columnas
+    zz = np.broadcast_to(np.linspace(z0, z1, filas)[:, None], th.shape)
+    radial = np.stack([np.cos(th), np.sin(th), np.zeros_like(th)], -1)
+    centro = canal(zz)
+    radios = np.full(th.shape, np.nan)
+    for j in range(filas):
+        for i in range(columnas):
+            hit = bvh.ray_cast((centro[j, i] + radial[j, i] * 0.06).tolist(), (-radial[j, i]).tolist(), 0.06)
+            if hit[0] is not None:
+                radios[j, i] = 0.06 - hit[3]
+    radios[np.isnan(radios)] = np.nanmedian(radios)
+    radios = suavizar(radios, 1.2, 1, ejes=(1, 0), periodico=(1,))
+    co = centro + radial * (radios[..., None] + 0.6 * MM)
+    caras = []
+    for j in range(filas - 1):
+        for i in range(columnas):
+            a, b = j * columnas + i, j * columnas + (i + 1) % columnas
+            if j % 2 == 0:  # la fila de arriba está corrida media celda hacia +i
+                c_, d_ = (j + 1) * columnas + i, (j + 1) * columnas + (i + 1) % columnas
+                caras += [[a, b, c_], [b, d_, c_]]
+            else:
+                c_, d_ = (j + 1) * columnas + (i + 1) % columnas, (j + 1) * columnas + i
+                caras += [[a, b, c_], [a, c_, d_]]
+    tubo = Pieza().sumar(co.reshape(-1, 3), caras)
+    bm = tubo.bm()
+    bm.verts.ensure_lookup_table()
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    hacia_afuera = radial.reshape(-1, 3)
+    if sum(np.dot(f.normal, hacia_afuera[f.verts[0].index]) for f in bm.faces) < 0:
+        bmesh.ops.reverse_faces(bm, faces=bm.faces)
+    # Poros: se dejan macizas dos filas en cada extremo
+    fila = {v: v.index // columnas for v in bm.verts}
+    medio = bm.verts[(filas // 2) * columnas]
+    poros = perforar(bm, [medio], INT_BORDE, permitido=lambda v: 2 <= fila[v] <= filas - 3)
+    bmesh.ops.solidify(bm, geom=bm.faces[:], thickness=INT_ESPESOR)
+    pieza = Pieza().sumar_bm(bm)
+    bm.free()
+    print(f'[implantes] intercalar: {columnas} × {filas} celdas, {poros} poros')
+
+    # Clavo endomedular: sigue el canal desde la entrada, 360 mm
+    zs = np.linspace(INT_ENTRADA, INT_ENTRADA - 0.4, 400)
+    puntos = canal(zs)
+    tramo = np.r_[0, np.cumsum(np.linalg.norm(np.diff(puntos, axis=0), axis=1))]
+    rc, lc = INT_CLAVO
+    zs_clavo = np.interp(np.linspace(0, lc, 60), tramo, zs)
+    puntos = canal(zs_clavo)
+    radios_clavo = np.where(np.linspace(0, lc, 60) < 55 * MM, rc * 1.15, rc)
+    pieza.sumar(*barrido(puntos, radios_clavo, 20))
+
+    # Alojamientos oblicuos y tornillos: dos arriba (hacia el fragmento
+    # proximal) y dos abajo (hacia el distal), por delante
+    for z_al, hacia in ((z1 - 6 * MM, 1), (z0 + 6 * MM, -1)):
+        for direccion in ((-0.75, -0.66), (0.35, -0.94)):
+            r_dir = np.array([*direccion, 0.0]) / np.linalg.norm(direccion)
+            c_al = canal(z_al)
+            hit = bvh.ray_cast((c_al + r_dir * 0.06).tolist(), (-r_dir).tolist(), 0.06)
+            sup = np.array(hit[0]) if hit[0] is not None else c_al + r_dir * radio_medio
+            d = unitario(-r_dir * math.cos(math.radians(40)) + np.array([0, 0, hacia]) * math.sin(math.radians(40)))
+            pieza.sumar(*cilindro(3.3 * MM, 6 * MM, 18, z0=-3.5 * MM), origen=sup, eje=-d)
+            largo = 40 * MM
+            pieza.sumar(*tornillo(largo, INT_TORNILLO, cabeza=(5.6 * MM, 1.6 * MM)),
+                        origen=sup - d * 2.5 * MM + d * largo, eje=-d)
+
+    obj = resumen(pieza.objeto('implante_intercalar'))
+    cortar_tramo(femur, canal(z0), canal(z1))
+    return obj
+
+
+nuevos.append(intercalar())
 
 
 exportar(nuevos, salida / 'implantes-recorrido.glb')
