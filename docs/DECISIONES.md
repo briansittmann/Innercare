@@ -452,6 +452,19 @@ Rama `rediseno`. Fase 3 de la landing. Detalle en `docs/landing/BITACORA.md`.
 
 **Descartado.** GSAP y `ScrollControls` (otro contenedor de scroll); `PerformanceMonitor` (con dibujo a demanda mide mal y bajaría la calidad sin motivo); vidrio sin profundidad para dibujar los implantes encima (el hueso también quedaba encima, blanco y fuerte).
 
+## 2026-10-30 · Partículas y animaciones de la home
+
+Rama `rediseno`. Fase 5 de la landing. Detalle en `docs/landing/BITACORA.md`.
+
+**Decisión.**
+- Miniaturas del recorrido: vistas (`View` de drei con `track`) del mismo canvas del recorrido, sin otro contexto WebGL. Partículas de `MeshSurfaceSampler` sobre los implantes reales; el ensamble se dispara al activarse la tarjeta y queda sólido. Como el canvas está debajo de las tarjetas, con la escena lista la tarjeta pierde el fondo y la miniatura lo pinta alrededor con una sombra extendida: un hueco por el que se ve el canvas.
+- "Cómo trabajamos": nube 3D de un segmento de fémur proyectada en canvas 2D, atada al scroll de la sección como en el borrador (cortes de TC, hueso con zona a resecar, implante con clavo y guías).
+- Fabricación: las dos animaciones del borrador en canvas 2D, con las mismas reglas y tiempos, más detalle en las piezas (endoprótesis de fémur y copa acetabular trabecular) y un reflejo al terminar.
+
+**Motivo.** Fidelidad al borrador en la idea y el comportamiento, con la mejora en la ejecución; un solo contexto WebGL por zona de la página (AJUSTES.md, "Rendimiento").
+
+**Descartado.** Un canvas aparte para las miniaturas (un segundo contexto WebGL); copiar el canvas del recorrido a canvas 2D por tarjeta (lectura de píxeles en cada cuadro); 3D para el proceso (otro contexto, y la idea del borrador es de partículas); ensamble atado al scroll en lugar de dispararse (el pedido de la fase dice que se dispara al activarse la tarjeta).
+
 ## Pendientes abiertos
 
 - ~~**Respaldo del 3D sin WebGL.**~~ Resuelto el 2026-10-29 con el prototipo de cabeza: se comprueba el contexto antes de montar el canvas, que va dentro de un límite de errores, y sin WebGL queda la imagen fija (`public/img/cuerpo-inicio.webp`).
