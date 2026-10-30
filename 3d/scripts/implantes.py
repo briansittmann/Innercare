@@ -877,6 +877,128 @@ def maxilar():
 nuevos.append(maxilar())
 
 
+# --- 3. Hombro: prótesis modular reversa (catálogo) ----------------------------
+# Lo que muestran la foto del producto (public/img/hombro-implante.jpg) y la
+# planificación (hombro-planificacion-implante.jpg), pulido de CNC:
+# - Lado de la escápula: glenosfera semiesférica sobre una base de respaldo
+#   poroso, con un perno corto y un tornillo central largo.
+# - Lado del húmero: copa con el inserto (un escalón más angosto) inclinada
+#   sobre el cuerpo; el cuerpo, con el tornillo de fijación (hexágono) y la
+#   unión con el suplemento, reemplaza el húmero proximal; vástago estriado
+#   en el canal.
+# Sin medidas en la ficha: todo estimado desde la foto con la cabeza humeral
+# del atlas (Ø 40 mm). Se borra el húmero por encima del cuerpo y la cara de
+# la glenoides debajo de la base.
+HOM_GLENOSFERA = 18 * MM  # radio
+HOM_COPA = (20.5 * MM, 20.5 * MM)  # radio exterior y alto desde el centro de la glenosfera
+HOM_ANGULO = 135  # cuello-diáfisis, en grados
+HOM_CUERPO = (9.5 * MM, 44 * MM)  # radio y largo del cuerpo con el suplemento, bajo el cuello
+HOM_VASTAGO = 110 * MM
+
+
+def hombro():
+    humero = objetos['hueso_humero_der']
+    escapula = objetos['hueso_escapula_der']
+    co_h = vertices(humero)
+    cabeza, _ = ajustar_esfera(co_h[co_h[:, 2] > 1.335])
+    co_e = vertices(escapula)
+    glenoide = co_e[np.argsort(np.linalg.norm(co_e - cabeza, axis=1))[:40]].mean(0)
+    n_g = unitario(cabeza - glenoide)  # hacia afuera de la glenoides
+
+    # Eje de la diáfisis: centros de cortes horizontales
+    centros = []
+    for z in np.arange(1.15, 1.30, 0.02):
+        guia = np.array([-0.186, 0.026, 1.13]) + (z - 1.13) / 0.2 * np.array([0.03, -0.012, 0.2])
+        c, _ = seccion(humero, guia, (0, 0, 1))
+        if c is not None:
+            centros.append(c)
+    centros = np.array(centros)
+    p_eje = centros.mean(0)
+    d_s = unitario(np.linalg.svd(centros - p_eje)[2][0])
+    if d_s[2] > 0:
+        d_s = -d_s  # hacia el codo
+
+    C = glenoide + n_g * 3 * MM  # centro de la glenosfera
+    # T: punto del eje del húmero donde apunta la copa, con el ángulo
+    # cuello-diáfisis del implante
+    q = p_eje + d_s * (d_s @ (C - p_eje))
+    desvio = np.linalg.norm(C - q)
+    T = q + d_s * desvio / math.tan(math.radians(180 - HOM_ANGULO))
+    a_c = unitario(T - C)
+    print(f'[implantes] hombro: ángulo cuello-diáfisis {math.degrees(math.acos(a_c @ -d_s)):.0f}°, '
+          f'glenosfera a {np.linalg.norm(C - cabeza) * 1000:.0f} mm de la cabeza humeral, '
+          f'copa a {np.linalg.norm(T - C) * 1000:.0f} mm del eje')
+
+    pieza = Pieza()
+    rugoso = lambda th, z: 1 + 0.06 * np.sign(np.sin(10 * th))  # noqa: E731  respaldo poroso
+    # Glenosfera, base, perno y tornillo (eje n_g, origen en C)
+    R = HOM_GLENOSFERA
+    pieza.sumar(*revolver(arco(R, 0, 90, 16) + [(R * 0.97, -1.5 * MM), (0, -1.5 * MM)], 48),
+                origen=C, eje=n_g)
+    pieza.sumar(*revolver([(0, -4.5 * MM), (13.5 * MM, -4.5 * MM), (13.5 * MM, -1.5 * MM),
+                           (0, -1.5 * MM)], 40, modular=rugoso), origen=C, eje=n_g)
+    pieza.sumar(*revolver([(0, -12 * MM), (4.5 * MM, -11.5 * MM), (4.5 * MM, -4.5 * MM),
+                           (0, -4.5 * MM)], 20, modular=rugoso), origen=C, eje=n_g)
+    pieza.sumar(*tornillo(16 * MM, 4.5 * MM), origen=C - n_g * 28 * MM, eje=n_g)
+
+    # Copa con el inserto (eje a_c, origen en C)
+    rc, hc = HOM_COPA
+    interior = 18.5 * MM
+    alfa = math.degrees(math.acos(8 * MM / interior))
+    perfil = arco(interior, 0, alfa, 12)
+    perfil += [(18.5 * MM, 8 * MM), (18.5 * MM, 12 * MM), (rc, 12 * MM), (rc, hc), (0, hc)]
+    pieza.sumar(*revolver(perfil, 56), origen=C, eje=a_c)
+
+    # Cuerpo y suplemento sobre el eje del húmero (origen abajo, hasta T),
+    # con la unión entre los dos y el tornillo de fijación (hexágono); de T
+    # sale el cuello inclinado que lleva la copa, como en la foto
+    rb, lb = HOM_CUERPO
+    abajo = T + d_s * lb
+    junta = lb - 24 * MM
+    perfil = [(0, -6 * MM), (5.8 * MM, -6 * MM), (rb, 0), (rb, junta - 0.7 * MM),
+              (rb - 0.7 * MM, junta), (rb, junta + 0.7 * MM)]
+    perfil += [(rb * math.cos(t), lb + rb * math.sin(t)) for t in np.linspace(0, math.pi / 2, 8)]
+    cuerpo = Pieza().sumar(*revolver(perfil, 40), origen=abajo, eje=-d_s)
+    cuerpo.sumar(*cilindro(rb, np.linalg.norm(T - C) - hc + 1 * MM, 40),
+                 origen=C + a_c * (hc - 1 * MM), eje=a_c)
+    cuerpo_obj = cuerpo.objeto('cuerpo')
+    adelante = unitario(np.array([0, -1.0, 0]) - (d_s @ np.array([0, -1.0, 0])) * d_s)
+    hex_co, hex_caras = cilindro(1.7 * MM, 4 * MM, 6, z0=-2 * MM)
+    hexagono = Pieza().sumar(hex_co, hex_caras, origen=T + d_s * 12 * MM + adelante * rb,
+                             eje=adelante).objeto('hexagono')
+    booleano(cuerpo_obj, hexagono, 'DIFFERENCE')
+    pieza.sumar(vertices(cuerpo_obj), [list(p.vertices) for p in cuerpo_obj.data.polygons])
+    bpy.data.objects.remove(cuerpo_obj)
+
+    # Vástago estriado (eje hacia el codo, origen debajo del cuerpo)
+    L = HOM_VASTAGO
+
+    def estrias(th, z):
+        f = np.ones_like(th)
+        if 14 * MM < z < L - 10 * MM:
+            f -= 0.14 * np.clip(np.cos(8 * th), 0, 1) ** 6
+        return f
+
+    perfil = [(0, -1 * MM), (6.4 * MM, -1 * MM), (5.8 * MM, 8 * MM), (5.6 * MM, 14 * MM),
+              (5.2 * MM, 40 * MM), (4.2 * MM, L - 10 * MM), (3.4 * MM, L - 3 * MM),
+              (1.8 * MM, L - 0.5 * MM), (0, L)]
+    pieza.sumar(*revolver(perfil, 48, modular=estrias), origen=abajo, eje=d_s)
+
+    obj = resumen(pieza.objeto('implante_hombro'))
+
+    # Recortes: el húmero por encima del cuerpo y la glenoides bajo la base
+    cortar(humero, abajo + d_s * 1 * MM, -d_s)
+    rel = co_e - C
+    a = rel @ n_g
+    radial = np.linalg.norm(rel - a[:, None] * n_g, axis=1)
+    dentro = (a > -6 * MM) & (a < 30 * MM) & (radial < 15 * MM)
+    print(f'[implantes] glenoides: {borrar_caras(escapula, dentro)} caras recortadas')
+    return obj
+
+
+nuevos.append(hombro())
+
+
 exportar(nuevos, salida / 'implantes-recorrido.glb')
 exportar([o for o in bpy.context.scene.objects if o.type == 'MESH' and o not in nuevos and o is not parche],
          salida / 'cuerpo.glb')
