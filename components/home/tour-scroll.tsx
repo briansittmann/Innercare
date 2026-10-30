@@ -12,6 +12,7 @@ import {
 } from '@/components/recorrido-3d/camara'
 import { estadoRecorrido } from '@/components/recorrido-3d/estado'
 import { Recorrido3D } from '@/components/recorrido-3d/recorrido-3d'
+import { useIntroPhase } from '@/components/intro'
 
 // Armazón del recorrido por el cuerpo (#recorrido), con el comportamiento del
 // borrador (docs/landing/landing-borrador.html, updateTour): un contenedor de
@@ -53,27 +54,39 @@ export function TourScroll({
   const capaEntrada = useRef<HTMLDivElement>(null)
   const capaCierre = useRef<HTMLDivElement>(null)
   const indice = useRef<HTMLElement>(null)
+  const riel = useRef<HTMLOListElement>(null)
   // Parada marcada en el índice (-1: ninguna) y vista del lugar reservado
   const [actual, setActual] = useState(-1)
   const [vista, setVista] = useState(paradas.length)
-  const [cerca, setCerca] = useState(false)
+  const [alcanzado, setAlcanzado] = useState(false)
   const [enVista, setEnVista] = useState(false)
   const [listo, setListo] = useState(false)
+  // El 3D no compite con la entrada del hero (components/intro.ts): ni el
+  // modelo (918 KB) ni el contexto WebGL se piden hasta que la entrada
+  // termina y el recorrido asoma en pantalla. Mientras tanto se ve el lugar
+  // reservado.
+  const fase = useIntroPhase()
+  const cerca = alcanzado && fase === 'done'
 
-  // Carga y dibujo del 3D: se carga a una pantalla de distancia y se dibuja
-  // solo mientras el recorrido está en pantalla.
+  // Se dibuja solo mientras el recorrido está en pantalla
   useEffect(() => {
     const nodo = contenedor.current
     if (!nodo) return
-    const lejos = new IntersectionObserver(([e]) => {
-      if (e?.isIntersecting) setCerca(true)
-    }, { rootMargin: '100% 0px' })
     const visible = new IntersectionObserver(([e]) => setEnVista(Boolean(e?.isIntersecting)))
-    lejos.observe(nodo)
+    // "Se acerca": el recorrido ya asoma un 5 % de la pantalla. Con margen 0,
+    // un borde que apenas toca el de la pantalla ya cuenta como visible, y el
+    // recorrido empieza justo debajo del hero.
+    const asoma = new IntersectionObserver(
+      ([e]) => {
+        if (e?.isIntersecting) setAlcanzado(true)
+      },
+      { rootMargin: '0px 0px -5% 0px' },
+    )
     visible.observe(nodo)
+    asoma.observe(nodo)
     return () => {
-      lejos.disconnect()
       visible.disconnect()
+      asoma.disconnect()
       // Cache Components conserva la ruta oculta: el canvas deja de dibujar
       setEnVista(false)
     }
@@ -93,11 +106,13 @@ export function TourScroll({
     let antes = 0
     let ultimaMarca = -2
     let ultimaVista = -1
+    let ultimoDibujo = Number.NaN
 
     const leer = () => {
       const r = nodo.getBoundingClientRect()
       const recorrido = r.height - window.innerHeight
       objetivo = recorrido > 0 ? clamp(-r.top / recorrido) * TRAMOS : 0
+      estadoRecorrido.fijo = r.top <= 0 && r.bottom >= window.innerHeight
     }
 
     const mostrar = (el: HTMLElement | null, opacidad: number) => {
@@ -131,6 +146,12 @@ export function TourScroll({
         nav.style.opacity = v ? '1' : '0'
         nav.style.visibility = s > 0.4 && s < 6.6 ? 'visible' : 'hidden'
       }
+      // Riel del índice: se llena de forma continua de la primera parada
+      // (seg 1) a la última (seg 6)
+      riel.current?.style.setProperty(
+        '--avance',
+        clamp((s - 1) / Math.max(1, tarjetas.length - 1)).toFixed(4),
+      )
       const marca = peso > 0.5 ? mejor : -1
       if (marca !== ultimaMarca) {
         ultimaMarca = marca
@@ -144,7 +165,14 @@ export function TourScroll({
         ultimaVista = nuevaVista
         setVista(nuevaVista)
       }
-      estadoRecorrido.invalidar?.()
+      // El canvas dibuja solo si cambió el progreso. Mientras el recorrido
+      // entra en pantalla (seg = 0) no dibuja nada: el hero, que todavía se
+      // ve, es el único que anima. Una vez fija la escena, el hero ya salió
+      // de pantalla y se detiene solo.
+      if (s !== ultimoDibujo) {
+        ultimoDibujo = s
+        estadoRecorrido.invalidar?.()
+      }
     }
 
     // Amortiguación exponencial hacia el progreso real, independiente de los
@@ -166,21 +194,23 @@ export function TourScroll({
       cuadro = requestAnimationFrame(paso)
     }
 
+    const alRedimensionar = () => {
+      ultimoDibujo = Number.NaN
+      alMover()
+    }
+
     alMover()
     window.addEventListener('scroll', alMover, { passive: true })
-    window.addEventListener('resize', alMover)
+    window.addEventListener('resize', alRedimensionar)
     movimiento.addEventListener('change', alMover)
     return () => {
       window.removeEventListener('scroll', alMover)
-      window.removeEventListener('resize', alMover)
+      window.removeEventListener('resize', alRedimensionar)
       movimiento.removeEventListener('change', alMover)
       cancelAnimationFrame(cuadro)
       if (estadoRecorrido.escena === fijo) estadoRecorrido.escena = null
     }
   }, [])
-
-  // Avance del riel del índice: de la primera parada (0) a la última (1)
-  const avance = Math.max(0, actual) / Math.max(1, paradas.length - 1)
 
   return (
     <div
@@ -231,16 +261,13 @@ export function TourScroll({
         </div>
 
         <nav ref={indice} aria-label="Implantes del recorrido" className="recorrido-indice">
-          <ol
-            className="indice-riel relative flex flex-col gap-[2px]"
-            style={{ '--avance': avance } as CSSProperties}
-          >
+          <ol ref={riel} className="indice-riel relative flex flex-col gap-[2px]">
             {paradas.map((parada, i) => (
               <li key={parada.ancla}>
                 <AnchorLink
                   href={`#${parada.ancla}`}
                   aria-current={i === actual ? 'location' : undefined}
-                  className="block px-[0.875rem] py-[0.375rem] text-body-sm text-on-surface-variant transition-colors duration-200 hover:text-primary aria-[current]:font-semibold aria-[current]:text-on-surface"
+                  className="indice-enlace relative block px-[0.875rem] py-[0.375rem] text-body-sm text-on-surface-variant transition-colors duration-200 hover:text-primary aria-[current]:font-semibold aria-[current]:text-on-surface"
                 >
                   {parada.zona}
                 </AnchorLink>

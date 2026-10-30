@@ -7,6 +7,9 @@ export const estadoRecorrido = {
   // Progreso del recorrido, amortiguado: 0 (entrada) a 7 (cierre)
   seg: 0,
   reducido: false,
+  // La escena fija ocupa la pantalla (el hero ya salió): solo entonces el
+  // cuerpo hace su vaivén
+  fijo: false,
   // La escena se registra al montarse para que el scroll le pida un cuadro
   // (frameloop "demand": sin scroll no se dibuja nada).
   invalidar: null as (() => void) | null,
