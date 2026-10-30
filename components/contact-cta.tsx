@@ -1,6 +1,12 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { contactHref, contactLabel } from './nav-links'
 
+// Cierre de contacto: un bloque en el azul de la marca, con el título a la
+// izquierda y, a la derecha, el logo en blanco y un único botón (guion de la
+// landing, sección 7). De fondo, anillos concéntricos muy tenues, como los
+// cortes de una tomografía: solo CSS (.cta-cortes en globals.css), quietos.
+// Lo usan la home y las páginas de producto.
 export function ContactCta({
   id,
   // Con contexto (p. ej. ?producto=<slug>) el formulario llega precargado.
@@ -14,16 +20,28 @@ export function ContactCta({
   text?: string
 }) {
   return (
-    <section id={id} className="page-container pb-section">
-      <div className="reveal grid gap-lg border-t border-outline-variant pt-section md:grid-cols-12 md:items-end">
-        <div className="md:col-span-8">
-          <h2 className="text-balance font-display-lg text-display-lg text-on-surface">
+    <section id={id} aria-labelledby={id ? `${id}-titulo` : undefined} className="page-container py-section">
+      <div className="cta-cortes relative isolate grid gap-xl overflow-hidden rounded-xl bg-primary px-lg py-xl text-on-primary sm:px-xl md:grid-cols-12 md:items-end md:px-[4rem] md:py-[5rem]">
+        <div className="md:col-span-7">
+          <h2
+            id={id ? `${id}-titulo` : undefined}
+            className="max-w-[16ch] text-balance font-display-lg text-display-lg"
+          >
             {title}
           </h2>
-          <p className="mt-md max-w-[52ch] text-body-lg text-on-surface-variant">{text}</p>
+          <p className="mt-md max-w-[44ch] text-body-lg text-on-primary/80">{text}</p>
         </div>
-        <div className="md:col-span-4 md:justify-self-end">
-          <Link href={href} className="boton boton-primario">
+        <div className="flex flex-col items-start gap-lg md:col-span-5 md:items-end">
+          {/* Versión clara del logo: el mismo archivo, llevado a blanco */}
+          <Image
+            src="/logo.png"
+            alt=""
+            width={1200}
+            height={466}
+            sizes="160px"
+            className="hidden h-12 w-auto brightness-0 invert md:block"
+          />
+          <Link href={href} className="boton boton-claro">
             {contactLabel}
           </Link>
         </div>

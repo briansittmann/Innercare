@@ -1,20 +1,23 @@
 import { ContactCta } from '@/components/contact-cta'
+import { Credentials } from '@/components/home/credentials'
 import { Hero } from '@/components/home/hero'
-import { OwnManufacturing } from '@/components/home/own-manufacturing'
+import { Locations } from '@/components/home/locations'
+import { Manufacturing } from '@/components/home/manufacturing'
 import { Process } from '@/components/home/process'
-import { Statement } from '@/components/home/statement'
 import { Tour } from '@/components/home/tour'
 
-// Los ids de las secciones coinciden con las anclas del menú de la barra
-// superior (components/nav-links.ts).
+// Secciones de la landing, en el orden del guion (docs/landing/LANDING_SPEC.md,
+// sección 3). Los ids de #recorrido, #proceso, #fabricacion y #habilitaciones
+// coinciden con las anclas del menú de la barra (components/nav-links.ts).
 export default function Home() {
   return (
     <>
       <Hero />
       <Tour />
       <Process />
-      <Statement />
-      <OwnManufacturing />
+      <Manufacturing />
+      <Credentials />
+      <Locations />
       <ContactCta id="contacto" />
     </>
   )
