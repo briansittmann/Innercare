@@ -477,6 +477,8 @@ Rama `rediseno`. Fase 6 de la landing. Detalle, capturas y mediciones en `docs/l
 
 **Descartado.** `Noise` de React Bits (único candidato en canvas 2D: ensucia el azul sin sumar), `Topography` (WebGL2 y 1 600 líneas nuevas, líneas de nivel que cruzaban la bajada) y fondos animados en habilitaciones y sedes (tablas de datos: el movimiento no tiene función ahí). Todos los fondos de React Bits evaluados, salvo `Noise`, son hoy WebGL2.
 
+**Corrección (mismo día, verificador).** La cinta en vivo sumaba un cuarto contexto WebGL al pie de la página. Pasa a ser una imagen fija con transparencia (una captura de `GhostFibers`, apaisada para escritorio y vertical para el celular) que deriva con el scroll por CSS (`animation-timeline: view()`), a escala completa y en diagonal; solo en la home, no en las fichas. Habilitaciones va en una banda un tono más oscura (`surface-container-low`) y las sedes que casi coinciden comparten un punto con guías a cada etiqueta.
+
 ## Pendientes abiertos
 
 - ~~**Respaldo del 3D sin WebGL.**~~ Resuelto el 2026-10-29 con el prototipo de cabeza: se comprueba el contexto antes de montar el canvas, que va dentro de un límite de errores, y sin WebGL queda la imagen fija (`public/img/cuerpo-inicio.webp`).
