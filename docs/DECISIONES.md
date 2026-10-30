@@ -421,6 +421,19 @@ Rama `rediseno`. Aplica `docs/landing/LANDING_SPEC.md` (sección 3) y `docs/land
 
 **Motivo.** La landing hace de catálogo y de galería de casos, con nivel visual de producto (AJUSTES.md), sin perder la credibilidad de fabricante médico.
 
+## 2026-10-30 · La home, fiel al borrador de la landing
+
+Rama `rediseno`. Pedido del usuario. Reemplaza, de "Secciones de la landing", lo que habla de composición y del eje que se llena con el scroll.
+
+**Decisión.**
+- Cada sección de la home sigue la composición, el orden, los elementos y la presentación de `docs/landing/landing-borrador.html`, salvo las excepciones de `AJUSTES.md`. La mejora visual va en la ejecución (calidad, detalle, tokens de marca), no en reinventar el diseño.
+- Las animaciones del borrador ("Mecanizado e impresión 3D" y la pieza de "Cómo trabajamos") se replican fielmente en la fase 5.
+- El footer pasa a ser el del borrador en todo el sitio: marca, dirección y teléfonos.
+
+**Motivo.** Al usuario le gusta el borrador; la fase 2 había recompuesto secciones para darles más variedad visual y no lo quiere.
+
+**Descartado.** Proceso apilado con fila de ejemplos, sedes con el eje a la izquierda en un panel con degradé, eje recortado a 33°–48° con marcas, contacto con el título a tamaño de portada y anillos.
+
 ## Pendientes abiertos
 
 - ~~**Respaldo del 3D sin WebGL.**~~ Resuelto el 2026-10-29 con el prototipo de cabeza: se comprueba el contexto antes de montar el canvas, que va dentro de un límite de errores, y sin WebGL queda la imagen fija (`public/img/cuerpo-inicio.webp`).

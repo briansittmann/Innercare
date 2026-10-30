@@ -2,6 +2,11 @@
 
 Memoria compartida entre las fases de la landing: cada fase deja acá qué hizo, qué decidió sin preguntar y qué quedó pendiente, para que la siguiente arranque sabiendo dónde está parada. Las entradas se suman al final y no se reescriben.
 
+
+> **CRITERIO VIGENTE PARA TODAS LAS FASES (usuario, 2026-10-30).** La home tiene que quedar **fiel a `docs/landing/landing-borrador.html`**: composición, orden, lado de cada elemento, elementos y presentación de cada sección, salvo las excepciones de `AJUSTES.md` (hero de `rediseno`, etiquetas de botones, etc.). La mejora visual va en la **ejecución** (calidad, detalle, tokens de marca), **no en reinventar el diseño**. Antes de cambiar una composición del borrador, no lo hagas.
+>
+> **Animaciones de la fase 5:** al usuario le encanta la de "Mecanizado e impresión 3D" del borrador (la pieza que se va esculpiendo y la que crece capa por capa). La fase 5 tiene que **replicarla fielmente desde el borrador**, mejorando solo la ejecución; lo mismo la pieza que se transforma de "Cómo trabajamos".
+
 ---
 
 ## Fase 1 · Páginas, navegación y hero (2026-10-30)
@@ -75,3 +80,35 @@ Memoria compartida entre las fases de la landing: cada fase deja acá qué hizo,
 - **Confirmar con Innercare** tres specs del borrador que la carpeta no dice tal cual: "Técnica: Impresión 3D" de la craneoplastía (la carpeta lo dice para titanio, no para PMMA) y del acetábulo, y "Desarrollo: A pedido médico" del maxilar (en la carpeta aparece en biomodelos).
 - Fotos chicas en la escena (`caso-craneo-3d` 442 px, `caso-acetabular-segmentacion` 371 px, `caso-intercalar-guias` 272 px): se ven blandas. Las reemplaza el 3D.
 - `CLAUDE.md` sigue desactualizado (además de lo que anotó la fase 1): "el hero es el único fondo de color" (ahora también el contacto) y la lista de secciones de la home en "Estado".
+
+---
+
+## Fase 2 · Correcciones: vuelta al borrador (2026-10-30)
+
+**Commits:** `7266175` Restore the landing draft composition in every home section · y el commit de esta entrada (docs).
+
+**Cambio de criterio (usuario).** Un verificador pidió más variedad visual y la fase empezó a recomponer secciones (proceso apilado, sedes invertidas, paneles con degradé, filas de ejemplos). El usuario lo rechazó: **la home sigue el borrador** y la mejora va en la ejecución (ver el aviso al principio de este archivo). Esta entrada reemplaza lo que la anterior decía sobre la composición del recorrido, el proceso, la fabricación, las habilitaciones, las sedes, el contacto y el footer.
+
+**Qué quedó, sección por sección (todo con la estructura del borrador).**
+- **Recorrido** (`tour.tsx`, `tour-scroll.tsx`): título visible "Recorrido por los implantes" (en el borrador el hero vive en la escena; acá el hero va aparte, así que la sección lleva su título). Escena fija a toda la pantalla con la luz del borrador (`.escenario`: radial azul al 68 % que se funde con el gris, y arriba se funde con el gris bajo el título); índice anatómico a la izquierda desde 1100 px, oculto en el cierre; tarjetas a la derecha (`min(27.5rem, 38vw)`), centradas, una por pantalla; en el celular, hoja inferior sin specs y con miniatura de 104 px. Tarjeta del borrador: chip y zona, título, miniatura 16:10 sobre la luz del borrador, **una sola descripción** (la del borrador, que ya cuenta el caso con los datos de `customCases.ts`; salió el pie de caso repetido y la spec "Guías" agregada), specs con filetes (columna de 118 px) y enlaces de texto en el primario (`.enlace-marca`, el `.tlink` del borrador). Cierre: título, bajada y "Plantear un caso" a la izquierda; el cuerpo a la derecha (por ahora, la captura del busto del hero, `cuerpo-inicio.webp`). Cada parada mide una pantalla (unos 6300 px con el cierre a 900 px de alto): es lo que pide el guion (≈ 8 pantallas con el hero) y lo que va a necesitar la cámara de la fase 3.
+- **Lugar reservado del 3D** (digno, no roto): la vista de planificación de cada parada, ubicada donde el guion ancla el implante (34 % del ancho), en escala de grises, mezclada con la luz y con los bordes desvanecidos (`.visor-imagen`). Ubicada con `left`/`top` calculados y no con `translate`: un transform aísla la mezcla y aparecen los rectángulos de las fotos. Miniaturas: la foto de la pieza en color, mezclada con la luz y con bordes desvanecidos (`.mini-parada`, `.mini-imagen`).
+- **Cómo trabajamos** (`process.tsx`, `process-scroll.tsx`): sección de 340vh con el contenido fijo; a la izquierda (5fr) título y tres pasos con número tabular en el color del hueso, el activo resaltado y los otros al 45 %; a la derecha (7fr, `min(74vh, 700px)`) la pieza con la leyenda Hueso / Zona a resecar / Implante y guías (tokens `--color-hueso`, `--color-resecar`, `--color-metal`). En el celular, la pieza arriba (38vh) y el texto solo del paso activo. Paso activo con tres marcadores y IntersectionObserver; sin JS, los tres pasos enteros. Mientras no exista la pieza, una vista por paso con `.visor-imagen` (TC de miembros inferiores, plano de resección de escápula, implante poroso). **Salió "Otros desarrollos a medida"**: no está en el borrador (AJUSTES dice que esos casos "pueden" ir, no que deban).
+- **Fabricación** (`manufacturing.tsx`): título, bajada y dos tarjetas iguales (foto de planta 4:3 en el lugar de cada animación, título de 26 px, texto). Salieron la dirección de la planta y los rótulos "Manufactura sustractiva/aditiva" (no están en el borrador y además eran eyebrows). **Falta "Volver a ver"**: sin animación no tiene qué repetir; lo suma la fase 5 con las animaciones (`[data-animacion-fabricacion="sustractiva|aditiva"]`).
+- **Habilitaciones** (`credentials.tsx`): título y bajada a la izquierda (5fr); a la derecha (7fr), la tabla del borrador (detalle con "ANMAT" o "Inscripción" debajo, en chico, y la referencia a la derecha en el primario y en cifras tabulares; GLN y Sub-GLN en dos líneas). El rótulo de organismo ya no va arriba del título: no cuenta como eyebrow.
+- **Distribución** (`locations.tsx`): título y bajada a la izquierda, eje a la derecha, como en el borrador (460 px, Norte y Sur en los extremos, línea que se intensifica en el medio). **Cada sede tiene su punto en su latitud exacta** (escala 22° a 55° S). Como Caseros y Alberti están a 0,4° (≈ 6 px) y Comodoro y Caleta a 0,6°, las etiquetas de cada par se separan y una guía une cada punto con la suya; cada etiqueta muestra su latitud. Salieron las marcas de grados, el panel y el relleno con el scroll.
+- **Contacto** (`contact-cta.tsx`): bloque azul con la luz del borrador (`.cta-luz`), título y bajada a la izquierda, logo claro y un único botón a la derecha; el logo, más grande que antes para que su bajada se lea mejor.
+- **Footer** (`site-footer.tsx`): el del borrador, en todo el sitio: marca y lema, dirección, teléfonos y ©, sobre un filete. Salieron las columnas de productos y de anclas.
+- Fondo único gris (`surface`) en todas las secciones, como el borrador.
+
+**Decidido sin preguntar.**
+- Título de la sección del recorrido arriba de la escena y no adentro: el borrador no lo tiene (lo hace el hero) y así no tapa la escena.
+- Tarjetas opacas y no de vidrio: `CLAUDE.md` reserva el vidrio a la navegación.
+- Lo que no tenía función sin las animaciones (pieza que se transforma, "Volver a ver", halo del implante, ensamble de partículas) queda para las fases 3 y 5, con su lugar reservado.
+
+**Comprobado en el navegador** (build de producción): 1440×900, 390×844 y 360×740 sin desborde ni errores de consola; las vistas de la escena se mezclan con la luz sin rectángulos; los puntos de las sedes caen en su latitud.
+
+**Pendiente.**
+- **Fase 3:** canvas en `[data-escena-3d]` (toda la escena fija), miniaturas en `[data-miniatura-3d]`, tarjetas fundidas por peso y halo según el guion (hoy pasan con el scroll), cuerpo entero en el cierre (hoy la captura del busto).
+- **Fase 5:** replicar fielmente las animaciones del borrador en `[data-pieza-proceso]` y `[data-animacion-fabricacion]`, con "Volver a ver".
+- Los puntos de Caseros y Alberti quedan casi encimados (6 px a la escala del borrador): se leen como dos por el borde, pero si molesta, la salida es agrandar el eje.
+- Siguen los pendientes de la entrada anterior: confirmar specs con Innercare, fotos chicas, `CLAUDE.md` desactualizado (ahora además: footer nuevo y fondos).
