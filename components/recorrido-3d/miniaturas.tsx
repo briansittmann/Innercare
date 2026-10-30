@@ -183,7 +183,8 @@ function materialPuntos() {
         float borde = smoothstep(0.55, 0.85, canto) * a;
         gl_PointSize = mix(1.7, 2.6, borde) * uPx;
         gl_Position = projectionMatrix * mv;
-        vAlfa = (0.9 - uSolido * 0.6) * uPeso * mix(0.75, 1.0, borde);
+        // Con la pieza sólida se apagan casi del todo: contorno limpio
+        vAlfa = (0.9 - uSolido * 0.84) * uPeso * mix(0.75, 1.0, borde);
       }
     `,
     fragmentShader: /* glsl */ `
@@ -200,9 +201,10 @@ function materialPuntos() {
   })
 }
 
-// Fondo de la miniatura: el de la tarjeta con la luz azul del borrador
-// (radial 80 % × 90 % en 50 % 45 %, 14 %, hasta el 70 %). Se dibuja primero,
-// en el plano lejano y siempre (limpia la profundidad de la vista).
+// Fondo de la miniatura: el de la tarjeta con la luz azul del borrador, que
+// se desvanece del todo antes de los bordes (si no, queda un corte recto
+// arriba y abajo). Se dibuja primero, en el plano lejano y siempre (limpia la
+// profundidad de la vista).
 function materialFondo() {
   return new ShaderMaterial({
     uniforms: {
@@ -223,8 +225,8 @@ function materialFondo() {
       uniform vec3 uAzul;
       varying vec2 vUv;
       void main() {
-        float d = length((vUv - vec2(0.5, 0.55)) / vec2(0.8, 0.9));
-        float luz = 0.14 * clamp(1.0 - d / 0.7, 0.0, 1.0);
+        float d = length((vUv - 0.5) / 0.5);
+        float luz = 0.14 * (1.0 - smoothstep(0.0, 0.96, d));
         gl_FragColor = vec4(mix(uTarjeta, uAzul, luz), uPeso);
       }
     `,
@@ -234,20 +236,41 @@ function materialFondo() {
   })
 }
 
-const Y = new Vector3(0, 1, 0)
-const X = new Vector3(1, 0, 0)
 const Z = new Vector3(0, 0, 1)
+const eje = new Vector3()
 const q1 = new Quaternion()
 const q2 = new Quaternion()
 
-// Qué miniaturas se están ensamblando (para pedir cuadros mientras tanto)
+// Qué miniaturas se están ensamblando. Mientras alguna lo hace, pide un
+// cuadro por refresco (el canvas dibuja a demanda); cuando ninguna, el bucle
+// se detiene. También si el canvas dejó de dibujar (el recorrido salió de
+// pantalla en pleno ensamble): sin cuadros, nadie actualiza `activos`.
 class Latido {
   private activos: boolean[] = []
+  private cuadro = 0
+  private ultimo = 0
+  private invalidar: (() => void) | null = null
+
+  conectar(invalidar: (() => void) | null) {
+    this.invalidar = invalidar
+    if (!invalidar) {
+      cancelAnimationFrame(this.cuadro)
+      this.cuadro = 0
+    }
+  }
+
   marcar(i: number, v: boolean) {
     this.activos[i] = v
+    this.ultimo = performance.now()
+    if (v && !this.cuadro && this.invalidar) this.cuadro = requestAnimationFrame(this.latir)
   }
-  alguno() {
-    return this.activos.some(Boolean)
+
+  private latir = () => {
+    this.cuadro = 0
+    const parado = performance.now() - this.ultimo > 400
+    if (parado || !this.activos.some(Boolean) || !this.invalidar) return
+    this.invalidar()
+    this.cuadro = requestAnimationFrame(this.latir)
   }
 }
 
@@ -267,10 +290,13 @@ class EstadoMiniatura {
   ) {
     // El titanio de los implantes del recorrido (escena.tsx)
     this.metal = new MeshStandardMaterial({
-      color: implante.acabado === 'pulido' ? '#e6e9ee' : '#c4cad2',
-      metalness: implante.acabado === 'pulido' ? 0.94 : 0.88,
-      roughness: implante.acabado === 'pulido' ? 0.12 : 0.3,
-      envMapIntensity: 3.2,
+      // Metal pleno: sobre el blanco de la tarjeta, el titanio del cuerpo
+      // (con luz de relleno) quedaba blanco sobre blanco. Así toma el
+      // contraste del estudio de luz: reflejos oscuros y brillos netos.
+      color: implante.acabado === 'pulido' ? '#e4e8ee' : '#cfd5dd',
+      metalness: 1,
+      roughness: implante.acabado === 'pulido' ? 0.16 : 0.3,
+      envMapIntensity: 2.4,
       transparent: true,
       side: DoubleSide,
     })
@@ -301,10 +327,10 @@ class EstadoMiniatura {
       this.metal.envMap = raiz.environment
       this.metal.needsUpdate = true
     }
-    const { seg, reducido } = estadoRecorrido
+    const { seg, reducido, minis } = estadoRecorrido
     const w = pesoTarjeta(seg, this.indice, reducido)
     const ahora = performance.now()
-    if (w < 0.02) this.inicio = null
+    if (w < 0.02 || !minis) this.inicio = null
     else if (w > 0.5 && this.inicio === null) this.inicio = ahora
     const A = reducido ? 1 : this.inicio === null ? 0 : clamp((ahora - this.inicio) / DURACION_ENSAMBLE)
     latido.marcar(this.indice, !reducido && w > 0.02 && this.inicio !== null && A < 1)
@@ -319,25 +345,40 @@ class EstadoMiniatura {
     u.uSolido!.value = solido
     u.uPeso!.value = w
     u.uPx!.value = pixeles
-    this.metal.opacity = solido * 0.92 * w
+    this.metal.opacity = solido * w
     this.metal.depthWrite = this.metal.opacity > 0.5
 
-    // Las piezas largas (hombro, fémur, intercalar) van acostadas en las
-    // miniaturas apaisadas. El vaivén gira alrededor del eje largo.
+    // Encuadre: las piezas largas (hombro, fémur, intercalar) se giran en
+    // el plano de la pantalla hasta el ángulo en que más llenan la
+    // miniatura (paradas en una cuadrada, acostadas en la hoja del celular,
+    // en diagonal entre las dos). El vaivén gira alrededor del eje largo.
     const rect = this.elemento.current?.getBoundingClientRect()
     const aspecto = rect && rect.height > 0 ? rect.width / rect.height : 1.6
-    const acostada = this.datos.alargada && aspecto > 1.25
+    const { largo, ancho, alargada } = this.datos
+    let angulo = 0
+    let escala = 0
+    const pasos = alargada ? 18 : 0
+    for (let k = 0; k <= pasos; k++) {
+      const a = (k / 18) * (Math.PI / 2)
+      const w = largo * Math.sin(a) + ancho * Math.cos(a)
+      const h = largo * Math.cos(a) + ancho * Math.sin(a)
+      const e = Math.min(aspecto / w, 1 / h)
+      if (e > escala * 1.01) {
+        escala = e
+        angulo = a
+      }
+    }
     const vaiven = reducido ? 0 : Math.sin((ahora / 1000) * 0.6) * 0.5
-    q1.setFromAxisAngle(acostada ? X : Y, vaiven)
-    q2.setFromAxisAngle(Z, acostada ? Math.PI / 2 : 0)
+    eje.set(-Math.sin(angulo), Math.cos(angulo), 0)
+    q1.setFromAxisAngle(eje, vaiven)
+    q2.setFromAxisAngle(Z, angulo)
     grupo.quaternion.copy(q1).multiply(q2).multiply(this.base)
 
     // Distancia para que entre la pieza con un margen (borrador: 92 %). La
-    // vista de la parada la inclina un poco: un 8 % más de aire.
+    // vista de la parada la inclina un poco: un 6 % más de aire.
     const t = Math.tan(((FOV / 2) * Math.PI) / 180)
-    const { largo, ancho } = this.datos
-    const medioAlto = (acostada ? ancho : largo) * 1.08
-    const medioAncho = (acostada ? largo : ancho) * 1.08
+    const medioAncho = (largo * Math.sin(angulo) + ancho * Math.cos(angulo)) * 1.06
+    const medioAlto = (largo * Math.cos(angulo) + ancho * Math.sin(angulo)) * 1.06
     const d = Math.max(medioAlto / t, medioAncho / (t * aspecto)) / 0.92 + ancho * 0.5
     cam.position.set(0, 0, d)
     cam.near = Math.max(0.01, d - 2)
@@ -379,9 +420,12 @@ function Miniatura({
       <mesh material={estado.fondo} frustumCulled={false} renderOrder={-10}>
         <planeGeometry args={[1, 1]} />
       </mesh>
-      <hemisphereLight args={['#ffffff', '#9fb6d3', 0.9]} />
-      <directionalLight position={[1.5, 3, 4]} intensity={2.4} />
+      {/* Poco relleno, la luz principal de los implantes del cuerpo y un
+          contraluz que marca el contorno sobre el blanco de la tarjeta */}
+      <hemisphereLight args={['#ffffff', '#8aa2c0', 0.4]} />
+      <directionalLight position={[1.5, 3, 4]} intensity={2.6} />
       <directionalLight position={[-3, 1, -2]} intensity={1.2} color="#dbe9fb" />
+      <directionalLight position={[0, -1, -4]} intensity={1.6} color="#9fc0ea" />
       <group ref={grupo} visible={false}>
         <mesh
           geometry={datos.geometria}
@@ -429,18 +473,12 @@ export function Miniaturas() {
   )
   useEffect(() => () => piezas.forEach((p) => p.datos.puntos.dispose()), [piezas])
 
-  // Mientras alguna se ensambla, un cuadro por refresco (el canvas dibuja a
-  // demanda); después, el vaivén va con el del cuerpo (30 cuadros por
-  // segundo con la escena fija).
+  // Después del ensamble, el vaivén va con el del cuerpo (30 cuadros por
+  // segundo, solo con la escena fija en pantalla).
   const latido = useMemo(() => new Latido(), [])
   useEffect(() => {
-    let cuadro = 0
-    const latir = () => {
-      if (latido.alguno()) invalidate()
-      cuadro = requestAnimationFrame(latir)
-    }
-    cuadro = requestAnimationFrame(latir)
-    return () => cancelAnimationFrame(cuadro)
+    latido.conectar(invalidate)
+    return () => latido.conectar(null)
   }, [invalidate, latido])
 
   return (

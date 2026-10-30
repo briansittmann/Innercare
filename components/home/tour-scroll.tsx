@@ -61,6 +61,22 @@ export function TourScroll({
   const [alcanzado, setAlcanzado] = useState(false)
   const [enVista, setEnVista] = useState(false)
   const [listo, setListo] = useState(false)
+  // Las miniaturas 3D (components/recorrido-3d/miniaturas.tsx) se ven por un
+  // hueco en la tarjeta. Se abre cuando el canvas terminó de aparecer (su
+  // fundido dura 700 ms): antes, por el hueco se vería la escena vacía.
+  const [minis, setMinis] = useState(false)
+  useEffect(() => {
+    if (!listo) return
+    const id = window.setTimeout(() => {
+      setMinis(true)
+      estadoRecorrido.minis = true
+      estadoRecorrido.invalidar?.()
+    }, 760)
+    return () => {
+      window.clearTimeout(id)
+      estadoRecorrido.minis = false
+    }
+  }, [listo])
   // El 3D no compite con la entrada del hero (components/intro.ts): ni el
   // modelo (918 KB) ni el contexto WebGL se piden hasta que la entrada
   // termina y el recorrido asoma en pantalla. Mientras tanto se ve el lugar
@@ -230,7 +246,7 @@ export function TourScroll({
         />
       ))}
 
-      <div ref={escena} data-escena-3d data-listo={listo || undefined} className="recorrido-escena escenario">
+      <div ref={escena} data-escena-3d data-listo={listo || undefined} data-minis={minis || undefined} className="recorrido-escena escenario">
         <div aria-hidden className="recorrido-luz" />
 
         {/* Lugar reservado del 3D (sin WebGL o mientras carga) */}

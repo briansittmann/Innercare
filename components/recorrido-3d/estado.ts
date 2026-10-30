@@ -7,6 +7,10 @@ export const estadoRecorrido = {
   // Progreso del recorrido, amortiguado: 0 (entrada) a 7 (cierre)
   seg: 0,
   reducido: false,
+  // Las miniaturas 3D ya se ven por el hueco de las tarjetas (data-minis):
+  // hasta entonces el ensamble no arranca, así no se lo pierde detrás de la
+  // foto
+  minis: false,
   // La escena fija ocupa la pantalla (el hero ya salió): solo entonces el
   // cuerpo hace su vaivén
   fijo: false,

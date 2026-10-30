@@ -1020,14 +1020,14 @@ body {
 
 /* Miniatura de las tarjetas del recorrido. Sin WebGL o mientras carga, la
    foto de la pieza, en color, sobre la luz del borrador, con los bordes
-   desvanecidos. Con la escena 3D lista (data-listo), la miniatura la dibuja
+   desvanecidos. Con la escena 3D lista y a la vista (data-minis), la miniatura la dibuja
    el canvas del recorrido, que está debajo de las tarjetas
    (components/recorrido-3d/miniaturas.tsx): la tarjeta pierde el fondo y la
    miniatura lo pinta alrededor con una sombra extendida, recortada por el
    borde redondeado de la tarjeta. Queda un hueco con la forma de la
    miniatura por el que se ve el canvas. */
 .mini-parada {
-  background: radial-gradient(80% 90% at 50% 45%, rgb(34 96 161 / 0.14), transparent 70%);
+  background: radial-gradient(closest-side, rgb(34 96 161 / 0.14), transparent);
 }
 
 .mini-imagen {
@@ -1036,19 +1036,19 @@ body {
   mask-image: radial-gradient(closest-side, #000 72%, transparent);
 }
 
-.recorrido-escena[data-listo] .recorrido-tarjeta {
+.recorrido-escena[data-minis] .recorrido-tarjeta {
   background-color: transparent;
 }
 
 /* El contenido de la tarjeta va por encima de la sombra de la miniatura
    (que es posicionada y si no la taparía). El filete interior de 2 px tapa
    la costura entre el hueco y el recorte del canvas, que va a píxel entero. */
-.recorrido-escena[data-listo] .recorrido-tarjeta > * {
+.recorrido-escena[data-minis] .recorrido-tarjeta > * {
   position: relative;
   z-index: 1;
 }
 
-.recorrido-escena[data-listo] .mini-parada {
+.recorrido-escena[data-minis] .mini-parada {
   z-index: 0;
   background: none;
   box-shadow:
@@ -1056,8 +1056,10 @@ body {
     inset 0 0 0 2px var(--color-surface-container-lowest);
 }
 
-.recorrido-escena[data-listo] .mini-imagen {
-  visibility: hidden;
+/* La foto se funde sobre la miniatura 3D, que ya está dibujada debajo */
+.recorrido-escena[data-minis] .mini-imagen {
+  opacity: 0;
+  transition: opacity 360ms var(--ease-out);
 }
 
 /* Animaciones de fabricación (components/home/animacion-fabricacion.tsx):
@@ -1082,15 +1084,18 @@ body {
 }
 
 /* Pieza de "Cómo trabajamos" (components/home/process-scroll.tsx): con JS,
-   el canvas; sin JS, la imagen del primer paso. */
+   el canvas y su leyenda; sin JS, la imagen del primer paso. */
 @media (scripting: enabled) {
   .proceso-respaldo {
     display: none;
   }
 }
 
+/* Sin JS tampoco va la leyenda: es de los colores de la pieza, no de la
+   imagen de tomografía que la reemplaza */
 @media (scripting: none) {
-  .proceso-lienzo {
+  .proceso-lienzo,
+  .proceso-leyenda {
     display: none;
   }
 }
