@@ -7,7 +7,8 @@ const otorga = (organismo: string) => (organismo === 'ANMAT' ? 'ANMAT' : 'Inscri
 // Habilitados por ANMAT (#habilitaciones), con la estructura del borrador de
 // la landing: a la izquierda el título y la bajada; a la derecha, la tabla de
 // las cuatro habilitaciones de la carpeta, con la referencia en el primario y
-// en cifras tabulares. Sin animación.
+// en cifras tabulares. Sin animación. La banda va un tono más oscura que las
+// vecinas (surface-container-low), para separar el tramo de datos.
 export function Credentials() {
   const { titulo, texto } = textosHome.habilitaciones
 
@@ -15,7 +16,7 @@ export function Credentials() {
     <section
       id="habilitaciones"
       aria-labelledby="habilitaciones-titulo"
-      className="bg-surface py-[clamp(5.5rem,13vh,9.375rem)]"
+      className="bg-surface-container-low py-[clamp(5.5rem,13vh,9.375rem)]"
     >
       <div className="page-container grid items-start gap-[clamp(1.75rem,5vw,5rem)] md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div>
@@ -42,7 +43,7 @@ export function Credentials() {
               </dt>
               {/* Una referencia puede tener dos partes (GLN y Sub-GLN):
                   una por línea. */}
-              <dd className="font-data-mono text-[0.96875rem] font-semibold tabular-nums text-primary md:text-right">
+              <dd className="font-data-mono text-[1.125rem] leading-snug font-semibold tabular-nums text-primary md:text-right">
                 {habilitacion.referencia.split(' · ').map((parte) => (
                   <span key={parte} className="block md:whitespace-nowrap">
                     {parte}

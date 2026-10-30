@@ -2,15 +2,15 @@ import { sedes, textosHome } from '@/content/company'
 import type { Sede } from '@/content/types'
 
 // Eje del país de norte a sur, en grados de latitud sur (La Quiaca ≈ 22°,
-// Ushuaia ≈ 55°), como el del borrador. Cada sede tiene su punto en su
-// latitud exacta.
+// Ushuaia ≈ 55°), como el del borrador. Cada grupo de sedes tiene su punto
+// en su latitud (la media del grupo) y cada etiqueta, la latitud exacta.
 const NORTE = 22
 const SUR = 55
 // Alto del eje (460 px del borrador)
 const ALTO = 28.75
 // Separación mínima entre etiquetas (ciudad y rol: dos o tres líneas)
-const PASO_ETIQUETA = 3.6
-// Ancho de la guía que une el punto con su etiqueta (16 px del borrador más
+const PASO_ETIQUETA = 4
+// Ancho de la guía que une el punto con cada etiqueta (16 px del borrador más
 // el tramo de la guía)
 const GUIA = 2.5
 
@@ -24,7 +24,8 @@ const rol = (sede: Sede) => (sede.tipo.startsWith('Sucursal') ? 'Sucursal' : sed
 // Etiquetas: cada una va a la altura de su punto, salvo que choque con la
 // anterior (Caseros y Alberti están a 0,4° entre sí; Comodoro Rivadavia y
 // Caleta Olivia, a 0,6°). Las que chocan se reparten, parejas, alrededor de
-// la altura media de sus puntos, y una guía une cada punto con su etiqueta.
+// la altura media del grupo, donde va su único punto, y una guía une el
+// punto con cada etiqueta.
 function ubicar(lista: readonly Sede[]) {
   const ordenadas = [...lista].sort((a, b) => b.latitud - a.latitud)
   const grupos: Sede[][] = []
@@ -39,7 +40,6 @@ function ubicar(lista: readonly Sede[]) {
     return grupo.map((sede, i) => ({
       sede,
       media,
-      punto: yDe(sede.latitud),
       etiqueta: media + (i - (grupo.length - 1) / 2) * PASO_ETIQUETA,
     }))
   })
@@ -78,22 +78,23 @@ export function Locations() {
           {/* Línea del eje: se intensifica en el medio, como en el borrador */}
           <div
             aria-hidden
-            className="absolute inset-y-0 left-0 w-px bg-linear-to-b from-outline-variant via-primary/60 to-outline-variant"
+            className="absolute inset-y-0 left-0 w-[2px] -translate-x-1/2 bg-linear-to-b from-primary/15 via-primary/70 to-primary/15"
           />
           <span
             aria-hidden
-            className="absolute -top-sm left-[1.125rem] text-[0.8125rem] text-on-surface-variant"
+            className="absolute -top-sm left-[1.125rem] text-[0.8125rem] font-medium text-on-surface-variant"
           >
             Norte
           </span>
           <span
             aria-hidden
-            className="absolute -bottom-sm left-[1.125rem] text-[0.8125rem] text-on-surface-variant"
+            className="absolute -bottom-sm left-[1.125rem] text-[0.8125rem] font-medium text-on-surface-variant"
           >
             Sur
           </span>
 
-          {/* Guías del punto a la etiqueta (en px: 1 rem = 16 px) */}
+          {/* Guías del punto de cada grupo a sus etiquetas (en px: 1 rem =
+              16 px). Con una sola sede, la guía es recta. */}
           <svg
             aria-hidden
             className="absolute top-0 left-0 overflow-visible"
@@ -101,38 +102,28 @@ export function Locations() {
             height={ALTO * 16}
             viewBox={`0 0 ${GUIA * 16} ${ALTO * 16}`}
           >
-            {ubicadas.map(({ sede, punto, etiqueta }) => (
+            {ubicadas.map(({ sede, media, etiqueta }) => (
               <path
                 key={sede.id}
-                d={`M 6 ${punto * 16} H 12 L ${GUIA * 16 - 10} ${etiqueta * 16} H ${GUIA * 16 - 4}`}
+                d={`M 10 ${media * 16} H 14 L ${GUIA * 16 - 10} ${etiqueta * 16} H ${GUIA * 16 - 4}`}
                 fill="none"
                 stroke="var(--color-primary)"
-                strokeOpacity="0.4"
+                strokeOpacity="0.5"
                 strokeWidth="1"
               />
             ))}
           </svg>
 
-          {/* Halo de cada grupo de sedes (el del borrador, que rodea el
-              punto): uno por par, centrado entre sus puntos, para que el par
-              se lea como un lugar y no como dos puntos sueltos. */}
+          {/* Un punto por grupo, con el halo del borrador: las sedes que
+              están casi a la misma latitud (Caseros y Alberti, a 0,4°;
+              Comodoro y Caleta, a 0,6°) comparten punto y se abren en dos
+              etiquetas con guías, cada una con su latitud exacta. */}
           {[...new Set(ubicadas.map(({ media }) => media))].map((media) => (
             <span
               key={media}
               aria-hidden
-              className="absolute left-0 size-[1.5rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/[0.09] ring-1 ring-primary/15"
+              className="absolute left-0 size-[11px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary shadow-[0_0_0_6px_rgb(0_60_111/0.14)]"
               style={{ top: `${media}rem` }}
-            />
-          ))}
-
-          {/* Puntos chicos y con un borde del color del fondo: los de cada par
-              están a unos 6 px y tienen que leerse como dos. */}
-          {ubicadas.map(({ sede, punto }) => (
-            <span
-              key={sede.id}
-              aria-hidden
-              className="absolute left-0 size-[7px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary ring-2 ring-surface"
-              style={{ top: `${punto}rem` }}
             />
           ))}
 
@@ -140,11 +131,11 @@ export function Locations() {
             {ubicadas.map(({ sede, etiqueta }) => (
               <li
                 key={sede.id}
-                className="absolute right-0 -translate-y-1/2 text-[0.96875rem] leading-[1.35]"
+                className="absolute right-0 -translate-y-1/2 text-[1.0625rem] leading-[1.3] font-medium text-on-surface"
                 style={{ top: `${etiqueta}rem`, left: `${GUIA}rem` }}
               >
                 {ciudad(sede)}, {provincia(sede)}
-                <span className="block text-body-sm text-on-surface-variant">
+                <span className="mt-[2px] block text-body-sm font-normal text-on-surface-variant">
                   {rol(sede)}
                   <span className="ml-sm font-data-mono tabular-nums">{grados(sede.latitud)}</span>
                 </span>
