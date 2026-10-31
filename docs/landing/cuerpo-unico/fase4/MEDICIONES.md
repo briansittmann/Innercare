@@ -38,3 +38,34 @@ Primeras mediciones de cuadros por segundo del cuerpo único con la Mac enchufad
 - **Recorrido en escritorio: pérdida real.** Sin tope, 55 contra 96; con tope, 51,8 con p95 de 33 ms (la base, 60). En el celular el margen sin tope también baja a la mitad (116 contra 230), aunque con tope queda en 60. Los dibujos por cuadro son parecidos a los de la base (≈ 79 000 contra 77 500 al pie), así que el costo está en cada pasada y no en la cantidad: candidatos, el vidrio del cuerpo único (transparente, con el corte por altura en el shader de la piel, el hueso y el borde) y el buffer del vidrio a pantalla completa. No se tocó en esta fase: queda para la fase 5, midiendo por partes (`?calidad`, sin borde, vidrio opaco desde la craneoplastía).
 - **Contextos WebGL:** 2 vivos en la fase 4 (fibras y escena) contra 3 de la base; al pie, el de las fibras sigue vivo pero sin caja ni dibujos (pausado).
 - Sin errores de consola en ninguna corrida.
+
+## Después de las correcciones del verificador
+
+Mismo método, con `788c76f` → `a6b88c5` (vidrio opaco desde la craneoplastía y el resto de las correcciones). Base `6492345` en un worktree, alternando: base, corrección, base, corrección (sin tope) y una vuelta con tope de cada una. La máquina estaba más cargada (carga 6 a 17). Datos: `medidas/correcciones-base/` y `medidas/correcciones/`.
+
+**Causa del recorrido lento:** el vidrio del cuerpo único quedaba transparente durante todo el recorrido (`h < 0,999`), aunque desde la craneoplastía el corte ya está debajo de los pies y no hace falta alfa. Transparente, el esqueleto (transparente, con brillo) se dibujaba entero debajo del vidrio en cada cuadro; opaco, como el vidrio del recorrido original, la prueba de profundidad lo descarta y el hueso se ve igual, por el buffer del vidrio. Ahora es transparente solo mientras el corte baja (`0,001 < h < 0,999`). Las otras sospechas (tres trozos de piel, el shader del corte, el degradé del buffer) no hizo falta tocarlas.
+
+`partes.mjs` del verificador (recorrido entero en 12 s, escritorio 2x, con tope), alternando:
+
+| | Vuelta 1 | Vuelta 2 | Vuelta 3 | Vuelta 4 |
+|---|---|---|---|---|
+| Base | 59,8 (p95 16,8) | 59,8 (16,8) | 59,7 (16,7) | 59,8 (16,8) |
+| Corrección | 59,5 (16,7) | 59,7 (16,7) | 59,7 (16,8) | 59,5 (16,8) |
+| Antes (verificador) | 51,5 a 52 (33,4), 17 % de cuadros perdidos | | | |
+
+`medir.mjs medidas` (fps; entre paréntesis p95 en ms):
+
+| | Hero quieto | Paso 0,3 pantallas | Paso a la craneoplastía | Recorrido |
+|---|---|---|---|---|
+| Escritorio sin tope, base | 71,1 / 72 | 67,8 / 67,4 | 35,5 / 35,1 | 94,1 / 93,9 |
+| Escritorio sin tope, corrección | 118,7 / 109,2 | 46,1 / 45,6 | 46,1 / 42,9 | **89,6 / 90,2** (antes 55,9 / 54,4) |
+| Celular sin tope, base | 193,6 / 192,9 | 186,6 / 186,1 | 143,6 / 146,3 | 223,2 / 224,5 |
+| Celular sin tope, corrección | 429,5 / 422,7 | 229,5 / 221,2 | 235 / 227,8 | **254,8 / 256,1** (antes 117,1 / 114,9) |
+| Escritorio con tope, base | 60 | 59,8 | 59,8 | 59,8 (16,7) |
+| Escritorio con tope, corrección | 60 | 58,3 (16,8) | 59,4 | **60 (16,8)** (antes 51,8 (33,4)) |
+| Celular con tope, base | 60 | 60 | 59,4 | 60 |
+| Celular con tope, corrección | 60 | 60 | 59,8 | 60 |
+
+- El recorrido vuelve a 60 con tope y queda a la par de la base sin tope en escritorio (90 contra 94) y por encima en el celular.
+- Sigue más justo que la base el tramo corto del hero (0,3 pantallas: 46 contra 67 sin tope, 58,3 con tope): ahí el vidrio es transparente a propósito (el corte baja) y el esqueleto se dibuja dos veces. Queda para la fase 5.
+- `implantes.glb` se descarga una vez (antes, dos: la craneoplastía del hero lo pedía sola y los implantes, en lista).
