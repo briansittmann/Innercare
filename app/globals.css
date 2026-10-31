@@ -907,6 +907,13 @@ body {
     bottom: auto;
     height: 140.2%;
   }
+
+  /* El degradé, igual: medido contra el hero alto, no contra una pantalla
+     (el vidrio refracta el mismo tramo: escena.tsx, TRAMO_DEGRADE_CELULAR) */
+  .recorrido-escena {
+    background-size: 100% 140.2%;
+    background-repeat: no-repeat;
+  }
 }
 
 .recorrido-fundido {

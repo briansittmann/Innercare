@@ -144,6 +144,10 @@ const corteDe = (corte: number, h: number) => MathUtils.lerp(-0.4, corte, h)
 const bandaDe = (h: number) => MathUtils.lerp(0.4, 0.004, h)
 
 const FOV = 30
+// Celular (< 768 px, la maqueta del hero de antes): el degradé del hero se
+// estira al alto que tenía la sección (140,2 % de la pantalla)
+const ANCHO_DEGRADE_ALTO = 768
+const TRAMO_DEGRADE_CELULAR = [0, 1 / 1.402] as const
 // Hueso un poco más tenue que en el busto: con el cuerpo entero hay mucho
 // más esqueleto a la vista y competía con los implantes.
 const OPACIDAD_HUESO = 0.34
@@ -1043,8 +1047,11 @@ function Escena({ calidad, alListo, modo, cuerpoUnico, hero }: {
   const alto = useThree((s) => s.size.height)
   const fondoRecorrido = useFondoEscena(ancho, alto)
   // Cuerpo único: el vidrio refracta el degradé del hero (en el recorrido,
-  // el de la escena fija entera)
-  const degrade = useTexturaDegrade(hero?.tramo ?? null)
+  // el de la escena fija entera; en el celular, el degradé mide 140,2 % de
+  // la escena, como el hero alto de antes: .recorrido-escena en globals.css)
+  const degrade = useTexturaDegrade(
+    hero?.tramo ?? (ancho < ANCHO_DEGRADE_ALTO ? TRAMO_DEGRADE_CELULAR : null),
+  )
   const fondo = cuerpoUnico ? degrade : fondoRecorrido
   const invalidate = useThree((s) => s.invalidate)
   useLayoutEffect(() => invalidate(), [ancho, alto, invalidate])
