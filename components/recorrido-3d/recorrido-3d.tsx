@@ -22,7 +22,10 @@ function hayWebGL() {
   if (soporteWebGL === undefined) {
     try {
       const canvas = document.createElement('canvas')
-      soporteWebGL = Boolean(canvas.getContext('webgl2') ?? canvas.getContext('webgl'))
+      const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl')
+      soporteWebGL = Boolean(gl)
+      // La prueba no queda como un contexto vivo más
+      gl?.getExtension('WEBGL_lose_context')?.loseContext()
     } catch {
       soporteWebGL = false
     }
