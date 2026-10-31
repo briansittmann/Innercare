@@ -2,7 +2,9 @@
 
 import dynamic from 'next/dynamic'
 import { Component, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { getIntroPhase, INTRO_MAX_WAIT, loadedAtHome, startIntro, useIntroPhase } from '../intro'
 import { ANCHO_CELULAR } from './camara'
+import { estadoRecorrido } from './estado'
 
 // three.js solo en el navegador y en un bundle aparte: la escena se carga
 // cuando el recorrido está por entrar en pantalla.
@@ -72,14 +74,43 @@ export function Recorrido3D({
         },
   )
 
+  // Arranque de la entrada de la home (components/intro.ts), mientras no
+  // haya pantalla de carga: cuando el 3D está listo (alListo de la escena), o
+  // a los INTRO_MAX_WAIT ms si tarda. Enseguida si no hay 3D, si se pide
+  // menos movimiento o si se llegó a la home desde otra página. Mudado de
+  // components/hero-3d/hero-3d.tsx (cuerpo único, fase 3).
+  useEffect(() => {
+    if (getIntroPhase() !== 'waiting') return
+    if (
+      !loadedAtHome ||
+      !hayWebGL() ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      startIntro()
+      return
+    }
+    const id = setTimeout(startIntro, INTRO_MAX_WAIT)
+    return () => clearTimeout(id)
+  }, [])
+
+  // Giro de entrada del cuerpo en la toma del hero: quieto en la pose de
+  // partida mientras la intro espera; si el 3D estuvo listo antes de que
+  // arrancara, entra girando; si no, aparece ya en su pose.
+  const fase = useIntroPhase()
+  const [primero, setPrimero] = useState(false)
+  useEffect(() => {
+    estadoRecorrido.entrada = fase === 'waiting' ? 'hold' : primero ? 'play' : 'skip'
+    estadoRecorrido.invalidar?.()
+  }, [fase, primero])
+
   // Carga diferida: cuando el recorrido se acerca y el navegador queda libre
   useEffect(() => {
     if (!webgl || !cerca || montar) return
     if ('requestIdleCallback' in window) {
-      const id = window.requestIdleCallback(() => setMontar(true), { timeout: 1200 })
+      const id = window.requestIdleCallback(() => setMontar(true), { timeout: 1500 })
       return () => window.cancelIdleCallback(id)
     }
-    const id = setTimeout(() => setMontar(true), 200)
+    const id = setTimeout(() => setMontar(true), 300)
     return () => clearTimeout(id)
   }, [webgl, cerca, montar])
 
@@ -96,6 +127,11 @@ export function Recorrido3D({
           dpr={config.dpr}
           alListo={() => {
             setListo(true)
+            if (getIntroPhase() === 'waiting') {
+              setPrimero(true)
+              estadoRecorrido.entrada = 'play'
+              startIntro()
+            }
             alListo()
           }}
         />

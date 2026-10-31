@@ -783,11 +783,8 @@ body {
   background: var(--color-primary);
 }
 
-#recorrido {
-  /* "Recorrer los implantes" y el menú dejan la escena entera en pantalla,
-     sin el hueco del header (que va encima de la escena) */
-  scroll-margin-top: -72px;
-}
+/* #recorrido es un ancla más (la de la craneoplastía, tour-scroll.tsx), con
+   el mismo desplazamiento que las de cada parada */
 
 .recorrido {
   position: relative;
@@ -879,6 +876,48 @@ body {
 
 .recorrido-escena[data-cuerpo-unico] .recorrido-luz {
   display: none;
+}
+
+/* Cuerpo único (fase 3): el hero dentro de la escena fija. La cinta de
+   fibras va detrás del cuerpo; el texto, encima, con la maqueta que tenía
+   como sección propia (a todo el alto, bajo el header). Las dos capas se
+   funden con el progreso (tour-scroll.tsx). Al final del cierre, el degradé
+   se apaga en el gris de "Cómo trabajamos" (.recorrido-fundido). */
+.recorrido-fondo-hero,
+.recorrido-fundido,
+.recorrido-intro-3d {
+  position: absolute;
+  inset: 0;
+}
+
+.recorrido-fundido {
+  opacity: 0;
+  background: linear-gradient(to top, var(--color-surface), transparent 9rem);
+  pointer-events: none;
+}
+
+/* La entrada del cuerpo (.intro-3d) escala desde la cabeza, como el busto */
+.recorrido-intro-3d {
+  transform-origin: 50% 100%;
+}
+
+@media (width >= 820px) {
+  .recorrido-intro-3d {
+    transform-origin: 74% 50%;
+  }
+}
+
+.recorrido-texto.recorrido-hero {
+  inset: 0;
+  width: auto;
+  translate: none;
+  padding-top: 4rem;
+}
+
+@media (width >= 768px) {
+  .recorrido-texto.recorrido-hero {
+    padding-top: 72px;
+  }
 }
 
 .recorrido-halo {
@@ -1018,6 +1057,8 @@ body {
   .recorrido-vistas,
   .recorrido-lienzo,
   .recorrido-luz,
+  .recorrido-fondo-hero,
+  .recorrido-fundido,
   .recorrido-halo,
   .recorrido-indice {
     display: none;

@@ -1,7 +1,9 @@
-import Image from 'next/image'
+import Image, { getImageProps } from 'next/image'
 import Link from 'next/link'
 import { contactHref, contactLabel } from '@/components/nav-links'
 import { cierreRecorrido, paradas, type Parada } from '@/content/recorrido'
+import { HeroFondo, HeroTexto } from './hero'
+import { IntroSection } from './hero-intro'
 import { TourScroll } from './tour-scroll'
 
 const ancla = (parada: Parada) => `parada-${parada.id}`
@@ -12,37 +14,29 @@ const ancla = (parada: Parada) => `parada-${parada.id}`
 // también el catálogo y la galería de casos, AJUSTES.md): las de catálogo
 // llevan a su ficha; las a medida cuentan el caso y llevan al contacto.
 //
-// El hero del borrador vive dentro de esta escena; acá queda aparte (AJUSTES:
-// el hero de `rediseno` se mantiene), así que en su lugar (k = 0) va el
-// título de la sección, con el cuerpo entero a la derecha. La escena 3D y el
-// guion de cámara están en components/recorrido-3d/.
+// El hero del borrador vive dentro de esta escena (cuerpo único, fase 3):
+// la sección empieza arriba de todo, por detrás del header, con el texto del
+// hero encima del cuerpo en la toma del hero (k = 0). Al deslizar, el texto
+// se va y la cámara baja a la craneoplastía (k = 1, el ancla #recorrido). La
+// escena 3D y el guion de cámara están en components/recorrido-3d/.
 export function Tour() {
   const vistas = [
     ...paradas.map((parada) => <VistaParada key={parada.id} parada={parada} />),
     <VistaCuerpo key="cuerpo" />,
+    <VistaHero key="hero" />,
   ]
-  const aMedida = paradas.filter((p) => p.tipo === 'a-medida').length
-  const catalogo = paradas.length - aMedida
 
   return (
-    <section id="recorrido" aria-labelledby="recorrido-titulo" className="relative bg-surface">
+    <IntroSection
+      id="inicio"
+      aria-labelledby="inicio-titulo"
+      className="relative -mt-16 bg-surface md:-mt-[72px]"
+    >
       <TourScroll
         paradas={paradas.map((parada) => ({ ancla: ancla(parada), zona: parada.zona }))}
         vistas={vistas}
-        entrada={
-          // Entrada (k = 0): donde el borrador tiene el texto del hero
-          <>
-            <h2
-              id="recorrido-titulo"
-              className="max-w-[14ch] text-balance font-display-lg text-display-lg text-on-surface"
-            >
-              Recorrido por los implantes
-            </h2>
-            <p className="mt-md max-w-[40ch] text-body-lg text-on-surface-variant min-[820px]:mt-lg">
-              {`${numero(paradas.length)} implantes en su lugar, de la cabeza al fémur: ${numero(aMedida, true)} a medida y ${numero(catalogo, true)} de catálogo.`}
-            </p>
-          </>
-        }
+        fondo={<HeroFondo />}
+        entrada={<HeroTexto />}
         cierre={
           // Cierre (k = 7): el cuerpo entero y el texto final a la izquierda
           <>
@@ -64,14 +58,8 @@ export function Tour() {
           <TarjetaParada key={parada.id} parada={parada} indice={i} />
         ))}
       </TourScroll>
-    </section>
+    </IntroSection>
   )
-}
-
-const NUMEROS = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve']
-function numero(n: number, minuscula = false) {
-  const palabra = NUMEROS[n] ?? String(n)
-  return minuscula ? palabra : palabra.charAt(0).toUpperCase() + palabra.slice(1)
 }
 
 function TarjetaParada({ parada, indice }: { parada: Parada; indice: number }) {
@@ -198,6 +186,40 @@ function VistaCuerpo() {
         sizes="(min-width: 820px) 50vh, 33vh"
         className="object-contain"
       />
+    </div>
+  )
+}
+
+// Vista de la toma del hero (k = 0) sin WebGL o mientras carga: las capturas
+// fijas del busto (public/img/cuerpo-inicio*.webp), en la caja que tenía el
+// 3D del hero. En escritorio, abajo a la derecha, a todo el alto y en 14:15,
+// con la figura al 55,5 %; en el celular, a todo el ancho y 62 % del alto,
+// con la cabeza al 109,2 % del alto (camara.ts, HERO): asoma la coronilla.
+const posterComun = { alt: '', sizes: '(min-width: 768px) 107vh, 86vh' }
+const posterEscritorio = getImageProps({
+  ...posterComun,
+  src: '/img/cuerpo-inicio.webp',
+  width: 1440,
+  height: 1350,
+}).props
+const posterCelular = getImageProps({
+  ...posterComun,
+  src: '/img/cuerpo-inicio-movil.webp',
+  width: 1440,
+  height: 1047,
+}).props
+
+function VistaHero() {
+  return (
+    <div className="absolute top-[78.2dvh] right-0 h-[62vh] w-full overflow-hidden [--foco:0.5] min-[820px]:top-auto min-[820px]:bottom-0 min-[820px]:aspect-[14/15] min-[820px]:h-[min(100%,80vw)] min-[820px]:w-auto min-[820px]:[--foco:0.555]">
+      <picture>
+        <source media="(min-width: 768px)" srcSet={posterEscritorio.srcSet} sizes={posterEscritorio.sizes} />
+        <img
+          {...posterCelular}
+          alt=""
+          className="absolute top-0 left-[calc(var(--foco)*100%)] h-full w-auto max-w-none -translate-x-1/2"
+        />
+      </picture>
     </div>
   )
 }

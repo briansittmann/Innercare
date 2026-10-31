@@ -20,15 +20,14 @@ export const estadoRecorrido = {
   // Nodo de la escena fija: la escena 3D escribe ahí la posición del halo y
   // de la luz (variables CSS), que son HTML encima y debajo del canvas.
   escena: null as HTMLElement | null,
+  // Entrada del hero (components/intro.ts): 'hold' quieto en la pose de
+  // partida, 'play' gira hasta su pose, 'skip' sin entrada
+  entrada: 'hold' as 'hold' | 'play' | 'skip',
 }
 
-// Prototipo del cuerpo único (docs/landing/cuerpo-unico/): con
-// ?cuerpo-unico en la URL de la home, el hero dibuja la escena del recorrido
-// en la toma del hero y el recorrido arranca en esa toma. Sin el parámetro,
-// todo queda como antes. Se lee una sola vez y solo en el navegador.
-let cuerpoUnico: boolean | undefined
+// Cuerpo único (docs/landing/cuerpo-unico/): desde la fase 3, el hero vive
+// dentro de la escena del recorrido y es el camino normal. La función queda
+// hasta la limpieza (fase 5).
 export function cuerpoUnicoActivo() {
-  if (typeof window === 'undefined') return false
-  cuerpoUnico ??= new URLSearchParams(window.location.search).has('cuerpo-unico')
-  return cuerpoUnico
+  return true
 }

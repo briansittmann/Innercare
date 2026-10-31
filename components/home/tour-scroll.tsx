@@ -10,9 +10,8 @@ import {
   opacidadEntrada,
   pesoTarjeta,
 } from '@/components/recorrido-3d/camara'
-import { cuerpoUnicoActivo, estadoRecorrido } from '@/components/recorrido-3d/estado'
+import { estadoRecorrido } from '@/components/recorrido-3d/estado'
 import { Recorrido3D } from '@/components/recorrido-3d/recorrido-3d'
-import { useIntroPhase } from '@/components/intro'
 
 // Armazón del recorrido por el cuerpo (#recorrido), con el comportamiento del
 // borrador (docs/landing/landing-borrador.html, updateTour): un contenedor de
@@ -36,6 +35,7 @@ import { useIntroPhase } from '@/components/intro'
 export function TourScroll({
   paradas,
   vistas,
+  fondo,
   entrada,
   cierre,
   children,
@@ -43,7 +43,11 @@ export function TourScroll({
   // Índice anatómico: id del ancla de cada parada y su nombre
   paradas: readonly { ancla: string; zona: string }[]
   // Lugar reservado: una vista por parada, más la del cuerpo entero al final
+  // (y, si hay, la de la toma del hero)
   vistas: readonly ReactNode[]
+  // Detrás del cuerpo en la toma del hero (la cinta de fibras); se funde con
+  // el texto de la entrada
+  fondo?: ReactNode
   entrada: ReactNode
   cierre: ReactNode
   // Las tarjetas, cada una con data-tarjeta="<índice>"
@@ -52,13 +56,15 @@ export function TourScroll({
   const contenedor = useRef<HTMLDivElement>(null)
   const escena = useRef<HTMLDivElement>(null)
   const capaEntrada = useRef<HTMLDivElement>(null)
+  const capaFondo = useRef<HTMLDivElement>(null)
+  const capaFundido = useRef<HTMLDivElement>(null)
   const capaCierre = useRef<HTMLDivElement>(null)
   const indice = useRef<HTMLElement>(null)
   const riel = useRef<HTMLOListElement>(null)
   // Parada marcada en el índice (-1: ninguna) y vista del lugar reservado
   const [actual, setActual] = useState(-1)
-  const [vista, setVista] = useState(paradas.length)
-  const [alcanzado, setAlcanzado] = useState(false)
+  const vistaInicio = vistas.length > paradas.length + 1 ? paradas.length + 1 : paradas.length
+  const [vista, setVista] = useState(vistaInicio)
   const [enVista, setEnVista] = useState(false)
   const [listo, setListo] = useState(false)
   // Las miniaturas 3D (components/recorrido-3d/miniaturas.tsx) se ven por un
@@ -77,32 +83,19 @@ export function TourScroll({
       estadoRecorrido.minis = false
     }
   }, [listo])
-  // El 3D no compite con la entrada del hero (components/intro.ts): ni el
-  // modelo (918 KB) ni el contexto WebGL se piden hasta que la entrada
-  // termina y el recorrido asoma en pantalla. Mientras tanto se ve el lugar
-  // reservado.
-  const fase = useIntroPhase()
-  const cerca = alcanzado && fase === 'done'
+  // Cuerpo único: el 3D es el hero, así que se monta enseguida (cuando el
+  // navegador queda libre, en recorrido-3d.tsx). El resto del cuerpo y los
+  // otros implantes se piden después de la intro (escena.tsx).
+  const cerca = true
 
   // Se dibuja solo mientras el recorrido está en pantalla
   useEffect(() => {
     const nodo = contenedor.current
     if (!nodo) return
     const visible = new IntersectionObserver(([e]) => setEnVista(Boolean(e?.isIntersecting)))
-    // "Se acerca": el recorrido ya asoma un 5 % de la pantalla. Con margen 0,
-    // un borde que apenas toca el de la pantalla ya cuenta como visible, y el
-    // recorrido empieza justo debajo del hero.
-    const asoma = new IntersectionObserver(
-      ([e]) => {
-        if (e?.isIntersecting) setAlcanzado(true)
-      },
-      { rootMargin: '0px 0px -5% 0px' },
-    )
     visible.observe(nodo)
-    asoma.observe(nodo)
     return () => {
       visible.disconnect()
-      asoma.disconnect()
       // Cache Components conserva la ruta oculta: el canvas deja de dibujar
       setEnVista(false)
     }
@@ -115,10 +108,9 @@ export function TourScroll({
     estadoRecorrido.escena = fijo
     const tarjetas = [...nodo.querySelectorAll<HTMLElement>('[data-tarjeta]')]
     const movimiento = window.matchMedia('(prefers-reduced-motion: reduce)')
-    // Prototipo del cuerpo único: la toma 0 es la del hero (sin el título de
-    // entrada) y la escena lleva el degradé del hero (globals.css)
-    const cuerpoUnico = cuerpoUnicoActivo()
-    if (cuerpoUnico) fijo.dataset.cuerpoUnico = ''
+    // Cuerpo único: la toma 0 es la del hero y la escena lleva el degradé
+    // del hero (globals.css)
+    fijo.dataset.cuerpoUnico = ''
 
     let objetivo = 0
     let seg = -1
@@ -158,8 +150,14 @@ export function TourScroll({
         const y = reducido ? 0 : (1 - w) * 22 * (s < i + 1 ? 1 : -1)
         tarjeta.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0)`
       })
-      mostrar(capaEntrada.current, cuerpoUnico ? 0 : opacidadEntrada(s, reducido))
-      mostrar(capaCierre.current, opacidadCierre(s, reducido))
+      const entrada = opacidadEntrada(s, reducido)
+      mostrar(capaEntrada.current, entrada)
+      mostrar(capaFondo.current, entrada)
+      const cierre = opacidadCierre(s, reducido)
+      mostrar(capaCierre.current, cierre)
+      // Al final del cierre, el degradé se funde en el gris de "Cómo
+      // trabajamos", que sigue debajo
+      mostrar(capaFundido.current, cierre)
       const nav = indice.current
       if (nav) {
         const v = indiceVisible(s)
@@ -180,7 +178,8 @@ export function TourScroll({
       // Lugar reservado: la parada más cercana; en la entrada y el cierre,
       // el cuerpo entero (la última vista)
       const k = Math.round(s)
-      const nuevaVista = k >= 1 && k <= tarjetas.length ? k - 1 : tarjetas.length
+      const nuevaVista =
+        k >= 1 && k <= tarjetas.length ? k - 1 : k === 0 ? vistaInicio : tarjetas.length
       if (nuevaVista !== ultimaVista) {
         ultimaVista = nuevaVista
         setVista(nuevaVista)
@@ -231,7 +230,7 @@ export function TourScroll({
       if (estadoRecorrido.escena === fijo) estadoRecorrido.escena = null
       delete fijo.dataset.cuerpoUnico
     }
-  }, [])
+  }, [vistaInicio])
 
   return (
     <div
@@ -241,6 +240,8 @@ export function TourScroll({
     >
       {/* Anclas de cada parada, a la altura de scroll donde la cámara llega a
           ella (k pantallas desde el principio del recorrido) */}
+      {/* #recorrido (menú y "Recorrer los implantes"): la craneoplastía */}
+      <span id="recorrido" aria-hidden className="recorrido-ancla" style={{ '--k': 1 } as CSSProperties} />
       {paradas.map((parada, i) => (
         <span
           key={parada.ancla}
@@ -253,6 +254,13 @@ export function TourScroll({
 
       <div ref={escena} data-escena-3d data-listo={listo || undefined} data-minis={minis || undefined} className="recorrido-escena escenario">
         <div aria-hidden className="recorrido-luz" />
+        <div ref={capaFundido} aria-hidden className="recorrido-fundido" />
+
+        {fondo && (
+          <div ref={capaFondo} aria-hidden className="recorrido-fondo-hero">
+            {fondo}
+          </div>
+        )}
 
         {/* Lugar reservado del 3D (sin WebGL o mientras carga) */}
         <div aria-hidden className="recorrido-vistas">
@@ -272,12 +280,14 @@ export function TourScroll({
           aria-label="Cuerpo de vidrio con el esqueleto a la vista y seis implantes de titanio: craneoplastía, reconstrucción maxilar, prótesis reversa de hombro, reconstrucción acetabular, endoprótesis de fémur proximal e implante intercalar de fémur"
           className="recorrido-lienzo"
         >
-          <Recorrido3D cerca={cerca} enVista={enVista} alListo={() => setListo(true)} />
+          <div className="intro-3d recorrido-intro-3d">
+            <Recorrido3D cerca={cerca} enVista={enVista} alListo={() => setListo(true)} />
+          </div>
         </div>
 
         <div aria-hidden className="recorrido-halo" />
 
-        <div ref={capaEntrada} className="recorrido-texto recorrido-entrada">
+        <div ref={capaEntrada} className="recorrido-texto recorrido-entrada recorrido-hero">
           {entrada}
         </div>
 
