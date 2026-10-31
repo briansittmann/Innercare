@@ -49,6 +49,7 @@ import {
   giroVaiven,
   opacidadBase,
   pesoHero,
+  pesoMaxilar,
   pesoTarjeta,
   type Encuadre,
 } from './camara'
@@ -376,11 +377,20 @@ function Cuerpo({ calidad, fondo, modo, cuerpoUnico, hero, escenas }: PropsCuerp
       m.envMapIntensity = MathUtils.lerp(a.envMapIntensity, b.envMapIntensity, h)
     }
     const opacidad = MathUtils.lerp(OPACIDAD_HUESO, OPACIDAD_HUESO_HERO, h)
+    // Maxilar: entero hasta acercarse a su parada, después el recortado
+    const m = pesoMaxilar(estadoRecorrido.seg, estadoRecorrido.reducido)
     for (const [nombre, malla] of huesos.current) {
       const material = malla.material as MeshPhysicalMaterial
       // Las vértebras del busto van enteras, sin corte
       if (nombre !== 'hueso_columna_alta') aplicarCorte(material, corte.hueso)
-      const peso = HUESOS_BUSTO.has(nombre) ? (nombre === 'hueso_maxilar_entero' ? h : 1) : 1 - h
+      const peso =
+        nombre === 'hueso_maxilar_entero'
+          ? 1 - m
+          : nombre === 'hueso_maxilar'
+            ? (1 - h) * m
+            : HUESOS_BUSTO.has(nombre)
+              ? 1
+              : 1 - h
       material.opacity = opacidad * peso
       malla.visible = material.opacity > 0.002
     }
@@ -661,15 +671,17 @@ function Implantes({ cuerpoUnico }: { cuerpoUnico: boolean }) {
         const cercania = MathUtils.clamp(distancia / 0.2, 0.25, 1)
         apagado = Math.min(apagado, MathUtils.lerp(1, cercania, wj))
       })
-      material.opacity = Math.max(base * apagado, w) * visibles
-      material.emissiveIntensity = INTENSIDAD_BRILLO * w
+      // El implante maxilar entra con el hueso recortado
+      const maxilar = cuerpoUnico && pieza.implante.parada === 'maxilar' ? pesoMaxilar(seg, reducido) : 1
+      material.opacity = Math.max(base * apagado, w) * visibles * maxilar
+      material.emissiveIntensity = INTENSIDAD_BRILLO * w * maxilar
       material.depthWrite = material.opacity > 0.9
       const malla = mallas.current[i]
       if (malla) malla.visible = material.opacity > 0.002
       const resplandor = resplandores.current[i]
       if (resplandor) {
-        resplandor.material.opacity = 0.85 * w * visibles
-        resplandor.visible = w * visibles > 0.01
+        resplandor.material.opacity = 0.85 * w * visibles * maxilar
+        resplandor.visible = w * visibles * maxilar > 0.01
       }
     })
   })

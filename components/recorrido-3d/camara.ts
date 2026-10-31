@@ -275,6 +275,15 @@ export function pesoHero(seg: number, reducido: boolean) {
   return 1 - smooth(clamp((clamp(seg, 0, 1) - 0.22) / 0.56))
 }
 
+// Maxilar del cuerpo único: 0 con el hueso entero (hero y craneoplastía) y 1
+// con el recortado y su implante. Se funde al acercarse a la parada 2
+// (seg 1,4 a 1,78, cuando su tarjeta termina de entrar) y queda así hasta el
+// cierre. Con movimiento reducido, el estado final de cada parada.
+export function pesoMaxilar(seg: number, reducido: boolean) {
+  if (reducido) return Math.round(clamp(seg, 0, TRAMOS)) >= 2 ? 1 : 0
+  return smooth(clamp((seg - 1.4) / 0.38))
+}
+
 // Peso de la tarjeta i (parada i + 1): w = 1 − clamp((|seg − (i + 1)| − 0,22) / 0,24).
 // Opacidad = w; desplazamiento de ±22 px según el lado; oculta bajo 0,02.
 // Con movimiento reducido, solo la de la parada más cercana, entera.
