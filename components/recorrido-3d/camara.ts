@@ -112,7 +112,9 @@ export const giroVaiven = (t: number) =>
 //   cabeza cae a 1066 px (ancla 0,740).
 // - Celular (390 × 844): la caja del 3D empieza a 660 px y la cabeza cae a
 //   922 px, debajo de la primera pantalla (ancla 1,092): con scroll 0 se ve
-//   la coronilla, como hoy.
+//   la coronilla. En el prototipo el recorrido es otra sección, más abajo, y
+//   con esa toma arrancaba casi vacío: usa la que se ve al pie del hero
+//   (ancla 0,691, el busto entero), que es donde el usuario lo dejó.
 // - Estiramiento: la cámara del hero toma el aspecto del canvas antes de
 //   correr la figura con setViewOffset (R3F lo fija al crearla y después
 //   `manual` lo congela), así que la imagen sale estirada a lo ancho en
@@ -123,7 +125,7 @@ export const HERO: Clave = {
   azimut: -GIRO_PERFIL,
   elevacion: Math.atan2(HERO_ALTURA_CAMARA, HERO_DISTANCIA),
   escritorio: { ancla: [0.7404, 0.5], alto: ALTO_HERO, estiramiento: 1.11, distancia: DISTANCIA_HERO },
-  celular: { ancla: [0.5, 1.092], alto: (ALTO_HERO * 844) / 523, estiramiento: 1, distancia: DISTANCIA_HERO },
+  celular: { ancla: [0.5, 0.691], alto: (ALTO_HERO * 844) / 523, estiramiento: 1, distancia: DISTANCIA_HERO },
 }
 
 // Paradas: el implante anclado al 34 % del ancho y la tarjeta a la derecha;

@@ -1,8 +1,8 @@
 [
  {
   "nombre": "celular-movimiento-hero-abajo",
-  "media": 2.1,
-  "mas24": 0.48,
+  "media": 2.14,
+  "mas24": 0.69,
   "desplazamiento": [
    0,
    0
@@ -10,7 +10,7 @@
  },
  {
   "nombre": "celular-movimiento-intro-0000",
-  "media": 0.09,
+  "media": 0.16,
   "mas24": 0,
   "desplazamiento": [
    0,
@@ -19,8 +19,8 @@
  },
  {
   "nombre": "celular-movimiento-intro-2000",
-  "media": 2.31,
-  "mas24": 0.43,
+  "media": 1.12,
+  "mas24": 0.2,
   "desplazamiento": [
    0,
    0
@@ -28,8 +28,8 @@
  },
  {
   "nombre": "celular-movimiento-intro-fin",
-  "media": 1.99,
-  "mas24": 0.33,
+  "media": 1.19,
+  "mas24": 0.18,
   "desplazamiento": [
    0,
    0
@@ -37,8 +37,8 @@
  },
  {
   "nombre": "celular-movimiento-vaiven-00",
-  "media": 1.87,
-  "mas24": 0.3,
+  "media": 1.13,
+  "mas24": 0.19,
   "desplazamiento": [
    0,
    0
@@ -46,8 +46,8 @@
  },
  {
   "nombre": "celular-movimiento-vaiven-05",
-  "media": 1.49,
-  "mas24": 0.12,
+  "media": 1.34,
+  "mas24": 0.19,
   "desplazamiento": [
    0,
    0
@@ -55,8 +55,8 @@
  },
  {
   "nombre": "celular-movimiento-vaiven-11",
-  "media": 1.82,
-  "mas24": 0.35,
+  "media": 1.22,
+  "mas24": 0.12,
   "desplazamiento": [
    0,
    0
@@ -64,8 +64,8 @@
  },
  {
   "nombre": "celular-movimiento-vaiven-16",
-  "media": 2.13,
-  "mas24": 0.32,
+  "media": 1.47,
+  "mas24": 0.23,
   "desplazamiento": [
    0,
    0
@@ -73,7 +73,7 @@
  },
  {
   "nombre": "celular-reducido-detalle",
-  "media": 0.26,
+  "media": 0.91,
   "mas24": 0.14,
   "desplazamiento": [
    0,
@@ -82,8 +82,8 @@
  },
  {
   "nombre": "celular-reducido-hero-abajo",
-  "media": 1.63,
-  "mas24": 0.38,
+  "media": 1.41,
+  "mas24": 0.33,
   "desplazamiento": [
    0,
    0
@@ -91,7 +91,7 @@
  },
  {
   "nombre": "celular-reducido-intro-0000",
-  "media": 0.83,
+  "media": 0.93,
   "mas24": 0,
   "desplazamiento": [
    0,
@@ -163,7 +163,7 @@
  },
  {
   "nombre": "escritorio-movimiento-intro-0000",
-  "media": 0.57,
+  "media": 0.51,
   "mas24": 0,
   "desplazamiento": [
    0,
@@ -172,16 +172,7 @@
  },
  {
   "nombre": "escritorio-movimiento-intro-2000",
-  "media": 1.64,
-  "mas24": 0.51,
-  "desplazamiento": [
-   0,
-   0
-  ]
- },
- {
-  "nombre": "escritorio-movimiento-intro-fin",
-  "media": 1.48,
+  "media": 1.68,
   "mas24": 0.43,
   "desplazamiento": [
    0,
@@ -189,9 +180,18 @@
   ]
  },
  {
+  "nombre": "escritorio-movimiento-intro-fin",
+  "media": 1.53,
+  "mas24": 0.4,
+  "desplazamiento": [
+   0,
+   0
+  ]
+ },
+ {
   "nombre": "escritorio-movimiento-vaiven-00",
-  "media": 1.65,
-  "mas24": 0.55,
+  "media": 1.48,
+  "mas24": 0.38,
   "desplazamiento": [
    0,
    0
@@ -199,8 +199,8 @@
  },
  {
   "nombre": "escritorio-movimiento-vaiven-05",
-  "media": 1.47,
-  "mas24": 0.5,
+  "media": 1.24,
+  "mas24": 0.31,
   "desplazamiento": [
    0,
    0
@@ -208,8 +208,8 @@
  },
  {
   "nombre": "escritorio-movimiento-vaiven-11",
-  "media": 1.3,
-  "mas24": 0.45,
+  "media": 2.73,
+  "mas24": 1.8,
   "desplazamiento": [
    0,
    0
@@ -217,8 +217,8 @@
  },
  {
   "nombre": "escritorio-movimiento-vaiven-16",
-  "media": 1.6,
-  "mas24": 0.52,
+  "media": 4.38,
+  "mas24": 4.11,
   "desplazamiento": [
    0,
    0
@@ -226,8 +226,8 @@
  },
  {
   "nombre": "escritorio-reducido-detalle",
-  "media": 0.98,
-  "mas24": 0.34,
+  "media": 0.93,
+  "mas24": 0.29,
   "desplazamiento": [
    0,
    0
@@ -235,7 +235,7 @@
  },
  {
   "nombre": "escritorio-reducido-intro-0000",
-  "media": 0.46,
+  "media": 0.69,
   "mas24": 0,
   "desplazamiento": [
    0,
@@ -244,8 +244,8 @@
  },
  {
   "nombre": "escritorio-reducido-intro-2000",
-  "media": 1.3,
-  "mas24": 0.33,
+  "media": 1.28,
+  "mas24": 0.26,
   "desplazamiento": [
    0,
    0
@@ -253,8 +253,8 @@
  },
  {
   "nombre": "escritorio-reducido-intro-fin",
-  "media": 1.3,
-  "mas24": 0.33,
+  "media": 1.28,
+  "mas24": 0.26,
   "desplazamiento": [
    0,
    0
@@ -262,8 +262,8 @@
  },
  {
   "nombre": "escritorio-reducido-vaiven-00",
-  "media": 1.3,
-  "mas24": 0.33,
+  "media": 1.28,
+  "mas24": 0.26,
   "desplazamiento": [
    0,
    0
@@ -271,8 +271,8 @@
  },
  {
   "nombre": "escritorio-reducido-vaiven-05",
-  "media": 1.3,
-  "mas24": 0.33,
+  "media": 1.28,
+  "mas24": 0.26,
   "desplazamiento": [
    0,
    0
@@ -280,8 +280,8 @@
  },
  {
   "nombre": "escritorio-reducido-vaiven-11",
-  "media": 1.3,
-  "mas24": 0.33,
+  "media": 1.28,
+  "mas24": 0.26,
   "desplazamiento": [
    0,
    0
@@ -289,8 +289,8 @@
  },
  {
   "nombre": "escritorio-reducido-vaiven-16",
-  "media": 1.3,
-  "mas24": 0.33,
+  "media": 1.28,
+  "mas24": 0.26,
   "desplazamiento": [
    0,
    0
@@ -298,8 +298,8 @@
  },
  {
   "nombre": "escritorio-respaldo-sin-webgl",
-  "media": 0.33,
-  "mas24": 0.01,
+  "media": 0.36,
+  "mas24": 0.05,
   "desplazamiento": [
    0,
    0

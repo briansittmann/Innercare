@@ -152,8 +152,16 @@ export function aplicarCorte(material: Material, uniformes: UniformesCorte) {
       'uniform float corteY;\nuniform float corteBanda;\nvarying float vCorteY;\n' +
       shader.fragmentShader.slice(0, final) +
       '  float corteF = smoothstep(corteY, corteY + corteBanda, vCorteY);\n' +
+      // Opaco: corte recto, sin tocar el alfa. Con alfa menor que 1 en un
+      // material opaco el canvas (premultiplicado) aclaraba el borde del
+      // corte hasta el blanco. El busto tampoco tiene banda: su tapa se ve
+      // de atrás y no se dibuja, así que el corte se ve abierto y recto.
+      '#ifdef OPAQUE\n' +
+      '  if (corteF < 0.5) discard;\n' +
+      '#else\n' +
       '  if (corteF <= 0.0) discard;\n' +
       '  gl_FragColor.a *= corteF;\n' +
+      '#endif\n' +
       shader.fragmentShader.slice(final)
   }
   material.customProgramCacheKey = () => `corte|${clave}`

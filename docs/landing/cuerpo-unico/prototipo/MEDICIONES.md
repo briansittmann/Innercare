@@ -18,21 +18,23 @@ La hoja de comparación es **`../comparacion.html`** (se abre como archivo): por
 
 ### Resultado
 
+Capturas repetidas después de las correcciones del verificador (corte recto sin banda en el vidrio opaco: ver la bitácora), con la Mac en batería.
+
 Medidas de `comparar.mjs` sobre la zona del 3D (escritorio: la caja del busto, x ≥ 600; celular: debajo de la línea de habilitaciones, y ≥ 330, o la pantalla entera en `hero-abajo`). **Media**: diferencia media del canal que más cambia, de 0 a 255. **>24**: porcentaje de píxeles que cambian más de 24/255 (≈ 10 %). **Corrimiento**: el desplazamiento entero (dx, dy) que mejor alinea la zona; 0, 0 es que la silueta cae en el mismo píxel.
 
 | Captura | Media | >24 (%) | Corrimiento |
 |---|---|---|---|
-| celular-movimiento-hero-abajo | 2.1 | 0.48 | 0, 0 |
-| celular-movimiento-intro-0000 | 0.09 | 0 | 0, 0 |
-| celular-movimiento-intro-2000 | 2.31 | 0.43 | 0, 0 |
-| celular-movimiento-intro-fin | 1.99 | 0.33 | 0, 0 |
-| celular-movimiento-vaiven-00 | 1.87 | 0.3 | 0, 0 |
-| celular-movimiento-vaiven-05 | 1.49 | 0.12 | 0, 0 |
-| celular-movimiento-vaiven-11 | 1.82 | 0.35 | 0, 0 |
-| celular-movimiento-vaiven-16 | 2.13 | 0.32 | 0, 0 |
-| celular-reducido-detalle | 0.26 | 0.14 | 0, 0 |
-| celular-reducido-hero-abajo | 1.63 | 0.38 | 0, 0 |
-| celular-reducido-intro-0000 | 0.83 | 0 | 0, 0 |
+| celular-movimiento-hero-abajo | 2.14 | 0.69 | 0, 0 |
+| celular-movimiento-intro-0000 | 0.16 | 0 | 0, 0 |
+| celular-movimiento-intro-2000 | 1.12 | 0.2 | 0, 0 |
+| celular-movimiento-intro-fin | 1.19 | 0.18 | 0, 0 |
+| celular-movimiento-vaiven-00 | 1.13 | 0.19 | 0, 0 |
+| celular-movimiento-vaiven-05 | 1.34 | 0.19 | 0, 0 |
+| celular-movimiento-vaiven-11 | 1.22 | 0.12 | 0, 0 |
+| celular-movimiento-vaiven-16 | 1.47 | 0.23 | 0, 0 |
+| celular-reducido-detalle | 0.91 | 0.14 | 0, 0 |
+| celular-reducido-hero-abajo | 1.41 | 0.33 | 0, 0 |
+| celular-reducido-intro-0000 | 0.93 | 0 | 0, 0 |
 | celular-reducido-intro-2000 | 1.11 | 0.17 | 0, 0 |
 | celular-reducido-intro-fin | 1.11 | 0.17 | 0, 0 |
 | celular-reducido-vaiven-00 | 1.11 | 0.17 | 0, 0 |
@@ -40,31 +42,34 @@ Medidas de `comparar.mjs` sobre la zona del 3D (escritorio: la caja del busto, x
 | celular-reducido-vaiven-11 | 1.11 | 0.17 | 0, 0 |
 | celular-reducido-vaiven-16 | 1.11 | 0.17 | 0, 0 |
 | celular-respaldo-sin-webgl | 0 | 0 | 0, 0 |
-| escritorio-movimiento-intro-0000 | 0.57 | 0 | 0, 0 |
-| escritorio-movimiento-intro-2000 | 1.64 | 0.51 | 0, 0 |
-| escritorio-movimiento-intro-fin | 1.48 | 0.43 | 0, 0 |
-| escritorio-movimiento-vaiven-00 | 1.65 | 0.55 | 0, 0 |
-| escritorio-movimiento-vaiven-05 | 1.47 | 0.5 | 0, 0 |
-| escritorio-movimiento-vaiven-11 | 1.3 | 0.45 | 0, 0 |
-| escritorio-movimiento-vaiven-16 | 1.6 | 0.52 | 0, 0 |
-| escritorio-reducido-detalle | 0.98 | 0.34 | 0, 0 |
-| escritorio-reducido-intro-0000 | 0.46 | 0 | 0, 0 |
-| escritorio-reducido-intro-2000 | 1.3 | 0.33 | 0, 0 |
-| escritorio-reducido-intro-fin | 1.3 | 0.33 | 0, 0 |
-| escritorio-reducido-vaiven-00 | 1.3 | 0.33 | 0, 0 |
-| escritorio-reducido-vaiven-05 | 1.3 | 0.33 | 0, 0 |
-| escritorio-reducido-vaiven-11 | 1.3 | 0.33 | 0, 0 |
-| escritorio-reducido-vaiven-16 | 1.3 | 0.33 | 0, 0 |
-| escritorio-respaldo-sin-webgl | 0.33 | 0.01 | 0, 0 |
+| escritorio-movimiento-intro-0000 | 0.51 | 0 | 0, 0 |
+| escritorio-movimiento-intro-2000 | 1.68 | 0.43 | 0, 0 |
+| escritorio-movimiento-intro-fin | 1.53 | 0.4 | 0, 0 |
+| escritorio-movimiento-vaiven-00 | 1.48 | 0.38 | 0, 0 |
+| escritorio-movimiento-vaiven-05 | 1.24 | 0.31 | 0, 0 |
+| escritorio-movimiento-vaiven-11 | 2.73 | 1.8 | 0, 0 |
+| escritorio-movimiento-vaiven-16 | 4.38 | 4.11 | 0, 0 |
+| escritorio-reducido-detalle | 0.93 | 0.29 | 0, 0 |
+| escritorio-reducido-intro-0000 | 0.69 | 0 | 0, 0 |
+| escritorio-reducido-intro-2000 | 1.28 | 0.26 | 0, 0 |
+| escritorio-reducido-intro-fin | 1.28 | 0.26 | 0, 0 |
+| escritorio-reducido-vaiven-00 | 1.28 | 0.26 | 0, 0 |
+| escritorio-reducido-vaiven-05 | 1.28 | 0.26 | 0, 0 |
+| escritorio-reducido-vaiven-11 | 1.28 | 0.26 | 0, 0 |
+| escritorio-reducido-vaiven-16 | 1.28 | 0.26 | 0, 0 |
+| escritorio-respaldo-sin-webgl | 0.36 | 0.05 | 0, 0 |
 
 Lectura:
-- **Silueta, encuadre y pose:** corrimiento 0, 0 en las 34 capturas, en escritorio y en el celular, quietas y en movimiento. La entrada (`intro-2000`, a medio girar) y el vaivén (`vaiven-11`, casi de frente) caen en el mismo cuadro que la base: el giro corre igual, cuadro a cuadro.
-- **Vidrio, color, brillo del titanio:** diferencia media de 1,1 a 2,3 sobre 255 y menos del 0,6 % de los píxeles cambia más de 24/255. Con movimiento, parte de eso son las fibras, que se mueven solas y cambian entre corridas. Quietas (movimiento reducido), 1,1 (celular) y 1,3 (escritorio); las de detalle a resolución completa, 0,26 y 0,98. No se midió cuánto difieren dos corridas de la misma base (quedó sin tiempo: ver "Rendimiento").
+- **Silueta, encuadre y pose:** corrimiento 0, 0 en las 34 capturas, en escritorio y en el celular, quietas y en movimiento. La entrada (`intro-2000`) cae en el mismo cuadro que la base. En `escritorio-movimiento-vaiven-11` y `-16` el prototipo quedó unos grados atrás en el vaivén (diferencia 2,7 y 4,4): estas capturas se tomaron con la Mac en batería y Chrome a 30 cuadros, y el reloj del vaivén descuenta los cuadros trabados (como el del busto: suma como mucho 0,1 s por cuadro). El código del giro no cambió desde la corrida anterior, enchufada, donde esas dos daban 1,3 y 1,6.
+- **Vidrio, color, brillo del titanio, corte bajo el cuello:** diferencia media de 1,1 a 2,1 sobre 255 (salvo esas dos) y menos del 0,7 % de los píxeles cambia más de 24/255. Con movimiento, parte de eso son las fibras, que se mueven solas y cambian entre corridas. Quietas (movimiento reducido), 1,1 (celular) y 1,3 (escritorio); las de detalle a resolución completa, 0,9 y 0,9. No se midió cuánto difieren dos corridas de la misma base.
 - **`intro-0000` y `respaldo-sin-webgl`:** prácticamente 0: en el primer cuadro de la intro y sin WebGL se ve la misma imagen fija del busto (`cuerpo-inicio*.webp`). Con el cuerpo único, esas imágenes siguen sirviendo tal cual.
-- **Lo que queda distinto** (visible solo ampliando, en `diferencias/`): el contorno de la oreja dentro del vidrio tiene un brillo un poco más marcado; algunas vértebras del fondo del cuello se ven apenas más tenues; y en el borde inferior, donde el busto tiene la tapa del corte, el cuerpo tiene un corte abierto (queda contra el borde del hero y no se distingue). Las tres vienen de que la piel y el hueso del cuerpo no son exactamente las mallas del busto (otra cuantización y sin la tapa).
+- **Corte bajo el cuello:** igual que la base. La primera versión agregaba un filo blanco de 2 a 4 px en el contorno inferior del hombro (el verificador lo marcó como grave): la banda del corte bajaba el alfa de un material opaco y el canvas, premultiplicado, lo aclaraba hasta el blanco. Ahora el vidrio opaco se corta recto, sin banda. El busto se ve igual: su tapa mira hacia abajo y, vista desde arriba, no se dibuja, así que su corte también es abierto y recto.
+- **Lo que queda distinto** (visible solo ampliando, en `diferencias/`): el contorno de la oreja y de la nuca, algo más marcado (más azul); las vértebras bajas y las bandas claras del cuello cambian un poco; y el reflejo bajo el borde de la craneoplastía cambia de forma. Vienen de que la piel y el hueso del cuerpo no son exactamente las mallas del busto (otra cuantización).
 
 
 ## Mediciones
+
+**Después de las correcciones del verificador no se volvieron a medir los cuadros por segundo** (la Mac estaba en batería al 12 %). La corrección del corte solo cambia una línea del shader del corte; los números de abajo son de antes.
 
 Mismo método que la base (`../base/MEDICIONES.md`, "Mediciones"), **alternando base y prototipo en la misma sesión y con el mismo build** (la base es la home sin el parámetro, que da la misma imagen que `6492345`). La máquina estuvo cargada todo el tiempo (Safari con su proceso de GPU al 26 %, Teléfono, Contactos, `BTLEServer` al 100 %; carga 3,5 a 7): no se cerraron apps del usuario. **Hacia el final la Mac pasó a batería (14 %)** y Chrome bajó a 30 cuadros con tope en base y prototipo por igual: lo medido desde ahí no se usó.
 

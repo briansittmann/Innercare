@@ -3,16 +3,16 @@
   "nombre": "escritorio-respaldo-sin-webgl",
   "desde": "done",
   "msDesde": [
-   1018,
-   1135
+   1024,
+   1163
   ],
   "canvasVisible": false,
   "respaldoOpacidad": 1
  },
  {
   "tam": "escritorio",
-  "running": 256.5,
-  "done": 4230.1,
+  "running": 362.6,
+  "done": 4325.9,
   "contextos": [],
   "errores": []
  },
@@ -20,16 +20,16 @@
   "nombre": "celular-respaldo-sin-webgl",
   "desde": "done",
   "msDesde": [
-   1022,
-   1098
+   1003,
+   1061
   ],
   "canvasVisible": false,
   "respaldoOpacidad": 1
  },
  {
   "tam": "celular",
-  "running": 224.7,
-  "done": 4205.5,
+  "running": 231.7,
+  "done": 4211.4,
   "contextos": [],
   "errores": []
  }

@@ -471,3 +471,15 @@ Memoria compartida entre las fases de la landing: cada fase deja acá qué hizo,
 - **Colores del degradé** repetidos ahora en tres lugares (`globals.css`, `hero-3d/body-scene.tsx` y `recorrido-3d/cuerpo-unico.ts`); y la luz de las paradas, que cambia con el estudio girando con la cámara.
 
 **Capturas:** `docs/landing/cuerpo-unico/prototipo/capturas/` (mismos nombres que `base/capturas/`), diferencias en `prototipo/diferencias/`, medidas en `prototipo/medidas/`, `prototipo/caja/medidas/`, `prototipo/base-alternada/medidas/` y `prototipo/sin-recorte/`, método y lectura en `prototipo/MEDICIONES.md`, y la hoja de comparación en **`docs/landing/cuerpo-unico/comparacion.html`** (se abre como archivo).
+
+### Cuerpo único, fase 1 · Correcciones del verificador (2026-10-31)
+
+El verificador dio "no pasa" por una diferencia grave. Commit: el de este apartado.
+
+- **Grave, corregido: filo blanco en el corte bajo el cuello.** El prototipo agregaba un filo blanco de 2 a 4 px y unos 90 px de largo en el contorno inferior derecho del hombro, visible sin ampliar en escritorio desde `intro-2000`, en el detalle y en `celular-*-hero-abajo`. La causa no era el corte abierto sino mi shader del corte: en la banda de 4 mm multiplicaba el alfa, y con el vidrio opaco (como queda en el hero) eso escribe un alfa menor que 1 sin mezcla en un canvas premultiplicado, que lo muestra aclarado hasta el blanco. Ahora, en materiales opacos el corte es recto (`#ifdef OPAQUE`: descarta debajo del corte y no toca el alfa); en transparentes (cuando el corte baja con el scroll) sigue el fundido. Es lo que hace el busto: su tapa mira hacia abajo, desde arriba no se dibuja, y su corte se ve abierto y recto. El borde queda igual que la base (diferencia en la zona del corte, de 2,21 a 1,68, sin corrimiento).
+- **Hallazgo, corregido: recorrido vacío en el celular.** La toma `hero` del celular ponía la cabeza debajo de la pantalla (ancla 1,092, la de la escena fija arriba de todo, como va a ser en la fase 2). En el prototipo el recorrido es otra sección y arrancaba casi vacío; ahora usa la toma del pie del hero (ancla 0,691, el busto entero). En la fase 2, con el hero dentro de la escena fija, volver a 1,092 o decidir. Mientras el hero y el recorrido sean secciones separadas, al pasar de una a otra se ven dos bustos un momento.
+- **Menores, quedan:** contorno de oreja y nuca algo más marcado, vértebras bajas y bandas claras del cuello, y el reflejo bajo el borde de la craneoplastía (de las mallas, no del material). No salieron con esta corrección.
+- **Capturas repetidas** (la tanda completa con `medir.mjs`, más el respaldo) y `comparacion.html` y `prototipo/MEDICIONES.md` actualizados. Con la Mac en batería, `escritorio-movimiento-vaiven-11` y `-16` quedaron unos grados atrás en el vaivén (Chrome a 30 cuadros y el reloj del vaivén descuenta los cuadros trabados); el código del giro no cambió desde la corrida enchufada, donde coincidían.
+- **No se midieron cuadros por segundo** después de la corrección (batería al 12 %).
+- Build, lint y `tsc` sin errores.
+
