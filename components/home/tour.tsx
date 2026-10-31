@@ -209,9 +209,11 @@ const posterCelular = getImageProps({
   height: 1047,
 }).props
 
+// La captura del busto entra con el cuerpo (.intro-3d: desenfoque y escala),
+// como el póster del hero de antes: si no, se veía nítida en el primer cuadro
 function VistaHero() {
   return (
-    <div className="absolute top-[78.2dvh] right-0 h-[62vh] w-full overflow-hidden [--foco:0.5] min-[820px]:top-auto min-[820px]:bottom-0 min-[820px]:aspect-[14/15] min-[820px]:h-[min(100%,80vw)] min-[820px]:w-auto min-[820px]:[--foco:0.555]">
+    <div className="intro-3d absolute top-[78.2dvh] right-0 h-[62vh] w-full overflow-hidden [--foco:0.5] min-[820px]:top-auto min-[820px]:bottom-0 min-[820px]:aspect-[14/15] min-[820px]:h-[min(100%,80vw)] min-[820px]:w-auto min-[820px]:[--foco:0.555]">
       <picture>
         <source media="(min-width: 768px)" srcSet={posterEscritorio.srcSet} sizes={posterEscritorio.sizes} />
         <img
