@@ -20,8 +20,10 @@ import { fileURLToPath } from 'node:url'
 const DIR = dirname(fileURLToPath(import.meta.url))
 const sharp = createRequire(join(DIR, '../../../'))('sharp')
 const BASE = join(DIR, 'base/capturas')
-const PROTO = join(DIR, 'prototipo/capturas')
-const DIF = join(DIR, 'prototipo/diferencias')
+// --contra fase3: compara esa carpeta (fase3/capturas) en lugar del prototipo
+const CONTRA = process.argv.includes('--contra') ? process.argv[process.argv.indexOf('--contra') + 1] : 'prototipo'
+const PROTO = join(DIR, CONTRA, 'capturas')
+const DIF = join(DIR, CONTRA, 'diferencias')
 mkdirSync(DIF, { recursive: true })
 
 const zona = (nombre, w, h) => {

@@ -1,8 +1,8 @@
 [
  {
   "nombre": "celular-movimiento-hero-abajo",
-  "media": 2.14,
-  "mas24": 0.69,
+  "media": 31.97,
+  "mas24": 35.36,
   "desplazamiento": [
    0,
    0
@@ -10,17 +10,17 @@
  },
  {
   "nombre": "celular-movimiento-intro-0000",
-  "media": 0.16,
-  "mas24": 0,
+  "media": 11.05,
+  "mas24": 3.19,
   "desplazamiento": [
-   0,
-   0
+   6,
+   -6
   ]
  },
  {
   "nombre": "celular-movimiento-intro-2000",
-  "media": 1.12,
-  "mas24": 0.2,
+  "media": 11.84,
+  "mas24": 11.63,
   "desplazamiento": [
    0,
    0
@@ -28,8 +28,8 @@
  },
  {
   "nombre": "celular-movimiento-intro-fin",
-  "media": 1.19,
-  "mas24": 0.18,
+  "media": 11.03,
+  "mas24": 10.15,
   "desplazamiento": [
    0,
    0
@@ -37,8 +37,8 @@
  },
  {
   "nombre": "celular-movimiento-vaiven-00",
-  "media": 1.13,
-  "mas24": 0.19,
+  "media": 11.02,
+  "mas24": 10.14,
   "desplazamiento": [
    0,
    0
@@ -46,8 +46,8 @@
  },
  {
   "nombre": "celular-movimiento-vaiven-05",
-  "media": 1.34,
-  "mas24": 0.19,
+  "media": 10.86,
+  "mas24": 8.84,
   "desplazamiento": [
    0,
    0
@@ -55,8 +55,8 @@
  },
  {
   "nombre": "celular-movimiento-vaiven-11",
-  "media": 1.22,
-  "mas24": 0.12,
+  "media": 11.57,
+  "mas24": 10.76,
   "desplazamiento": [
    0,
    0
@@ -64,8 +64,8 @@
  },
  {
   "nombre": "celular-movimiento-vaiven-16",
-  "media": 1.47,
-  "mas24": 0.23,
+  "media": 11.45,
+  "mas24": 12.24,
   "desplazamiento": [
    0,
    0
@@ -73,8 +73,8 @@
  },
  {
   "nombre": "celular-reducido-detalle",
-  "media": 0.91,
-  "mas24": 0.14,
+  "media": 11.15,
+  "mas24": 11.47,
   "desplazamiento": [
    0,
    0
@@ -82,8 +82,8 @@
  },
  {
   "nombre": "celular-reducido-hero-abajo",
-  "media": 1.41,
-  "mas24": 0.33,
+  "media": 31.78,
+  "mas24": 34.95,
   "desplazamiento": [
    0,
    0
@@ -91,8 +91,8 @@
  },
  {
   "nombre": "celular-reducido-intro-0000",
-  "media": 0.93,
-  "mas24": 0,
+  "media": 19.91,
+  "mas24": 38.15,
   "desplazamiento": [
    0,
    0
@@ -100,8 +100,8 @@
  },
  {
   "nombre": "celular-reducido-intro-2000",
-  "media": 1.11,
-  "mas24": 0.17,
+  "media": 11.44,
+  "mas24": 11.58,
   "desplazamiento": [
    0,
    0
@@ -109,8 +109,8 @@
  },
  {
   "nombre": "celular-reducido-intro-fin",
-  "media": 1.11,
-  "mas24": 0.17,
+  "media": 11.44,
+  "mas24": 11.58,
   "desplazamiento": [
    0,
    0
@@ -118,8 +118,8 @@
  },
  {
   "nombre": "celular-reducido-vaiven-00",
-  "media": 1.11,
-  "mas24": 0.17,
+  "media": 11.44,
+  "mas24": 11.58,
   "desplazamiento": [
    0,
    0
@@ -127,8 +127,8 @@
  },
  {
   "nombre": "celular-reducido-vaiven-05",
-  "media": 1.11,
-  "mas24": 0.17,
+  "media": 11.44,
+  "mas24": 11.58,
   "desplazamiento": [
    0,
    0
@@ -136,8 +136,8 @@
  },
  {
   "nombre": "celular-reducido-vaiven-11",
-  "media": 1.11,
-  "mas24": 0.17,
+  "media": 11.44,
+  "mas24": 11.58,
   "desplazamiento": [
    0,
    0
@@ -145,8 +145,8 @@
  },
  {
   "nombre": "celular-reducido-vaiven-16",
-  "media": 1.11,
-  "mas24": 0.17,
+  "media": 11.44,
+  "mas24": 11.58,
   "desplazamiento": [
    0,
    0
@@ -154,26 +154,21 @@
  },
  {
   "nombre": "celular-respaldo-sin-webgl",
-  "media": 0,
-  "mas24": 0,
-  "desplazamiento": [
-   0,
-   0
-  ]
+  "falta": true
  },
  {
   "nombre": "escritorio-movimiento-intro-0000",
-  "media": 0.51,
-  "mas24": 0,
+  "media": 13.85,
+  "mas24": 18.18,
   "desplazamiento": [
-   0,
-   0
+   -2,
+   -6
   ]
  },
  {
   "nombre": "escritorio-movimiento-intro-2000",
-  "media": 1.68,
-  "mas24": 0.43,
+  "media": 1.7,
+  "mas24": 0.46,
   "desplazamiento": [
    0,
    0
@@ -181,8 +176,8 @@
  },
  {
   "nombre": "escritorio-movimiento-intro-fin",
-  "media": 1.53,
-  "mas24": 0.4,
+  "media": 2.06,
+  "mas24": 0.77,
   "desplazamiento": [
    0,
    0
@@ -190,8 +185,8 @@
  },
  {
   "nombre": "escritorio-movimiento-vaiven-00",
-  "media": 1.48,
-  "mas24": 0.38,
+  "media": 1.93,
+  "mas24": 0.72,
   "desplazamiento": [
    0,
    0
@@ -199,8 +194,8 @@
  },
  {
   "nombre": "escritorio-movimiento-vaiven-05",
-  "media": 1.24,
-  "mas24": 0.31,
+  "media": 1.39,
+  "mas24": 0.32,
   "desplazamiento": [
    0,
    0
@@ -208,8 +203,8 @@
  },
  {
   "nombre": "escritorio-movimiento-vaiven-11",
-  "media": 2.73,
-  "mas24": 1.8,
+  "media": 1.29,
+  "mas24": 0.25,
   "desplazamiento": [
    0,
    0
@@ -217,8 +212,8 @@
  },
  {
   "nombre": "escritorio-movimiento-vaiven-16",
-  "media": 4.38,
-  "mas24": 4.11,
+  "media": 1.54,
+  "mas24": 0.45,
   "desplazamiento": [
    0,
    0
@@ -226,8 +221,8 @@
  },
  {
   "nombre": "escritorio-reducido-detalle",
-  "media": 0.93,
-  "mas24": 0.29,
+  "media": 1.11,
+  "mas24": 0.3,
   "desplazamiento": [
    0,
    0
@@ -235,8 +230,8 @@
  },
  {
   "nombre": "escritorio-reducido-intro-0000",
-  "media": 0.69,
-  "mas24": 0,
+  "media": 11.17,
+  "mas24": 13.68,
   "desplazamiento": [
    0,
    0
@@ -244,8 +239,8 @@
  },
  {
   "nombre": "escritorio-reducido-intro-2000",
-  "media": 1.28,
-  "mas24": 0.26,
+  "media": 1.47,
+  "mas24": 0.28,
   "desplazamiento": [
    0,
    0
@@ -253,8 +248,8 @@
  },
  {
   "nombre": "escritorio-reducido-intro-fin",
-  "media": 1.28,
-  "mas24": 0.26,
+  "media": 1.47,
+  "mas24": 0.28,
   "desplazamiento": [
    0,
    0
@@ -262,8 +257,8 @@
  },
  {
   "nombre": "escritorio-reducido-vaiven-00",
-  "media": 1.28,
-  "mas24": 0.26,
+  "media": 1.47,
+  "mas24": 0.28,
   "desplazamiento": [
    0,
    0
@@ -271,8 +266,8 @@
  },
  {
   "nombre": "escritorio-reducido-vaiven-05",
-  "media": 1.28,
-  "mas24": 0.26,
+  "media": 1.47,
+  "mas24": 0.28,
   "desplazamiento": [
    0,
    0
@@ -280,8 +275,8 @@
  },
  {
   "nombre": "escritorio-reducido-vaiven-11",
-  "media": 1.28,
-  "mas24": 0.26,
+  "media": 1.47,
+  "mas24": 0.28,
   "desplazamiento": [
    0,
    0
@@ -289,8 +284,8 @@
  },
  {
   "nombre": "escritorio-reducido-vaiven-16",
-  "media": 1.28,
-  "mas24": 0.26,
+  "media": 1.47,
+  "mas24": 0.28,
   "desplazamiento": [
    0,
    0
@@ -298,11 +293,6 @@
  },
  {
   "nombre": "escritorio-respaldo-sin-webgl",
-  "media": 0.36,
-  "mas24": 0.05,
-  "desplazamiento": [
-   0,
-   0
-  ]
+  "falta": true
  }
 ]
