@@ -51,8 +51,8 @@
   --color-on-background: #0d1b2a;
   --color-surface-variant: #d4dbe1;
   /* Fondo del hero, de arriba abajo: el único fondo de color de la interfaz.
-     components/hero-3d/body-scene.tsx repite estos valores para que el
-     vidrio refracte el mismo degradé. */
+     components/recorrido-3d/aspecto-hero.ts repite estos valores para que
+     el vidrio refracte el mismo degradé. */
   --color-stage-from: #e6eef8;
   --color-stage-to: #c3d7ee;
 
@@ -637,8 +637,8 @@ body {
      arranque; los valores salen de INTRO_AT).
    - done: sin animaciones, para que volver a la home no las repita.
    .intro-in: textos y botones del hero suben con un desenfoque que se
-   aclara. .intro-3d: el busto aparece desenfocado y un poco más chico, y
-   gira hasta su pose desde la escena (components/hero-3d/body-scene.tsx). */
+   aclara. .intro-3d: el cuerpo aparece desenfocado y un poco más chico, y
+   gira hasta su pose desde la escena (components/recorrido-3d/escena.tsx). */
 @keyframes intro-fallback {
   to {
     opacity: 1;
@@ -719,18 +719,18 @@ body {
      en el celular, abajo, como hoja inferior). JS les da la opacidad.
    - .recorrido-halo: el anillo que late alrededor del implante activo. La
      escena 3D escribe su centro, radio y opacidad (--halo-*).
-   - .recorrido-luz: la luz azul que acompaña al cuerpo (--luz-*).
    - .escena-vista: las vistas del lugar reservado del 3D (sin WebGL o
      mientras carga), una por parada. La activa (data-visible) entra con un
      fundido y la anterior se apaga. Se van cuando el 3D está listo.
    - .indice-riel: riel del índice anatómico. Un tramo tenue del primario lo
      llena de forma continua con el recorrido (--avance, de 0 a 1, lo escribe
      JS) y la parada activa lleva una barra de 2 px. */
-/* Fondo de la escena del recorrido (el del borrador: una luz azul de la
-   marca hacia la derecha, donde va el cuerpo, que se funde con el gris de
-   la página). Lo llevan la escena y cada vista: la opacidad aísla el grupo
-   de cada vista, y sin fondo propio el mix-blend-multiply de .visor-imagen
-   no tendría con qué mezclarse. */
+/* Fondo de las vistas de las paradas en el lugar reservado (sin WebGL o
+   mientras carga; el del borrador: una luz azul de la marca hacia la
+   derecha, que se funde con el gris de la página). Lo lleva cada vista: la
+   opacidad aísla el grupo de cada una, y sin fondo propio el
+   mix-blend-multiply de .visor-imagen no tendría con qué mezclarse. La
+   escena fija lleva el degradé del hero (.recorrido-escena). */
 .escenario {
   background:
     linear-gradient(var(--color-surface), transparent 7rem),
@@ -815,8 +815,7 @@ body {
 }
 
 .recorrido-vistas,
-.recorrido-lienzo,
-.recorrido-luz {
+.recorrido-lienzo {
   position: absolute;
   inset: 0;
 }
@@ -854,39 +853,14 @@ body {
     visibility 0s 700ms;
 }
 
-.recorrido-luz {
-  opacity: 0;
-  /* Abajo se apaga en el gris, como .escenario: cuando la escena fija se
-     suelta, el recorrido termina en el gris de "Cómo trabajamos" sin un
-     corte recto. Es una capa del mismo fondo y no una máscara: la luz se
-     repinta en cada cuadro del scroll y la máscara costaba un 3 %. */
-  background:
-    linear-gradient(to top, var(--color-surface), transparent 9rem),
-    radial-gradient(
-      circle 60vmax at var(--luz-x, 68%) var(--luz-y, 50%),
-      rgb(34 96 161 / 0.3),
-      rgb(34 96 161 / 0.08) 45%,
-      rgb(34 96 161 / 0)
-    );
-  transition: opacity 700ms var(--ease-out);
-}
-
-.recorrido-escena[data-listo] .recorrido-luz {
-  opacity: 1;
-}
-
-/* Cuerpo único: la escena fija lleva el degradé del hero, que refracta el
-   vidrio, sin la luz azul del recorrido. En CSS y no con el atributo que pone
-   el JS, para que el primer cuadro (y la página sin JS) ya lo tenga. */
+/* La escena fija lleva el degradé del hero de principio a fin, y el vidrio
+   lo refracta. En CSS y no desde el JS, para que el primer cuadro (y la
+   página sin JS) ya lo tenga. */
 .recorrido-escena {
   background: linear-gradient(var(--color-stage-from), var(--color-stage-to));
 }
 
-.recorrido-escena .recorrido-luz {
-  display: none;
-}
-
-/* Cuerpo único (fase 3): el hero dentro de la escena fija. La cinta de
+/* El hero dentro de la escena fija. La cinta de
    fibras va detrás del cuerpo; el texto, encima, con la maqueta que tenía
    como sección propia (a todo el alto, bajo el header). Las dos capas se
    funden con el progreso (tour-scroll.tsx). Al final del cierre, el degradé
@@ -1084,7 +1058,6 @@ body {
 
   .recorrido-vistas,
   .recorrido-lienzo,
-  .recorrido-luz,
   .recorrido-fondo-hero,
   .recorrido-fundido,
   .recorrido-halo,
