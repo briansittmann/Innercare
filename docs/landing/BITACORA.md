@@ -517,3 +517,30 @@ El verificador dio "no pasa" por una diferencia grave. Commit: el de este aparta
 - Lo que quedaba de la fase 1 sigue igual: canvas del hero del tamaño de la caja, paso al recorrido sin tope y luz de las paradas.
 
 **Capturas y renders:** `docs/landing/cuerpo-unico/fase2/capturas/` (hero del prototipo con los nombres de `prototipo/capturas/`, y `parada-*`: el recorrido base y con `?cuerpo-unico`), `fase2/diferencias/` (contra la fase 1, × 4) y `fase2/renders/piel-zonas-*.webp`.
+
+---
+
+## Cuerpo único, fase 3 · Unir las secciones y mudar el hero (2026-10-31)
+
+**Commits:** `61a7b1b` (el hero entra en la escena fija del recorrido), `0294e73` (toma hero del celular arriba de todo), `d4d922c` (capturas del hero), `1b41bcb` (script de capturas del recorrido y `comparar.mjs --contra`), `5f24d06` (capturas del recorrido) y el de esta entrada.
+
+**Qué se hizo.**
+- **El cuerpo único es el camino normal.** `?cuerpo-unico` ya no hace falta (`cuerpoUnicoActivo()` devuelve siempre `true`, `estado.ts`; se borra en la fase 5). `app/page.tsx` ya no monta `Hero`: `components/home/hero.tsx` exporta `HeroTexto` (título con FoldText, subtítulo, botones, línea ANMAT y aviso de deslizar, con la misma maqueta) y `HeroFondo` (las fibras, sin cambios).
+- **La sección** (`tour.tsx`) es la `IntroSection` con `id="inicio"`, arriba de todo y por detrás del header (`-mt-16 md:-mt-[72px]`). El H2 de entrada salió; el texto del hero va en la capa de entrada (`.recorrido-hero`) y las fibras detrás del cuerpo (`.recorrido-fondo-hero`); las dos se funden con `opacidadEntrada` (seg 0 a 0,35). `--tramos` no cambia: la toma 0 es la del hero (antes la entrada) y desde la craneoplastía todo queda como estaba. `#recorrido` pasa a ser un ancla más, en k = 1 (la craneoplastía).
+- **Una escena, un canvas.** `Recorrido3D` se monta enseguida (idle, máximo 1,5 s) y arranca la intro con `startIntro()` al estar listo o a los 2,5 s; lleva el estado hold/play/skip en `estadoRecorrido.entrada`. La cámara del recorrido corre el giro de entrada y el vaivén del hero, amortiguados por `pesoHero`. `PerformanceMonitor` siempre (solo recibe cuadros mientras el hero anima). El hero carga `cuerpo-cabeza.glb` y la craneoplastía; `cuerpo-resto.glb`, `implantes-recorrido.glb` y las miniaturas se piden con `useIntroPhase() === 'done'` (mientras tanto sigue el cuerpo del hero como `fallback` del Suspense).
+- **Rendimiento del hero:** con el peso del hero entero (seg < 0,22) la escena dibuja solo la caja del busto de hoy (tijera en la pasada principal y en el buffer del vidrio, `recorteHero` en `escena.tsx`), una sola pasada.
+- **Respaldo sin WebGL:** vista nueva `VistaHero` (las capturas `cuerpo-inicio*.webp`) en la toma 0; las paradas y el cierre siguen con las suyas. **Fondo:** degradé del hero en toda la escena fija; al final del cierre `.recorrido-fundido` lo apaga en el gris.
+
+**Decidido sin preguntar.**
+- **Celular: la cabeza vuelve al ancla 1,092** (la del hero de hoy con scroll 0: asoma la coronilla bajo el aviso). Así el primer pantallazo es el de hoy; `hero-abajo` ya no aplica (no hay más hero que deslizar).
+- **El maxilar** no se tocó: la lógica de la fase 1 ya muestra el entero en el hero y el recortado con su implante en las paradas.
+- **El código del modo `hero` de `escena.tsx` y `components/hero-3d/` quedan sin uso**, para la limpieza de la fase 5.
+
+**Comprobado** (build de producción en 3400, Chrome con GPU). Build, lint y `tsc` sin errores. Hero contra la base (`comparar.mjs --contra fase3`): escritorio 1,1 a 2,1 de media, desplazamiento 0, 0; celular ≈11, porque la cinta de fibras cae más arriba (ahora la mide contra una pantalla, no contra el hero alto del celular); el busto coincide a ojo. Contextos WebGL vivos: 2 en el hero y 2 al pie, en los cuatro casos. Sin errores de consola.
+
+**Pendiente.**
+- **No se midieron cuadros por segundo** (batería al 3 %). Falta, enchufada: hero quieto, paso al recorrido y recorrido contra la base.
+- **Fibras en el celular:** posición distinta a la base (fase 4, `components/home/hero.tsx` `HeroFondo`). Siguen dibujando aunque estén ocultas (fase 4).
+- **`intro-0000`** difiere (11 a 20 de media): el primer cuadro ya muestra el canvas o la captura en otro momento; revisar.
+- **Sin revisar:** sin JS, el índice activo del menú (`use-active-section.ts`: `#recorrido` ahora es un `span`), el salto de "Recorrer los implantes" y el cambio del cuerpo del hero al entero al llegar el resto (un remontaje).
+- **Capturas:** `docs/landing/cuerpo-unico/fase3/capturas/` (hero, nombres de `base/capturas/`), `fase3/diferencias/`, `fase3/recorrido/` (seg 0,1 a 7, con y sin movimiento reducido, 1440 y 390) e `informe.json`.
