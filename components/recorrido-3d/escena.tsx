@@ -70,7 +70,7 @@ import {
 } from './cuerpo-unico'
 import { cuerpoUnicoActivo, estadoRecorrido } from './estado'
 import { CUERPO, IMPLANTES, IMPLANTES_GLB, esPiel, type Implante } from './implantes'
-import { Miniaturas } from './miniaturas'
+import { Miniaturas, useArchivosImplantes } from './miniaturas'
 import { useIntroPhase } from '../intro'
 
 // Escena 3D del recorrido (#recorrido): el cuerpo de vidrio entero con el
@@ -535,11 +535,7 @@ function matrizDe(implante: Implante) {
 }
 
 function usePiezas(): PiezaLista[] {
-  const urls = useMemo(
-    () => [...new Set(IMPLANTES.flatMap((i) => (i.fuente.tipo === 'glb' ? [i.fuente.url] : [])))],
-    [],
-  )
-  const archivos = useGLTF(urls, false, true)
+  const archivos = useArchivosImplantes()
   const piezas = useMemo(() => {
     return IMPLANTES.map((implante) => {
       const matriz = matrizDe(implante)
@@ -549,7 +545,7 @@ function usePiezas(): PiezaLista[] {
       if (fuente.tipo === 'primitiva') {
         geometria = fuente.crear()
       } else {
-        const archivo = archivos[urls.indexOf(fuente.url)]
+        const archivo = archivos.get(fuente.url)
         const malla = archivo ? mallasDe(archivo.scene).find((m) => m.name === fuente.malla) : undefined
         if (!malla) throw new Error(`Falta la malla ${fuente.malla} en ${fuente.url}`)
         malla.updateWorldMatrix(true, false)
@@ -565,7 +561,7 @@ function usePiezas(): PiezaLista[] {
       const radio = (esfera?.radius ?? 0.02) * matriz.getMaxScaleOnAxis()
       return { implante, geometria, matriz, propia, centro, radio }
     })
-  }, [archivos, urls])
+  }, [archivos])
   // Las primitivas se crean acá: se liberan al desmontar
   useEffect(
     () => () => {

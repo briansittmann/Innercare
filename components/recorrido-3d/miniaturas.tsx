@@ -24,7 +24,7 @@ import {
 } from 'three'
 import { ANCHO_CELULAR, ORDEN_PARADAS, TOMAS_PARADA, clamp, pesoTarjeta } from './camara'
 import { estadoRecorrido } from './estado'
-import { IMPLANTES, type Implante } from './implantes'
+import { IMPLANTES, IMPLANTES_GLB, IMPLANTES_RECORRIDO_GLB, type Implante } from './implantes'
 
 // Miniaturas de las tarjetas del recorrido: el ensamble de partículas del
 // guion (docs/landing/LANDING_SPEC.md, sección 4, y drawMini del borrador).
@@ -440,23 +440,32 @@ function Miniatura({
   )
 }
 
+// Los .glb de los implantes, cada uno con su useGLTF: la caché de useGLTF es
+// por pedido, así que pedirlos como lista volvía a descargar implantes.glb,
+// que la craneoplastía del hero ya había pedido sola. Si una entrada de
+// IMPLANTES apunta a otro archivo, se suma acá.
+export function useArchivosImplantes() {
+  const craneo = useGLTF(IMPLANTES_GLB, false, true)
+  const resto = useGLTF(IMPLANTES_RECORRIDO_GLB, false, true)
+  return useMemo(
+    () => new Map([[IMPLANTES_GLB, craneo], [IMPLANTES_RECORRIDO_GLB, resto]]),
+    [craneo, resto],
+  )
+}
+
 // Las seis miniaturas. Se montan dentro del Suspense de la escena, con los
 // mismos archivos que los implantes del cuerpo (ya en caché).
 export function Miniaturas() {
   const raiz = useThree((s) => s.scene)
   const invalidate = useThree((s) => s.invalidate)
-  const urls = useMemo(
-    () => [...new Set(IMPLANTES.flatMap((i) => (i.fuente.tipo === 'glb' ? [i.fuente.url] : [])))],
-    [],
-  )
-  const archivos = useGLTF(urls, false, true)
+  const archivos = useArchivosImplantes()
   const celular = typeof window !== 'undefined' && window.innerWidth < ANCHO_CELULAR
   const piezas = useMemo(
     () =>
       IMPLANTES.flatMap((implante) => {
         const fuente = implante.fuente
         if (fuente.tipo !== 'glb') return []
-        const archivo = archivos[urls.indexOf(fuente.url)]
+        const archivo = archivos.get(fuente.url)
         const malla = archivo ? mallasDe(archivo.scene).find((m) => m.name === fuente.malla) : undefined
         const nodo = document.querySelector<HTMLElement>(`[data-miniatura-3d="${implante.parada}"]`)
         if (!malla || !nodo) return []
@@ -469,7 +478,7 @@ export function Miniaturas() {
           },
         ]
       }),
-    [archivos, urls, celular],
+    [archivos, celular],
   )
   useEffect(() => () => piezas.forEach((p) => p.datos.puntos.dispose()), [piezas])
 
