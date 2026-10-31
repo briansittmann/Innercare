@@ -1,0 +1,388 @@
+[
+ {
+  "tam": "escritorio",
+  "tope": true,
+  "vuelta": "1",
+  "param": null,
+  "cargaMaquina": [
+   6.45,
+   8.27,
+   8.89
+  ],
+  "running": 1082.8,
+  "done": 5085.7,
+  "listo": 1083.6,
+  "modelosHero": [
+   {
+    "archivo": "cuerpo-cabeza.glb",
+    "transferidos": 306905,
+    "sinComprimir": 380692,
+    "pedido": 632,
+    "fin": 656
+   },
+   {
+    "archivo": "implantes.glb",
+    "transferidos": 55154,
+    "sinComprimir": 73308,
+    "pedido": 632,
+    "fin": 639
+   },
+   {
+    "archivo": "cuerpo-resto.glb",
+    "transferidos": 457298,
+    "sinComprimir": 595372,
+    "pedido": 5081,
+    "fin": 5135
+   },
+   {
+    "archivo": "implantes.glb",
+    "transferidos": 55154,
+    "sinComprimir": 73308,
+    "pedido": 5083,
+    "fin": 5107
+   },
+   {
+    "archivo": "implantes-recorrido.glb",
+    "transferidos": 194890,
+    "sinComprimir": 313080,
+    "pedido": 5083,
+    "fin": 5116
+   }
+  ],
+  "contextosHero": [
+   {
+    "i": 0,
+    "tipo": "webgl2",
+    "vivo": true,
+    "enDom": false,
+    "tam": "300x150",
+    "dentroDe": null,
+    "creado": 473,
+    "primerDibujo": null,
+    "dibujos": 0
+   },
+   {
+    "i": 1,
+    "tipo": "webgl2",
+    "vivo": true,
+    "enDom": true,
+    "tam": "2400x1500",
+    "dentroDe": "pointer-events-none absolute inset-0",
+    "creado": 502,
+    "primerDibujo": 524,
+    "dibujos": 2959
+   },
+   {
+    "i": 2,
+    "tipo": "webgl2",
+    "vivo": true,
+    "enDom": true,
+    "tam": "2160x1350",
+    "dentroDe": "",
+    "creado": 919,
+    "primerDibujo": 984,
+    "dibujos": 3100
+   }
+  ],
+  "heroQuieto": {
+   "cuadros": 360,
+   "fps": 60,
+   "p50": 16.7,
+   "p95": 16.8,
+   "max": 16.8
+  },
+  "recorridoListo": true,
+  "paso30vh": {
+   "cuadros": 234,
+   "fps": 58.5,
+   "p50": 16.7,
+   "p95": 16.8,
+   "max": 50.1
+  },
+  "pasoPrimeraParada": {
+   "cuadros": 297,
+   "fps": 59.2,
+   "p50": 16.7,
+   "p95": 16.8,
+   "max": 33.4
+  },
+  "recorrido": {
+   "cuadros": 622,
+   "fps": 51.8,
+   "p50": 16.7,
+   "p95": 33.4,
+   "max": 66.7
+  },
+  "contextosPie": [
+   {
+    "i": 0,
+    "tipo": "webgl2",
+    "vivo": true,
+    "enDom": false,
+    "tam": "300x150",
+    "dentroDe": null,
+    "creado": 473,
+    "primerDibujo": null,
+    "dibujos": 0
+   },
+   {
+    "i": 1,
+    "tipo": "webgl2",
+    "vivo": true,
+    "enDom": true,
+    "tam": "2400x1500",
+    "dentroDe": "pointer-events-none absolute inset-0",
+    "creado": 502,
+    "primerDibujo": 524,
+    "dibujos": 13893
+   },
+   {
+    "i": 2,
+    "tipo": "webgl2",
+    "vivo": true,
+    "enDom": true,
+    "tam": "2160x1350",
+    "dentroDe": "",
+    "creado": 919,
+    "primerDibujo": 984,
+    "dibujos": 64462
+   }
+  ],
+  "dibujosPie2s": [
+   0,
+   0,
+   0
+  ],
+  "modelosTodos": [
+   {
+    "archivo": "cuerpo-cabeza.glb",
+    "transferidos": 306905,
+    "sinComprimir": 380692,
+    "pedido": 632,
+    "fin": 656
+   },
+   {
+    "archivo": "implantes.glb",
+    "transferidos": 55154,
+    "sinComprimir": 73308,
+    "pedido": 632,
+    "fin": 639
+   },
+   {
+    "archivo": "cuerpo-resto.glb",
+    "transferidos": 457298,
+    "sinComprimir": 595372,
+    "pedido": 5081,
+    "fin": 5135
+   },
+   {
+    "archivo": "implantes.glb",
+    "transferidos": 55154,
+    "sinComprimir": 73308,
+    "pedido": 5083,
+    "fin": 5107
+   },
+   {
+    "archivo": "implantes-recorrido.glb",
+    "transferidos": 194890,
+    "sinComprimir": 313080,
+    "pedido": 5083,
+    "fin": 5116
+   }
+  ],
+  "errores": []
+ },
+ {
+  "tam": "celular",
+  "tope": true,
+  "vuelta": "1",
+  "param": null,
+  "cargaMaquina": [
+   4.78,
+   7.57,
+   8.59
+  ],
+  "running": 799.5,
+  "done": 4804.2,
+  "listo": 799.6,
+  "modelosHero": [
+   {
+    "archivo": "cuerpo-cabeza.glb",
+    "transferidos": 306905,
+    "sinComprimir": 380692,
+    "pedido": 366,
+    "fin": 389
+   },
+   {
+    "archivo": "implantes.glb",
+    "transferidos": 55154,
+    "sinComprimir": 73308,
+    "pedido": 366,
+    "fin": 373
+   },
+   {
+    "archivo": "cuerpo-resto.glb",
+    "transferidos": 457298,
+    "sinComprimir": 595372,
+    "pedido": 4799,
+    "fin": 4869
+   },
+   {
+    "archivo": "implantes.glb",
+    "transferidos": 55154,
+    "sinComprimir": 73308,
+    "pedido": 4800,
+    "fin": 4821
+   },
+   {
+    "archivo": "implantes-recorrido.glb",
+    "transferidos": 194890,
+    "sinComprimir": 313080,
+    "pedido": 4801,
+    "fin": 4841
+   }
+  ],
+  "contextosHero": [
+   {
+    "i": 0,
+    "tipo": "webgl2",
+    "vivo": true,
+    "enDom": false,
+    "tam": "300x150",
+    "dentroDe": null,
+    "creado": 225,
+    "primerDibujo": null,
+    "dibujos": 0
+   },
+   {
+    "i": 1,
+    "tipo": "webgl2",
+    "vivo": true,
+    "enDom": true,
+    "tam": "390x1183",
+    "dentroDe": "pointer-events-none absolute inset-0",
+    "creado": 253,
+    "primerDibujo": 275,
+    "dibujos": 2992
+   },
+   {
+    "i": 2,
+    "tipo": "webgl2",
+    "vivo": true,
+    "enDom": true,
+    "tam": "585x1266",
+    "dentroDe": "",
+    "creado": 666,
+    "primerDibujo": 716,
+    "dibujos": 1666
+   }
+  ],
+  "heroQuieto": {
+   "cuadros": 360,
+   "fps": 60,
+   "p50": 16.7,
+   "p95": 16.8,
+   "max": 16.8
+  },
+  "recorridoListo": true,
+  "paso30vh": {
+   "cuadros": 239,
+   "fps": 59.8,
+   "p50": 16.7,
+   "p95": 16.7,
+   "max": 33.3
+  },
+  "pasoPrimeraParada": {
+   "cuadros": 297,
+   "fps": 59.4,
+   "p50": 16.7,
+   "p95": 16.7,
+   "max": 50
+  },
+  "recorrido": {
+   "cuadros": 720,
+   "fps": 60,
+   "p50": 16.7,
+   "p95": 16.7,
+   "max": 16.8
+  },
+  "contextosPie": [
+   {
+    "i": 0,
+    "tipo": "webgl2",
+    "vivo": true,
+    "enDom": false,
+    "tam": "300x150",
+    "dentroDe": null,
+    "creado": 225,
+    "primerDibujo": null,
+    "dibujos": 0
+   },
+   {
+    "i": 1,
+    "tipo": "webgl2",
+    "vivo": true,
+    "enDom": true,
+    "tam": "390x1183",
+    "dentroDe": "pointer-events-none absolute inset-0",
+    "creado": 253,
+    "primerDibujo": 275,
+    "dibujos": 14014
+   },
+   {
+    "i": 2,
+    "tipo": "webgl2",
+    "vivo": true,
+    "enDom": true,
+    "tam": "585x1266",
+    "dentroDe": "",
+    "creado": 666,
+    "primerDibujo": 716,
+    "dibujos": 64105
+   }
+  ],
+  "dibujosPie2s": [
+   0,
+   0,
+   0
+  ],
+  "modelosTodos": [
+   {
+    "archivo": "cuerpo-cabeza.glb",
+    "transferidos": 306905,
+    "sinComprimir": 380692,
+    "pedido": 366,
+    "fin": 389
+   },
+   {
+    "archivo": "implantes.glb",
+    "transferidos": 55154,
+    "sinComprimir": 73308,
+    "pedido": 366,
+    "fin": 373
+   },
+   {
+    "archivo": "cuerpo-resto.glb",
+    "transferidos": 457298,
+    "sinComprimir": 595372,
+    "pedido": 4799,
+    "fin": 4869
+   },
+   {
+    "archivo": "implantes.glb",
+    "transferidos": 55154,
+    "sinComprimir": 73308,
+    "pedido": 4800,
+    "fin": 4821
+   },
+   {
+    "archivo": "implantes-recorrido.glb",
+    "transferidos": 194890,
+    "sinComprimir": 313080,
+    "pedido": 4801,
+    "fin": 4841
+   }
+  ],
+  "errores": []
+ }
+]
