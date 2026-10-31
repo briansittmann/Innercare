@@ -1,0 +1,44 @@
+[
+ {
+  "tam": "escritorio",
+  "seccion": {
+   "alto": 900,
+   "ancho": 1440,
+   "top": 0
+  },
+  "caja3d": {
+   "x": 600,
+   "y": 0,
+   "ancho": 840,
+   "alto": 900
+  },
+  "foco": ".555",
+  "tramo": [
+   0,
+   1
+  ],
+  "canvasPx": "1260x1350",
+  "dpr": 2
+ },
+ {
+  "tam": "celular",
+  "seccion": {
+   "alto": 1183.265625,
+   "ancho": 390,
+   "top": 0
+  },
+  "caja3d": {
+   "x": 0,
+   "y": 660,
+   "ancho": 390,
+   "alto": 523.265625
+  },
+  "foco": ".5",
+  "tramo": [
+   0.5579,
+   1
+  ],
+  "canvasPx": "585x784",
+  "dpr": 3
+ }
+]

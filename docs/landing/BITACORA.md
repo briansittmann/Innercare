@@ -391,3 +391,37 @@ Memoria compartida entre las fases de la landing: cada fase deja acá qué hizo,
 **Comprobado.** `npm run build`, `npm run lint` y `npx tsc --noEmit` sin errores (sigue el aviso de `metadataBase`).
 
 **Pendiente.** Lo que lista `CLAUDE.md` en "Estado › Pendiente", sin cambios respecto de las fases anteriores.
+
+---
+
+## Cuerpo único, fase 0 · Línea de base del hero (2026-10-31)
+
+**Commits:** uno solo, el de esta entrada (`docs/landing/cuerpo-unico/base/` y esta bitácora). No se tocó código de la aplicación.
+
+**Qué se hizo.** Referencia de paridad del hero actual (rama `cuerpo-unico` en `a0dcbbf`) para la compuerta de la fase 1, con build de producción en el puerto 3400 y Chrome sin interfaz con la GPU del M1 (patchright). Todo en `docs/landing/cuerpo-unico/base/`:
+- `MEDICIONES.md`: método exacto (flags, ventanas, DPR, cómo se fija cada momento), lectura de las capturas, mediciones y los valores de cámara, pose, materiales, luz y encuadre del hero sacados del código, con su equivalente calculado en las coordenadas del guion del recorrido (`objetivo` [0, 1,56, 0], `azimut` −1,082, `elevacion` 0,0217, `alto` 0,493 m y `ancla` [0,740, 0,5] en escritorio).
+- `medir.mjs`: script reutilizable con los modos `capturas`, `respaldo`, `encuadre`, `medidas` y `resumen`, y opciones para apuntar a otro DOM (`--listo`, `--hero`, `--recorrido`, `--primera`, `--tramos`) sin editarlo. La fase 1 lo corre con `--out` a otra carpeta y compara archivo por archivo.
+- `capturas/` (34 WebP, 1,3 MB): 1440 × 900 y 390 × 844, con y sin movimiento reducido, en `intro-0000`, `intro-2000`, `intro-fin` y `vaiven-00/05/11/16`; `hero-abajo` en el celular (el busto queda debajo de la primera pantalla), `reducido-detalle` a resolución completa y `respaldo-sin-webgl` por tamaño. `capturas.json` registra el instante real de cada una y si se veía el 3D o el respaldo.
+- `medidas/*.json`, `encuadre.json`, `respaldo.json`: datos crudos.
+
+**Resultados.**
+- Con la máquina tranquila (vuelta 1, con tope): hero quieto, paso hero → recorrido (0,3 pantallas y hasta la primera parada) y recorrido a 60 fps en escritorio y en el celular. Sin tope, hero en escritorio ≈ 71 a 74 y en el celular emulado 160 a 196.
+- Contextos WebGL: 2 en el DOM en el hero (fibras y busto) y 3 al pie (más el del recorrido), más 2 canvas de prueba sueltos (`hasWebGL()` del hero y del recorrido) que nadie libera. Al pie no dibuja ninguno.
+- La intro arranca con el `onReady` del 3D a 0,83 a 1,28 s de la navegación con la máquina normal (2,68 s en la corrida más cargada); el 3D tarda ≈ 0,4 s desde que se piden los modelos.
+- Primer pantallazo: `cabeza.glb` + `implantes.glb` = 498 248 bytes (397 413 transferidos). Recorrido: `cuerpo.glb` 902 244 (699 221) e `implantes-recorrido.glb` 313 036 (194 799).
+
+**Decidido sin preguntar.**
+- **Capturas a escala CSS** (1440 × 900 y 390 × 844 px) con el render a la resolución real (DPR 2 y 3), para que pesen poco; más una por tamaño a resolución completa (`reducido-detalle`) para comparar el detalle del vidrio y el titanio.
+- **`intro-fin` en `done` y `vaiven-00` 0,3 s después**, para no duplicar nombres; los tiempos del vaivén son desde `done` (el vaivén ya lleva 1,4 s ahí).
+- **Una captura extra del celular con el borde del hero al pie** (`hero-abajo`): en la primera pantalla solo se ve la coronilla, y la paridad del busto no se puede juzgar con eso.
+- **Cuatro corridas con tope en escritorio** en lugar de dos, porque las vueltas 2 a 4 salieron con Safari usando la GPU (carga 4,4 a 5,3) y bajaron a 24 a 52 fps; se anotaron todas y se marcó la vuelta 1 como la referencia limpia. El script ahora guarda la carga de la máquina en cada resultado.
+- **Sonda inyectada en el HTML** (interceptando `/`) y no con `addInitScript`, que con patchright no corre en localhost (memoria del proyecto).
+
+**Hallazgos (no se tocaron, por consigna).**
+- Al cargarse el recorrido, `implantes.glb` e `implantes-recorrido.glb` se descargan otra vez enteros (≈ 250 KB de más), probablemente por pedirlos como lista con `useGLTF(urls)` en `escena.tsx` y `miniaturas.tsx`.
+- Con movimiento reducido, la primera captura de la intro es la imagen de respaldo (la intro arranca antes que el 3D) y el título igual entra letra por letra.
+- Sin tope, el paso a la primera parada en escritorio cae a ≈ 36 fps aunque con tope dé 59,6 (dos canvas sin sincronía vertical): ese número solo sirve contra otro sin tope.
+
+**Pendiente.** Nada de esta fase. Para la fase 1: repetir con `medir.mjs` (receta al final de `MEDICIONES.md`), alternando base y prototipo con carga parecida.
+
+**Capturas:** `docs/landing/cuerpo-unico/base/capturas/` (en el repo).
