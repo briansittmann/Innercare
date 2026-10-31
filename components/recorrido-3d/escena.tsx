@@ -58,6 +58,7 @@ import {
   VIDRIO_HERO,
   VIDRIO_RECORRIDO,
   aplicarCorte,
+  ordenarPorAltura,
   partirColumna,
   uniformesCorte,
   useTexturaDegrade,
@@ -100,6 +101,18 @@ export type AjustesHero = {
   encuadre: Encuadre
   // Tramo del degradé de la sección detrás del canvas
   tramo: readonly [number, number]
+  // Caja del busto de hoy dentro del canvas (píxeles CSS, origen arriba a la
+  // izquierda): con ella, la escena dibuja solo ahí, con el mismo costo por
+  // píxel que el busto, aunque el canvas ocupe toda la pantalla
+  recorte?: { x: number; y: number; width: number; height: number }
+}
+
+// El recorte del hero con el origen de WebGL (abajo a la izquierda), en
+// píxeles CSS como pide gl.setScissor; null sin recorte
+function recorteGL(hero: AjustesHero | undefined, alto: number) {
+  const r = hero?.recorte
+  if (!r) return null
+  return [r.x, alto - r.y - r.height, r.width, r.height] as const
 }
 
 type Modo = 'recorrido' | 'hero'
@@ -199,7 +212,8 @@ function Vidrio({ calidad, buffer, cuerpoUnico, alCrear }: {
   return (
     <MeshTransmissionMaterial
       ref={(m) => alCrear(m as unknown as MeshPhysicalMaterial | null)}
-      // Cuerpo único: transparente, para que el corte por altura se funda
+      // Cuerpo único: transparente mientras el corte por altura se funde
+      // (Cuerpo lo cambia cuadro a cuadro)
       transparent={cuerpoUnico}
       buffer={buffer}
       samples={MUESTRAS[calidad]}
@@ -260,11 +274,12 @@ function materialBorde() {
   })
 }
 
-function Cuerpo({ calidad, fondo, modo, cuerpoUnico }: {
+function Cuerpo({ calidad, fondo, modo, cuerpoUnico, hero }: {
   calidad: Quality
   fondo: Texture
   modo: Modo
   cuerpoUnico: boolean
+  hero?: AjustesHero
 }) {
   const cuerpo = useGLTF(CUERPO_URL, false, true)
   const mallas = useMemo(() => {
@@ -274,10 +289,22 @@ function Cuerpo({ calidad, fondo, modo, cuerpoUnico }: {
     if (!cuerpoUnico) return todas.filter((m) => m.name !== 'hueso_maxilar_entero')
     return todas.flatMap((m) => (m.name === 'hueso_columna' ? partirColumna(m) : [m]))
   }, [cuerpo.scene, cuerpoUnico])
-  const [piel, buffer] = useGlassBuffer(fondo)
+  // Hero del cuerpo único: el buffer del vidrio, solo en la caja del busto
+  const recorte = useRef<readonly [number, number, number, number] | null>(null)
+  const altoCanvas = useThree((s) => s.size.height)
+  useLayoutEffect(() => {
+    recorte.current = recorteGL(hero, altoCanvas)
+  }, [hero, altoCanvas])
+  const [piel, buffer] = useGlassBuffer(fondo, recorte)
   const borde = useMemo(() => materialBorde(), [])
   useEffect(() => () => borde.dispose(), [borde])
   const geometriaPiel = mallas.find((m) => m.name === 'piel')
+  // Cuerpo único: la piel ordenada por altura, para dibujar solo lo que
+  // queda arriba del corte
+  const pielOrdenada = useMemo(
+    () => (cuerpoUnico && geometriaPiel ? ordenarPorAltura(geometriaPiel) : null),
+    [cuerpoUnico, geometriaPiel],
+  )
 
   // Cuerpo único: el vidrio, el hueso, el borde y el corte pasan del aspecto
   // del busto al del recorrido con el peso del hero.
@@ -292,9 +319,21 @@ function Cuerpo({ calidad, fondo, modo, cuerpoUnico }: {
     corte.piel.corteY.value = corteDe(CORTE_PIEL, h)
     corte.hueso.corteY.value = corteDe(CORTE_HUESO, h)
     corte.piel.corteBanda.value = corte.hueso.corteBanda.value = bandaDe(h)
+    if (pielOrdenada) {
+      // Lo que el corte descarta entero no se dibuja (la banda, sí)
+      pielOrdenada.geometria.setDrawRange(0, pielOrdenada.indicesSobre(corte.piel.corteY.value))
+    }
     const v = vidrio.current
     if (v) {
       aplicarCorte(v, corte.piel)
+      // Opaco con el aspecto del hero entero, como el busto (la banda del
+      // corte mide 4 mm y no necesita fundirse); transparente en cuanto el
+      // corte empieza a bajar
+      const transparente = h < 0.999
+      if (v.transparent !== transparente) {
+        v.transparent = transparente
+        v.needsUpdate = true
+      }
       const a = VIDRIO_RECORRIDO
       const b = VIDRIO_HERO
       // Propiedades del vidrio de drei (uniformes con getters y setters)
@@ -342,7 +381,7 @@ function Cuerpo({ calidad, fondo, modo, cuerpoUnico }: {
                 }
           }
           name={malla.name}
-          geometry={malla.geometry}
+          geometry={malla.name === 'piel' && pielOrdenada ? pielOrdenada.geometria : malla.geometry}
           position={malla.position}
           quaternion={malla.quaternion}
           scale={malla.scale}
@@ -629,12 +668,19 @@ function Implantes({ cuerpoUnico }: { cuerpoUnico: boolean }) {
 // piel. Refractados y teñidos por el vidrio, el titanio se veía azul oscuro y
 // sin brillo; así se lee como metal y el implante es lo más nítido de la
 // escena. El hueso queda adentro del vidrio, tenue, como en el busto del hero.
-function Pasadas({ modo }: { modo: Modo }) {
+function Pasadas({ modo, hero }: { modo: Modo; hero?: AjustesHero }) {
   useFrame(({ gl, scene, camera, size }) => {
     // En el hero solo está la capa del vidrio (sin borde ni implantes
-    // encima): una sola pasada, como el busto
+    // encima): una sola pasada, como el busto, y con recorte, solo en la
+    // caja del busto (el resto del canvas queda transparente)
     if (modo === 'hero') {
+      const r = hero?.recorte
+      if (r) {
+        gl.setScissorTest(true)
+        gl.setScissor(r.x, size.height - r.y - r.height, r.width, r.height)
+      }
       gl.render(scene, camera)
+      gl.setScissorTest(false)
       return
     }
     // Las miniaturas (miniaturas.tsx) dibujan después, cada una recortada a
@@ -879,10 +925,10 @@ function Escena({ calidad, alListo, modo, cuerpoUnico, hero }: {
   return (
     <>
       <CamaraRecorrido modo={modo} cuerpoUnico={cuerpoUnico} hero={hero} />
-      <Pasadas modo={modo} />
+      <Pasadas modo={modo} hero={hero} />
       {modo === 'recorrido' && <LuzImplantes />}
       <Suspense fallback={null}>
-        <Cuerpo calidad={calidad} fondo={fondo} modo={modo} cuerpoUnico={cuerpoUnico} />
+        <Cuerpo calidad={calidad} fondo={fondo} modo={modo} cuerpoUnico={cuerpoUnico} hero={hero} />
         {cuerpoUnico && <CraneoHero modo={modo} />}
         {modo === 'recorrido' && (
           <>

@@ -124,7 +124,8 @@ function readTuning(): Tuning {
 // cámara pone la cabeza donde el busto la pone hoy. `lienzo` es la caja del
 // canvas respecto de la del busto; `encuadre`, la toma (camara.ts).
 type Lienzo = { left: number; top: number; width: number; height: number }
-type FramingHero = Framing & { lienzo?: Lienzo; encuadre?: Encuadre }
+type Recorte = { x: number; y: number; width: number; height: number }
+type FramingHero = Framing & { lienzo?: Lienzo; encuadre?: Encuadre; recorte?: Recorte }
 
 function measureFraming(node: HTMLElement): FramingHero | null {
   const section = node.closest('section')
@@ -134,6 +135,22 @@ function measureFraming(node: HTMLElement): FramingHero | null {
   const focus = Number.parseFloat(getComputedStyle(node).getPropertyValue('--hero-3d-foco'))
   const focusX = Number.isFinite(focus) ? focus : 0.5
   if (!cuerpoUnicoActivo()) return { stage: [top, bottom], focusX }
+  const variante = new URLSearchParams(window.location.search).get('cuerpo-unico')
+  // ?cuerpo-unico=caja, para medir: el canvas del tamaño de la caja del
+  // busto, como hoy, con el cuerpo entero adentro
+  if (variante === 'caja') {
+    return {
+      stage: [top, bottom],
+      focusX,
+      lienzo: { left: 0, top: 0, width: node.offsetWidth, height: node.offsetHeight },
+      encuadre: {
+        ancla: [focusX, 0.5],
+        alto: ALTO_HERO,
+        estiramiento: 1 + 2 * Math.abs(focusX - 0.5),
+        distancia: DISTANCIA_HERO,
+      },
+    }
+  }
   // La pantalla entera (o el hero, si es más bajo) contra el pie del hero,
   // de borde a borde
   const alto = section.offsetHeight
@@ -158,6 +175,16 @@ function measureFraming(node: HTMLElement): FramingHero | null {
       // La perspectiva del busto: la cámara a 0,92 m
       distancia: DISTANCIA_HERO,
     },
+    // La caja del busto dentro del canvas: la escena dibuja solo ahí
+    // (?cuerpo-unico=entero lo apaga, para medir el canvas entero)
+    recorte: variante === 'entero'
+      ? undefined
+      : {
+          x: node.offsetLeft,
+          y: node.offsetTop - lienzoTop,
+          width: node.offsetWidth,
+          height: node.offsetHeight,
+        },
   }
 }
 
@@ -343,6 +370,7 @@ export function Hero3D({ className = '' }: { className?: string }) {
                 entrada: entrance,
                 encuadre: framing.encuadre,
                 tramo: framing.stage,
+                recorte: framing.recorte,
               }}
               alListo={() => {
                 setReady(true)

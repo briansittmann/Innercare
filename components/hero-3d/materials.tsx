@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { MeshTransmissionMaterial, useFBO } from '@react-three/drei'
 import { NoToneMapping, UnsignedByteType, type Mesh, type Texture } from 'three'
@@ -21,12 +21,19 @@ const REFRACTION_SAMPLES: Record<Quality, number> = { alta: 10, media: 4, baja: 
 // es. El canvas es transparente (el fondo es CSS), así que el buffer lleva
 // como fondo `background`: el tramo del degradé que queda detrás del canvas.
 // Devuelve el ref para la malla de vidrio y la textura para su material.
-export function useGlassBuffer(background: Texture) {
+// `clip` (opcional, lo usa el cuerpo único): si tiene un rectángulo (x, y,
+// ancho, alto en píxeles CSS del canvas, origen abajo a la izquierda, como
+// gl.setScissor), el buffer se dibuja solo ahí.
+export function useGlassBuffer(
+  background: Texture,
+  clip?: RefObject<readonly [number, number, number, number] | null>,
+) {
   const glass = useRef<Mesh>(null)
   const target = useFBO({ samples: 2, type: UnsignedByteType })
   useFrame(({ gl, scene, camera }) => {
     const mesh = glass.current
     if (!mesh) return
+    const rect = clip?.current
     // Sin tone mapping: se aplica una sola vez, al dibujar el vidrio
     const toneMapping = gl.toneMapping
     const visibleBackground = scene.background
@@ -34,7 +41,12 @@ export function useGlassBuffer(background: Texture) {
     scene.background = background
     mesh.visible = false
     gl.setRenderTarget(target)
+    if (rect) {
+      gl.setScissor(...rect)
+      gl.setScissorTest(true)
+    }
     gl.render(scene, camera)
+    if (rect) gl.setScissorTest(false)
     gl.setRenderTarget(null)
     mesh.visible = true
     scene.background = visibleBackground

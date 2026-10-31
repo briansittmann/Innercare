@@ -233,3 +233,53 @@ export function partirColumna(malla: Mesh): [Mesh, Mesh] {
   }
   return [parte(alta, 'hueso_columna_alta'), parte(baja, 'hueso_columna_baja')]
 }
+
+// La piel del cuerpo es una sola malla de 62 000 triángulos y en la toma del
+// hero se ve menos de un tercio (la del busto tiene 21 600). Para no
+// procesar lo que el corte descarta, se ordenan sus triángulos de arriba
+// abajo por su vértice más alto y se dibujan solo los que llegan por encima
+// del corte (drawRange). Devuelve la geometría ordenada, que comparte los
+// vértices con la original, y la función que da cuántos índices dibujar
+// para un corte (en metros del mundo).
+export function ordenarPorAltura(malla: Mesh) {
+  const geometria = malla.geometry
+  const posicion = geometria.getAttribute('position')
+  const indice = geometria.getIndex()
+  malla.updateWorldMatrix(true, false)
+  const triangulos = indice ? indice.count / 3 : posicion.count / 3
+  const vertice = (t: number, k: number) => (indice ? indice.getX(t * 3 + k) : t * 3 + k)
+  const v = new Vector3()
+  const alturaDe = (i: number) => v.fromBufferAttribute(posicion, i).applyMatrix4(malla.matrixWorld).y
+  const alturas = new Float32Array(posicion.count)
+  for (let i = 0; i < posicion.count; i++) alturas[i] = alturaDe(i)
+  const orden = Array.from({ length: triangulos }, (_, t) => {
+    const a = alturas[vertice(t, 0)] ?? 0
+    const b = alturas[vertice(t, 1)] ?? 0
+    const c = alturas[vertice(t, 2)] ?? 0
+    return { t, tope: Math.max(a, b, c) }
+  }).sort((p, q) => q.tope - p.tope)
+  const indices = new Uint32Array(triangulos * 3)
+  orden.forEach(({ t }, j) => {
+    indices[j * 3] = vertice(t, 0)
+    indices[j * 3 + 1] = vertice(t, 1)
+    indices[j * 3 + 2] = vertice(t, 2)
+  })
+  const ordenada = new BufferGeometry()
+  for (const [nombre, atributo] of Object.entries(geometria.attributes)) ordenada.setAttribute(nombre, atributo)
+  ordenada.setIndex(Array.from(indices))
+  ordenada.boundingSphere = geometria.boundingSphere
+  ordenada.boundingBox = geometria.boundingBox
+  const topes = orden.map((o) => o.tope)
+  // Cuántos índices tienen el vértice más alto por encima del corte
+  const indicesSobre = (corte: number) => {
+    let lo = 0
+    let hi = topes.length
+    while (lo < hi) {
+      const m = (lo + hi) >> 1
+      if ((topes[m] ?? 0) >= corte) lo = m + 1
+      else hi = m
+    }
+    return lo * 3
+  }
+  return { geometria: ordenada, indicesSobre }
+}
