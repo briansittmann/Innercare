@@ -4,7 +4,7 @@
 // scroll y re-renderizar por eso sería caro. Una sola fuente de verdad para
 // el progreso (LANDING_SPEC.md, sección 2).
 export const estadoRecorrido = {
-  // Progreso del recorrido, amortiguado: 0 (entrada) a 7 (cierre)
+  // Progreso del recorrido, amortiguado: 0 (la toma del hero) a 7 (cierre)
   seg: 0,
   reducido: false,
   // Pantalla de celular (< ANCHO_CELULAR): la toma del hero se desliza
@@ -25,11 +25,4 @@ export const estadoRecorrido = {
   // Entrada del hero (components/intro.ts): 'hold' quieto en la pose de
   // partida, 'play' gira hasta su pose, 'skip' sin entrada
   entrada: 'hold' as 'hold' | 'play' | 'skip',
-}
-
-// Cuerpo único (docs/landing/cuerpo-unico/): desde la fase 3, el hero vive
-// dentro de la escena del recorrido y es el camino normal. La función queda
-// hasta la limpieza (fase 5).
-export function cuerpoUnicoActivo() {
-  return true
 }

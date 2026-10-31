@@ -15,21 +15,23 @@ import {
 import { estadoRecorrido } from '@/components/recorrido-3d/estado'
 import { Recorrido3D } from '@/components/recorrido-3d/recorrido-3d'
 
-// Armazón del recorrido por el cuerpo (#recorrido), con el comportamiento del
-// borrador (docs/landing/landing-borrador.html, updateTour): un contenedor de
-// ocho pantallas con una escena fija (sticky). El progreso del scroll mueve
-// la cámara del cuerpo 3D (components/recorrido-3d/) y, con el mismo guion
-// (camara.ts), funde las tarjetas, el texto de entrada, el del cierre y el
-// índice anatómico. Todo sale de una sola fuente: el progreso, amortiguado
-// apenas para que la rueda del mouse no dé saltos.
+// Armazón del hero y del recorrido por el cuerpo (#recorrido), con el
+// comportamiento del borrador (docs/landing/landing-borrador.html,
+// updateTour): un contenedor de ocho pantallas con una escena fija (sticky)
+// y un solo cuerpo 3D (components/recorrido-3d/). El progreso del scroll
+// mueve la cámara y, con el mismo guion (camara.ts), funde el texto del
+// hero, las fibras, las tarjetas, el texto del cierre y el índice
+// anatómico. Todo sale de una sola fuente: el progreso, amortiguado apenas
+// para que la rueda del mouse no dé saltos.
 //
-// Entrada (k = 0): el cuerpo entero a la derecha y el título a la izquierda.
-// Paradas (k = 1…6): el implante al 34 % del ancho y la tarjeta a la
-// derecha (en el celular, arriba, y la tarjeta como hoja inferior). Cierre
-// (k = 7): el cuerpo entero y el texto final.
+// Hero (k = 0): la cabeza de perfil, como el busto de antes, con el texto
+// del hero encima y las fibras detrás. Paradas (k = 1…6): el implante al
+// 34 % del ancho y la tarjeta a la derecha (en el celular, arriba, y la
+// tarjeta como hoja inferior). Cierre (k = 7): el cuerpo entero y el texto
+// final.
 //
 // Sin JS (`scripting: none` en globals.css), la escena deja de ser fija y
-// todo se lee en orden: título, tarjetas y cierre. Con JS, lo que la escena
+// todo se lee en orden: hero, tarjetas y cierre. Con JS, lo que la escena
 // oculta lo oculta el CSS bajo `scripting: enabled`, nunca el HTML.
 //
 // Sin WebGL, o mientras carga, la escena muestra el lugar reservado: una
@@ -85,11 +87,6 @@ export function TourScroll({
       estadoRecorrido.minis = false
     }
   }, [listo])
-  // Cuerpo único: el 3D es el hero, así que se monta enseguida (cuando el
-  // navegador queda libre, en recorrido-3d.tsx). El resto del cuerpo y los
-  // otros implantes se piden después de la intro (escena.tsx).
-  const cerca = true
-
   // Se dibuja solo mientras el recorrido está en pantalla
   useEffect(() => {
     const nodo = contenedor.current
@@ -110,9 +107,6 @@ export function TourScroll({
     estadoRecorrido.escena = fijo
     const tarjetas = [...nodo.querySelectorAll<HTMLElement>('[data-tarjeta]')]
     const movimiento = window.matchMedia('(prefers-reduced-motion: reduce)')
-    // Cuerpo único: la toma 0 es la del hero y la escena lleva el degradé
-    // del hero (globals.css)
-    fijo.dataset.cuerpoUnico = ''
 
     let objetivo = 0
     let seg = -1
@@ -189,8 +183,8 @@ export function TourScroll({
         ultimaMarca = marca
         setActual(marca)
       }
-      // Lugar reservado: la parada más cercana; en la entrada y el cierre,
-      // el cuerpo entero (la última vista)
+      // Lugar reservado: la parada más cercana; en el hero, la captura del
+      // busto, y en el cierre, el cuerpo entero (la última vista)
       const k = Math.round(s)
       const nuevaVista =
         k >= 1 && k <= tarjetas.length ? k - 1 : k === 0 ? vistaInicio : tarjetas.length
@@ -198,10 +192,8 @@ export function TourScroll({
         ultimaVista = nuevaVista
         setVista(nuevaVista)
       }
-      // El canvas dibuja solo si cambió el progreso. Mientras el recorrido
-      // entra en pantalla (seg = 0) no dibuja nada: el hero, que todavía se
-      // ve, es el único que anima. Una vez fija la escena, el hero ya salió
-      // de pantalla y se detiene solo.
+      // El canvas dibuja solo si cambió el progreso (y, en la toma del hero,
+      // con la entrada y el vaivén: escena.tsx)
       if (s !== ultimoDibujo) {
         ultimoDibujo = s
         estadoRecorrido.invalidar?.()
@@ -242,7 +234,6 @@ export function TourScroll({
       movimiento.removeEventListener('change', alMover)
       cancelAnimationFrame(cuadro)
       if (estadoRecorrido.escena === fijo) estadoRecorrido.escena = null
-      delete fijo.dataset.cuerpoUnico
     }
   }, [vistaInicio])
 
@@ -267,7 +258,6 @@ export function TourScroll({
       ))}
 
       <div ref={escena} data-escena-3d data-listo={listo || undefined} data-minis={minis || undefined} className="recorrido-escena">
-        <div aria-hidden className="recorrido-luz" />
         <div ref={capaFundido} aria-hidden className="recorrido-fundido" />
 
         {fondo && (
@@ -297,7 +287,7 @@ export function TourScroll({
           className="recorrido-lienzo"
         >
           <div className="intro-3d recorrido-intro-3d">
-            <Recorrido3D cerca={cerca} enVista={enVista} alListo={() => setListo(true)} />
+            <Recorrido3D enVista={enVista} alListo={() => setListo(true)} />
           </div>
         </div>
 

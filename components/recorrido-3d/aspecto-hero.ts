@@ -1,6 +1,7 @@
-// Prototipo del cuerpo único (?cuerpo-unico): lo que la escena del recorrido
-// necesita para verse como el busto del hero en la toma 0. Valores de
-// components/hero-3d/ (materials.tsx y body-scene.tsx) y de
+// Aspecto del hero en la escena única: lo que el cuerpo necesita para verse
+// como el busto de vidrio de antes en la toma 0 (vidrio, titanio, hueso,
+// corte bajo el cuello y degradé de fondo). Los valores salen del busto que
+// había en components/hero-3d/ (borrado en la fase 5 del cuerpo único) y de
 // docs/landing/cuerpo-unico/base/MEDICIONES.md.
 
 import { useEffect, useMemo } from 'react'
@@ -8,13 +9,13 @@ import { useThree } from '@react-three/fiber'
 import { CanvasTexture, Color, SRGBColorSpace, type Material } from 'three'
 
 // Fondo del hero: el degradé de --color-stage-from a --color-stage-to
-// (globals.css). Si cambian ahí, cambian acá y en hero-3d/body-scene.tsx.
+// (globals.css). Si cambian ahí, cambian acá.
 const STAGE_FROM = '#e6eef8'
 const STAGE_TO = '#c3d7ee'
 
 // El tramo [arriba, abajo] del degradé (fracciones del alto de la sección)
 // que queda detrás del canvas, en una textura de 2 × 512 px: el fondo que
-// refracta el vidrio. Igual que useStageTexture de body-scene.tsx.
+// refracta el vidrio.
 export function useTexturaDegrade(tramo: readonly [number, number] | null) {
   const arriba = tramo?.[0] ?? 0
   const abajo = tramo?.[1] ?? 1
@@ -55,12 +56,12 @@ export function pintarDegrade(textura: CanvasTexture, arriba: number, abajo: num
   textura.needsUpdate = true
 }
 
-// Vidrio del busto (hero-3d/materials.tsx) y del recorrido (escena.tsx): la
-// escena pasa de uno al otro con el peso del hero (camara.ts, pesoHero).
+// Vidrio del busto (el del hero de antes) y del recorrido: la escena pasa de
+// uno al otro con el peso del hero (camara.ts, pesoHero).
 // El espesor del vidrio de three se multiplica por la escala de la malla, y
 // la compresión (meshopt) guarda en la escala del nodo la cuantización de las
 // posiciones: depende del tamaño de cada malla. La piel del busto
-// (cabeza.glb) tiene escala 0,2117 y la del cuerpo (sus tres trozos), 0,8496, así
+// (el antiguo cabeza.glb) tenía escala 0,2117 y la del cuerpo (sus tres trozos), 0,8496, así
 // que el mismo `thickness` da un vidrio casi cuatro veces más grueso (más
 // azul y más oscuro) en el cuerpo. Por eso el del hero va en metros del
 // mundo (0,05 × 0,2117) y la escena lo divide por la escala de su piel.
@@ -92,7 +93,7 @@ export const VIDRIO_RECORRIDO = {
 // Hueso: 0,4 en el busto y 0,34 en el recorrido
 export const OPACIDAD_HUESO_HERO = 0.4
 
-// Los huesos del busto (3d/scripts/cabeza.py): el resto del esqueleto no se
+// Los huesos del busto de antes: el resto del esqueleto no se
 // ve en la toma del hero. El maxilar va entero (hueso_maxilar_entero): el
 // recortado y su implante entran en la parada del maxilar.
 // De la columna, solo las vértebras de arriba del corte: hueso_columna_alta
@@ -108,7 +109,7 @@ export const HUESOS_BUSTO = new Set([
 // Titanio de la craneoplastía en el busto: dentro del vidrio, refractado
 export const TITANIO_HERO = { color: '#9aa1aa', metalness: 1, roughness: 0.5 }
 
-// Corte del busto (cabeza.py): la piel a 1,33 m y las vértebras con el
+// Corte del busto de antes: la piel a 1,33 m y las vértebras con el
 // centro por debajo de 1,35 m. En el cuerpo entero se hace con un
 // desvanecido por altura: debajo de `corte` todo es transparente y en los
 // `banda` metros de arriba vuelve a ser opaco. En la toma del hero la banda

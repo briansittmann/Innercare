@@ -17,18 +17,28 @@
 // - `acabado`: 'trabecular' (impresión 3D: gris mate) o 'pulido' (CNC).
 // - Para cambiar una pieza: exportarla como `implante_<parada>`
 //   (docs/ARQUITECTURA_MODELO_3D.md, "Nombres") en implantes-recorrido.glb
-//   (`npm run modelos`; implantes.glb es el del hero y lleva solo la
-//   craneoplastía) y apuntar acá su `fuente` a esa malla, con la
-//   transformación en cero. Nada más cambia: la escena, la cámara
+//   (`npm run modelos`; la craneoplastía va aparte, en implantes.glb: ver
+//   abajo) y apuntar acá su `fuente` a esa malla, con la transformación en
+//   cero. Nada más cambia: la escena, la cámara
 //   (camara.ts) y las tarjetas no dependen de la forma de la pieza.
 //
 // Los seis son modelos generados en Blender sobre el esqueleto
 // (3d/scripts/implantes.py), a partir de las fotos y fichas de content/: la
-// craneoplastía sale de implantes.glb (el mismo archivo del busto del hero,
-// que ya está en caché) y las otras cinco de implantes-recorrido.glb. Los dos
-// ya vienen en las coordenadas del cuerpo, con los huesos que reemplazan
-// recortados en el cuerpo. Cuando lleguen los CAD de Innercare, reemplazan a
-// estos respetando el nombre de malla.
+// craneoplastía sale de implantes.glb y las otras cinco de
+// implantes-recorrido.glb. Los dos ya vienen en las coordenadas del cuerpo,
+// con los huesos que reemplazan recortados en el cuerpo. Cuando lleguen los
+// CAD de Innercare, reemplazan a estos respetando el nombre de malla.
+//
+// Por qué la craneoplastía sigue en su archivo (decidido en la fase 5 del
+// cuerpo único): es la única pieza de la toma del hero. Va en el primer
+// pantallazo, junto a CUERPO.hero (73 KB contra los 313 KB de
+// implantes-recorrido.glb, que se pide después de la intro), y es el mismo
+// archivo, byte por byte, que la paridad del hero verificó contra el busto de
+// antes. Llevarla a implantes-recorrido.glb obligaba a bajar ese archivo
+// entero antes de la intro o a partirlo, y a regenerar los .glb (Blender no
+// es determinista en los booleanos). La escena la lee dos veces del mismo
+// archivo, que se pide una sola vez: refractada dentro del vidrio en el hero
+// (CraneoHero, escena.tsx) y en la capa de implantes desde la parada 1.
 //
 // Las primitivas (`tipo: 'primitiva'`) quedan en el contrato para piezas
 // sin modelo todavía; hoy no hay ninguna.

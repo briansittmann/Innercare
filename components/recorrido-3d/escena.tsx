@@ -25,7 +25,6 @@ import {
   Matrix4,
   MeshStandardMaterial,
   Quaternion,
-  SRGBColorSpace,
   Vector3,
   type BufferGeometry,
   type Group,
@@ -35,7 +34,7 @@ import {
   type PerspectiveCamera,
   type Texture,
 } from 'three'
-import { Bone, useGlassBuffer, type Quality } from '../hero-3d/materials'
+import { Bone, useGlassBuffer, type Quality } from './materiales'
 import {
   ALTO_HERO,
   ANCHO_CELULAR,
@@ -53,7 +52,6 @@ import {
   pesoMaxilar,
   pesoTarjeta,
   segCuerpo,
-  type Encuadre,
 } from './camara'
 import {
   CORTE_HUESO,
@@ -68,72 +66,38 @@ import {
   pintarDegrade,
   uniformesCorte,
   useTexturaDegrade,
-} from './cuerpo-unico'
-import { cuerpoUnicoActivo, estadoRecorrido } from './estado'
+} from './aspecto-hero'
+import { estadoRecorrido } from './estado'
 import { CUERPO, IMPLANTES, IMPLANTES_GLB, esPiel, type Implante } from './implantes'
 import { Miniaturas, useArchivosImplantes } from './miniaturas'
 import { useIntroPhase } from '../intro'
 
-// Escena 3D del recorrido (#recorrido): el cuerpo de vidrio entero con el
-// esqueleto tenue y los seis implantes. La cámara sale del progreso del
-// scroll (camara.ts, el guion del borrador) y no se mueve sola: el canvas
-// dibuja solo cuando cambia el scroll (frameloop "demand").
+// Escena 3D única de la home: el cuerpo de vidrio entero, del hero al cierre
+// del recorrido, en un solo canvas (la escena fija de tour-scroll.tsx). La
+// cámara sale del progreso del scroll (camara.ts, el guion del borrador) y no
+// se mueve sola salvo en la toma del hero (entrada girando y vaivén): el
+// canvas dibuja solo cuando hace falta (frameloop "demand").
 //
-// Mismo lenguaje que el busto del hero (components/hero-3d/): el vidrio, el
-// hueso y el estudio de luz son los mismos.
+// Toma 0, el hero (HERO en camara.ts), con el aspecto del busto de vidrio de
+// antes (aspecto-hero.ts): su vidrio, su titanio dentro del vidrio, el hueso
+// del busto, el corte bajo el cuello y el degradé de fondo. Con el scroll,
+// ese aspecto pasa al de las paradas con el peso del hero (pesoHero)
+// mientras la cámara va a la craneoplastía.
 
 // Lo que se ve en el hero (CUERPO.hero) y la craneoplastía se piden al
-// cargar el módulo (también los usa el hero del cuerpo único); el resto del
-// cuerpo y los otros cinco implantes, al montar la escena del recorrido
-// (EscenaRecorrido).
+// cargar el módulo; el resto del cuerpo y los otros cinco implantes, cuando
+// terminó la entrada de la home (Escena).
 useGLTF.preload(CUERPO.hero, false, true)
 useGLTF.preload(IMPLANTES_GLB, false, true)
 
-// --- Cuerpo único (prototipo, ?cuerpo-unico) --------------------------------
-// La misma escena dibuja también el hero (modo 'hero', desde
-// components/hero-3d/hero-3d.tsx) en la toma 0 del guion (HERO en
-// camara.ts), con el aspecto del busto: su vidrio, su titanio dentro del
-// vidrio, el hueso del busto, el corte bajo el cuello, el degradé de fondo,
-// la entrada girando y el vaivén. En el recorrido, ese aspecto pasa al de
-// las paradas con el peso del hero (pesoHero) mientras la cámara va a la
-// craneoplastía. Sin el parámetro, nada de esto corre.
-export type Entrada = 'hold' | 'play' | 'skip'
-
-export type AjustesHero = {
-  // Sin movimiento reducido: entrada y vaivén
-  animar: boolean
-  entrada: Entrada
-  // Encuadre de la toma medido en el DOM del hero
-  encuadre: Encuadre
-  // Tramo del degradé de la sección detrás del canvas
-  tramo: readonly [number, number]
-  // Caja del busto de hoy dentro del canvas (píxeles CSS, origen arriba a la
-  // izquierda): con ella, la escena dibuja solo ahí, con el mismo costo por
-  // píxel que el busto, aunque el canvas ocupe toda la pantalla
-  recorte?: { x: number; y: number; width: number; height: number }
-}
-
-// El recorte del hero con el origen de WebGL (abajo a la izquierda), en
-// píxeles CSS como pide gl.setScissor; null sin recorte
-function recorteGL(hero: AjustesHero | undefined, alto: number) {
-  const r = hero?.recorte
-  if (!r) return null
-  return [r.x, alto - r.y - r.height, r.width, r.height] as const
-}
-
-type Modo = 'recorrido' | 'hero'
-
-// Recorte del hero en el recorrido (fase 3 del cuerpo único): mientras se ve
+// Recorte del hero: mientras se ve
 // la toma del hero entera (peso del hero 1), la escena dibuja solo en la caja
 // del busto de hoy, aunque el canvas ocupe la pantalla entera. Lo calcula la
 // cámara en cada cuadro (origen de WebGL, píxeles CSS); null: canvas entero.
 const recorteHero: { current: readonly [number, number, number, number] | null } = { current: null }
 
-// Peso del aspecto del hero en este cuadro: 1 en el hero, y en el recorrido
-// según el progreso; 0 sin el cuerpo único.
-function pesoHeroActual(modo: Modo, cuerpoUnico: boolean) {
-  if (modo === 'hero') return 1
-  if (!cuerpoUnico) return 0
+// Peso del aspecto del hero en este cuadro, según el progreso
+function pesoHeroActual() {
   const { seg, celular, reducido } = estadoRecorrido
   return pesoHero(segCuerpo(seg, celular && !reducido), reducido)
 }
@@ -165,47 +129,6 @@ const COLOR_RESPLANDOR = '#3d6fe0'
 const CAPA_IMPLANTES = 1
 const CAPA_BORDE = 2
 
-// Fondo de la escena (.escenario en globals.css), que el vidrio refracta:
-// arriba se funde con el gris de la página y, hacia la derecha, una luz azul.
-const SUPERFICIE = '#f5f7f9'
-const LUZ = '#c3d7ee'
-
-function useFondoEscena(ancho: number, alto: number) {
-  const textura = useMemo(() => {
-    const w = Math.max(2, Math.round(ancho / 4))
-    const h = Math.max(2, Math.round(alto / 4))
-    const canvas = document.createElement('canvas')
-    canvas.width = w
-    canvas.height = h
-    const ctx = canvas.getContext('2d')
-    if (ctx) {
-      ctx.fillStyle = SUPERFICIE
-      ctx.fillRect(0, 0, w, h)
-      // radial-gradient(120% 90% at 68% 42%, luz, superficie 68%)
-      ctx.save()
-      ctx.translate(w * 0.68, h * 0.42)
-      ctx.scale(w * 1.2, h * 0.9)
-      const radial = ctx.createRadialGradient(0, 0, 0, 0, 0, 1)
-      radial.addColorStop(0, LUZ)
-      radial.addColorStop(0.68, SUPERFICIE)
-      ctx.fillStyle = radial
-      ctx.fillRect(-2, -2, 4, 4)
-      ctx.restore()
-      // linear-gradient(superficie, transparent 7rem)
-      const borde = ctx.createLinearGradient(0, 0, 0, 112 / 4)
-      borde.addColorStop(0, SUPERFICIE)
-      borde.addColorStop(1, 'rgba(245, 247, 249, 0)')
-      ctx.fillStyle = borde
-      ctx.fillRect(0, 0, w, 112 / 4)
-    }
-    const map = new CanvasTexture(canvas)
-    map.colorSpace = SRGBColorSpace
-    return map
-  }, [ancho, alto])
-  useEffect(() => () => textura.dispose(), [textura])
-  return textura
-}
-
 function mallasDe(root: Object3D) {
   const mallas: Mesh[] = []
   root.traverse((nodo) => {
@@ -214,24 +137,24 @@ function mallasDe(root: Object3D) {
   return mallas
 }
 
-// Vidrio del cuerpo: el del busto (components/hero-3d/materials.tsx), más
-// claro y con más profundidad. El cuerpo entero se ve más chico y sobre un
-// fondo azul claro: con el tono del busto quedaba azul sobre azul, sin
-// contraste. Más claro en los bordes finos y más azul donde es grueso.
+// Vidrio del cuerpo en las paradas: el del busto, más claro y con más
+// profundidad (VIDRIO_RECORRIDO en aspecto-hero.ts; en la toma del hero,
+// Cuerpo lo lleva a VIDRIO_HERO). El cuerpo entero se ve más chico: con el
+// tono del busto quedaba azul sobre azul, sin contraste. Más claro en los
+// bordes finos y más azul donde es grueso.
 const MUESTRAS: Record<Quality, number> = { alta: 10, media: 4, baja: 3 }
 
-function Vidrio({ calidad, buffer, cuerpoUnico, alCrear }: {
+function Vidrio({ calidad, buffer, alCrear }: {
   calidad: Quality
   buffer: Texture
-  cuerpoUnico: boolean
   alCrear: (material: MeshPhysicalMaterial | null) => void
 }) {
   return (
     <MeshTransmissionMaterial
       ref={(m) => alCrear(m as unknown as MeshPhysicalMaterial | null)}
-      // Cuerpo único: transparente mientras el corte por altura se funde
-      // (Cuerpo lo cambia cuadro a cuadro)
-      transparent={cuerpoUnico}
+      // Transparente mientras el corte por altura se funde (Cuerpo lo cambia
+      // cuadro a cuadro)
+      transparent
       buffer={buffer}
       // Con `buffer`, los buffers propios de drei no se usan: de 1 px, así
       // los tres trozos de la piel no reservan seis del tamaño del canvas
@@ -298,9 +221,6 @@ function materialBorde() {
 type PropsCuerpo = {
   calidad: Quality
   fondo: Texture
-  modo: Modo
-  cuerpoUnico: boolean
-  hero?: AjustesHero
 }
 
 // El cuerpo sale de dos archivos (CUERPO en implantes.ts): el hero carga solo
@@ -319,40 +239,32 @@ function CuerpoEntero(props: PropsCuerpo) {
   return <Cuerpo {...props} escenas={escenas} />
 }
 
-function Cuerpo({ calidad, fondo, modo, cuerpoUnico, hero, escenas }: PropsCuerpo & { escenas: Object3D[] }) {
+function Cuerpo({ calidad, fondo, escenas }: PropsCuerpo & { escenas: Object3D[] }) {
   const { pieles, huesosCuerpo, topes } = useMemo(() => {
-    const todas = escenas.flatMap(mallasDe)
-    // El maxilar entero es solo del cuerpo único
-    const mallas = cuerpoUnico ? todas : todas.filter((m) => m.name !== 'hueso_maxilar_entero')
+    const mallas = escenas.flatMap(mallasDe)
     const pieles = mallas.filter((m) => esPiel(m.name))
     // Altura del punto más alto de cada trozo de piel, en el mundo: debajo
     // del corte, el trozo entero se oculta
     const topes = new Map(pieles.map((m) => [m.name, new Box3().setFromObject(m).max.y]))
     return { pieles, huesosCuerpo: mallas.filter((m) => !esPiel(m.name)), topes }
-  }, [escenas, cuerpoUnico])
-  // Hero del cuerpo único: el buffer del vidrio, solo en la caja del busto
-  const recorte = useRef<readonly [number, number, number, number] | null>(null)
-  const altoCanvas = useThree((s) => s.size.height)
-  useLayoutEffect(() => {
-    recorte.current = recorteGL(hero, altoCanvas)
-  }, [hero, altoCanvas])
-  // El buffer del vidrio oculta la piel entera (el grupo de sus trozos)
-  const [piel, buffer] = useGlassBuffer<Group>(fondo, modo === 'hero' ? recorte : recorteHero)
+  }, [escenas])
+  // El buffer del vidrio oculta la piel entera (el grupo de sus trozos); en
+  // la toma del hero, solo en la caja del busto
+  const [piel, buffer] = useGlassBuffer<Group>(fondo, recorteHero)
   const borde = useMemo(() => materialBorde(), [])
   useEffect(() => () => borde.dispose(), [borde])
   // Los trozos de la piel comparten el nodo (la escala de la cuantización)
   const escalaPiel = pieles[0]?.scale.x ?? 1
 
-  // Cuerpo único: el vidrio, el hueso, el borde y el corte pasan del aspecto
-  // del busto al del recorrido con el peso del hero.
+  // El vidrio, el hueso, el borde y el corte pasan del aspecto del busto al
+  // del recorrido con el peso del hero.
   const vidrios = useRef(new Map<string, MeshPhysicalMaterial>())
   const trozos = useRef(new Map<string, Mesh>())
   const bordes = useRef(new Map<string, Mesh>())
   const huesos = useRef(new Map<string, Mesh>())
   const cortes = useRef({ piel: uniformesCorte(CORTE_PIEL), hueso: uniformesCorte(CORTE_HUESO) })
   useFrame(() => {
-    if (!cuerpoUnico) return
-    const h = pesoHeroActual(modo, cuerpoUnico)
+    const h = pesoHeroActual()
     const corte = cortes.current
     corte.piel.corteY.value = corteDe(CORTE_PIEL, h)
     corte.hueso.corteY.value = corteDe(CORTE_HUESO, h)
@@ -453,7 +365,6 @@ function Cuerpo({ calidad, fondo, modo, cuerpoUnico, hero, escenas }: PropsCuerp
             <Vidrio
               calidad={calidad}
               buffer={buffer}
-              cuerpoUnico={cuerpoUnico}
               alCrear={(m) => {
                 if (m) vidrios.current.set(malla.name, m)
                 else vidrios.current.delete(malla.name)
@@ -481,14 +392,14 @@ function Cuerpo({ calidad, fondo, modo, cuerpoUnico, hero, escenas }: PropsCuerp
   )
 }
 
-// Cuerpo único: la craneoplastía con el titanio del busto, en la capa del
+// La craneoplastía con el titanio del busto, en la capa del
 // vidrio (0), así que se ve refractada a través de él como en el hero. Le
 // cede el lugar a la de la capa de implantes en un cruce corto (peso del hero
 // de 0,56 a 0,44, unos 2 % de pantalla de scroll): la refracción las corre y,
 // con un fundido largo, se veían dos craneoplastías desalineadas.
 const cruceCraneo = (h: number) => MathUtils.smoothstep(h, 0.44, 0.56)
 
-function CraneoHero({ modo }: { modo: Modo }) {
+function CraneoHero() {
   const archivo = useGLTF(IMPLANTES_GLB, false, true)
   const malla = useMemo(
     () => mallasDe(archivo.scene).find((m) => m.name === 'implante_craneoplastia'),
@@ -503,7 +414,7 @@ function CraneoHero({ modo }: { modo: Modo }) {
   useFrame(() => {
     const m = ref.current
     if (!m) return
-    const a = cruceCraneo(pesoHeroActual(modo, true))
+    const a = cruceCraneo(pesoHeroActual())
     ;(m.material as MeshStandardMaterial).opacity = a
     m.visible = a > 0.001
   }, -1)
@@ -630,7 +541,7 @@ function Resplandor({ ref, centro, tamano }: {
   )
 }
 
-function Implantes({ cuerpoUnico }: { cuerpoUnico: boolean }) {
+function Implantes() {
   const piezas = usePiezas()
   // Un material por pieza: la opacidad y el brillo cambian con el recorrido.
   // Titanio de impresión 3D gris y mate (el del busto) y de CNC, pulido.
@@ -664,8 +575,8 @@ function Implantes({ cuerpoUnico }: { cuerpoUnico: boolean }) {
   useFrame(() => {
     const { seg, reducido } = estadoRecorrido
     const base = opacidadBase(seg, reducido)
-    // Cuerpo único: en la toma del hero no hay implantes encima del vidrio
-    const h = pesoHeroActual('recorrido', cuerpoUnico)
+    // En la toma del hero no hay implantes encima del vidrio
+    const h = pesoHeroActual()
     const visibles = 1 - h
     const visibleCraneo = 1 - cruceCraneo(h)
     const pesos = piezas.map(({ implante }) =>
@@ -686,7 +597,7 @@ function Implantes({ cuerpoUnico }: { cuerpoUnico: boolean }) {
         apagado = Math.min(apagado, MathUtils.lerp(1, cercania, wj))
       })
       // El implante maxilar entra con el hueso recortado
-      const maxilar = cuerpoUnico && pieza.implante.parada === 'maxilar' ? pesoMaxilar(seg, reducido) : 1
+      const maxilar = pieza.implante.parada === 'maxilar' ? pesoMaxilar(seg, reducido) : 1
       const enVista = pieza.implante.parada === 'craneo' ? visibleCraneo : visibles
       material.opacity = Math.max(base * apagado, w) * enVista * maxilar
       material.emissiveIntensity = INTENSIDAD_BRILLO * w * maxilar
@@ -737,21 +648,8 @@ function Implantes({ cuerpoUnico }: { cuerpoUnico: boolean }) {
 // piel. Refractados y teñidos por el vidrio, el titanio se veía azul oscuro y
 // sin brillo; así se lee como metal y el implante es lo más nítido de la
 // escena. El hueso queda adentro del vidrio, tenue, como en el busto del hero.
-function Pasadas({ modo, hero }: { modo: Modo; hero?: AjustesHero }) {
+function Pasadas() {
   useFrame(({ gl, scene, camera, size }) => {
-    // En el hero solo está la capa del vidrio (sin borde ni implantes
-    // encima): una sola pasada, como el busto, y con recorte, solo en la
-    // caja del busto (el resto del canvas queda transparente)
-    if (modo === 'hero') {
-      const r = hero?.recorte
-      if (r) {
-        gl.setScissorTest(true)
-        gl.setScissor(r.x, size.height - r.y - r.height, r.width, r.height)
-      }
-      gl.render(scene, camera)
-      gl.setScissorTest(false)
-      return
-    }
     // Las miniaturas (miniaturas.tsx) dibujan después, cada una recortada a
     // su lugar: el cuadro arranca con el canvas entero
     gl.setScissorTest(false)
@@ -804,149 +702,96 @@ const proyectado = new Vector3()
 // distancia que hace entrar `alto` metros en la pantalla, y con
 // setViewOffset deja el objetivo en el ancla (la pantalla es un recorte de
 // una vista más grande centrada en él: la perspectiva no cambia). Escribe
-// además en la escena HTML dónde queda el halo del implante activo y la luz
-// que acompaña al cuerpo.
-function CamaraRecorrido({ modo, cuerpoUnico, hero }: {
-  modo: Modo
-  cuerpoUnico: boolean
-  hero?: AjustesHero
-}) {
+// además en la escena HTML dónde queda el halo del implante activo.
+function CamaraRecorrido() {
   const invalidate = useThree((s) => s.invalidate)
   const scene = useThree((s) => s.scene)
   useEffect(() => {
-    // El hero no maneja el estado del recorrido: es otra escena
-    if (modo === 'hero') return
     estadoRecorrido.invalidar = invalidate
     invalidate()
     return () => {
       estadoRecorrido.invalidar = null
     }
-  }, [invalidate, modo])
+  }, [invalidate])
 
-  // Giro del busto en el hero (body-scene.tsx, Bust), igual cuadro a cuadro:
-  // la entrada (hold: quieto en la pose de partida; play: corre; skip: sin
-  // entrada) y después el vaivén, con el tiempo acumulado solo mientras se
-  // dibuja. `pose` es el giro y la subida del último cuadro animado.
-  const giro = useRef({ entrada: hero?.entrada === 'skip' ? 1 : 0, tiempo: 0 })
-  const pose = useRef({ giro: GIRO_PERFIL, subida: 0 })
-  const ajustes = useRef(hero)
-  useLayoutEffect(() => {
-    ajustes.current = hero
-  }, [hero])
+  // Giro del busto en la toma del hero, igual cuadro a cuadro que el hero de
+  // antes: la entrada (estadoRecorrido.entrada: hold, quieto en la pose de
+  // partida; play, corre; skip, sin entrada) y después el vaivén, con el
+  // tiempo acumulado solo mientras se dibuja.
+  const giro = useRef({ entrada: 0, tiempo: 0 })
 
   // Vaivén leve del cuerpo (borrador: sin(t × 0,5)), solo con la escena fija
   // en pantalla y sin movimiento reducido. A 30 cuadros por segundo: el giro
   // es tan lento que no se nota la diferencia y cuesta la mitad.
   const tiempo = useRef(0)
   useEffect(() => {
-    if (modo === 'hero') return
     let cuadro = 0
     let par = false
     const latir = () => {
       par = !par
-      // Cuerpo único: en la toma del hero el vaivén va a todos los cuadros,
-      // como en el hero
-      const cadaCuadro = cuerpoUnico && pesoHeroActual('recorrido', true) > 0.01
+      // En la toma del hero el vaivén va a todos los cuadros, como en el
+      // hero de antes
+      const cadaCuadro = pesoHeroActual() > 0.01
       if ((par || cadaCuadro) && estadoRecorrido.fijo && !estadoRecorrido.reducido) invalidate()
       cuadro = requestAnimationFrame(latir)
     }
     cuadro = requestAnimationFrame(latir)
     return () => cancelAnimationFrame(cuadro)
-  }, [invalidate, modo, cuerpoUnico])
+  }, [invalidate])
 
   useFrame(({ camera, size }, delta) => {
     const { width: W, height: H } = size
     if (W === 0 || H === 0) return
     const cam = camera as PerspectiveCamera & { manual?: boolean }
-    const enHero = modo === 'hero'
-    const ajustesHero = ajustes.current
-    const { fijo } = estadoRecorrido
-    const seg = enHero ? 0 : estadoRecorrido.seg
-    const reducido = enHero ? !ajustesHero?.animar : estadoRecorrido.reducido
+    const { fijo, seg, reducido } = estadoRecorrido
     const paso = Math.min(delta, 0.1)
-    if (!enHero && fijo && !reducido) tiempo.current += paso
-    const celular = cuerpoUnico && W < ANCHO_CELULAR
-    const c = camaraPara(segCuerpo(seg, celular && !reducido), W, H, reducido, {
-      cuerpoUnico,
-      encuadreHero: ajustesHero?.encuadre,
+    if (fijo && !reducido) tiempo.current += paso
+    const celular = W < ANCHO_CELULAR
+    const c = camaraPara(segCuerpo(seg, celular && !reducido), W, reducido, {
       desliz: deslizHero(seg, celular),
     })
-    if (enHero) {
-      if (!reducido) {
-        const g = giro.current
-        let giroY = GIRO_PERFIL
-        let subida = 0
-        let vaiven = true
-        if (g.entrada < 1) {
-          if (ajustesHero?.entrada === 'hold' && g.entrada === 0) {
-            giroY = GIRO_PERFIL + GIRO_ENTRADA
-            subida = SUBIDA_ENTRADA
-            vaiven = false
-          } else {
-            g.entrada =
-              ajustesHero?.entrada === 'skip' && g.entrada === 0
-                ? 1
-                : Math.min(1, g.entrada + paso / SEGUNDOS_ENTRADA)
-            const resto = (1 - g.entrada) ** 3
-            giroY = GIRO_PERFIL + GIRO_ENTRADA * resto
-            subida = SUBIDA_ENTRADA * resto
-            vaiven = g.entrada >= 1
-          }
-        }
-        if (vaiven) {
-          g.tiempo += paso
-          giroY = giroVaiven(g.tiempo)
-        }
-        pose.current = { giro: giroY, subida }
-      }
-      // El busto gira +giro con la cámara quieta: acá gira la cámara −giro.
-      // El busto baja `subida`: acá sube el objetivo.
-      c.azimut = -pose.current.giro
-      c.objetivo = [c.objetivo[0], c.objetivo[1] + pose.current.subida, c.objetivo[2]]
-    } else if (!reducido) {
-      if (cuerpoUnico) {
-        // Entrada del hero (hold, play, skip; body-scene.tsx) y después su
-        // vaivén en la toma 0, y el del recorrido en las paradas. Los dos del
-        // hero se amortiguan a cero con el peso del hero al empezar el scroll.
-        const h = pesoHeroActual('recorrido', true)
-        const g = giro.current
-        const modoEntrada = estadoRecorrido.entrada
-        let extra = 0
-        let subida = 0
-        if (g.entrada < 1) {
-          if (modoEntrada === 'hold' && g.entrada === 0) {
-            extra = GIRO_ENTRADA
-            subida = SUBIDA_ENTRADA
-          } else {
-            g.entrada =
-              modoEntrada === 'skip' && g.entrada === 0
-                ? 1
-                : Math.min(1, g.entrada + paso / SEGUNDOS_ENTRADA)
-            const resto = (1 - g.entrada) ** 3
-            extra = GIRO_ENTRADA * resto
-            subida = SUBIDA_ENTRADA * resto
-          }
+    if (!reducido) {
+      // Entrada del hero (hold, play, skip) y después su vaivén en la toma 0,
+      // y el del recorrido en las paradas. Los dos del hero se amortiguan a
+      // cero con el peso del hero al empezar el scroll.
+      const h = pesoHeroActual()
+      const g = giro.current
+      const modoEntrada = estadoRecorrido.entrada
+      let extra = 0
+      let subida = 0
+      if (g.entrada < 1) {
+        if (modoEntrada === 'hold' && g.entrada === 0) {
+          extra = GIRO_ENTRADA
+          subida = SUBIDA_ENTRADA
         } else {
-          g.tiempo += paso
-          extra = giroVaiven(g.tiempo) - GIRO_PERFIL
+          g.entrada =
+            modoEntrada === 'skip' && g.entrada === 0
+              ? 1
+              : Math.min(1, g.entrada + paso / SEGUNDOS_ENTRADA)
+          const resto = (1 - g.entrada) ** 3
+          extra = GIRO_ENTRADA * resto
+          subida = SUBIDA_ENTRADA * resto
         }
-        c.azimut -= extra * h
-        c.objetivo = [c.objetivo[0], c.objetivo[1] + subida * h, c.objetivo[2]]
-        c.azimut += Math.sin(tiempo.current * 0.5) * 0.026 * (1 - h)
       } else {
-        c.azimut += Math.sin(tiempo.current * 0.5) * 0.026
+        g.tiempo += paso
+        extra = giroVaiven(g.tiempo) - GIRO_PERFIL
       }
+      // El busto giraba con la cámara quieta: acá gira la cámara alrededor de
+      // la cabeza, y sube el objetivo donde el busto bajaba
+      c.azimut -= extra * h
+      c.objetivo = [c.objetivo[0], c.objetivo[1] + subida * h, c.objetivo[2]]
+      c.azimut += Math.sin(tiempo.current * 0.5) * 0.026 * (1 - h)
     }
-    // Cuerpo único: el estudio de luz gira con la cámara. En el hero la luz
-    // queda quieta respecto de la cámara y gira el busto; con la cámara
+    // El estudio de luz gira con la cámara. En el hero de antes la luz
+    // quedaba quieta respecto de la cámara y giraba el busto; con la cámara
     // girando alrededor del cuerpo, es la misma imagen.
-    if (cuerpoUnico) scene.environmentRotation.set(0, c.azimut, 0)
+    scene.environmentRotation.set(0, c.azimut, 0)
     const [ax, ay] = c.ancla
     const fullW = W * (1 + 2 * Math.abs(ax - 0.5))
     const fullH = H * (1 + 2 * Math.abs(ay - 0.5))
     let tan = Math.tan(MathUtils.degToRad(FOV / 2))
     let distancia = (c.alto * (fullH / H)) / (2 * tan)
-    // Cuerpo único: la toma del hero fija la distancia y el fov sale de ella
+    // La toma del hero fija la distancia y el fov sale de ella
     if (c.distancia !== null) {
       distancia = c.distancia
       tan = (c.alto * (fullH / H)) / (2 * distancia)
@@ -964,30 +809,26 @@ function CamaraRecorrido({ modo, cuerpoUnico, hero }: {
     cam.lookAt(tx, ty, tz)
     cam.setViewOffset(fullW, fullH, fullW / 2 - ax * W, fullH / 2 - ay * H, W, H)
     cam.updateMatrixWorld()
-    if (!enHero) {
-      // Caja del busto de hoy (hero.tsx): en escritorio, 14:15 a todo el
-      // alto de ALTO_HERO metros, con la cabeza al 55,5 % de su ancho; en el
-      // celular, a todo el ancho. Solo con la toma del hero entera y sin
-      // las miniaturas a la vista.
-      const h = cuerpoUnico ? pesoHeroActual('recorrido', true) : 0
-      if (h >= 0.9999 && !estadoRecorrido.minis) {
-        const altoCaja = (H * ALTO_HERO) / c.alto
-        const celular = W < ANCHO_CELULAR
-        const anchoCaja = celular ? W : (altoCaja * 14) / 15
-        const x = celular ? 0 : ax * W - 0.555 * anchoCaja
-        const yArriba = ay * H - altoCaja / 2
-        const x0 = Math.max(0, Math.floor(x))
-        const x1 = Math.min(W, Math.ceil(x + anchoCaja))
-        const y0 = Math.max(0, Math.floor(yArriba))
-        const y1 = Math.min(H, Math.ceil(yArriba + altoCaja))
-        recorteHero.current = x1 > x0 && y1 > y0 ? [x0, H - y1, x1 - x0, y1 - y0] : null
-      } else {
-        recorteHero.current = null
-      }
+    // Caja del busto de antes (el hero como sección propia): en escritorio,
+    // 14:15 a todo el alto de ALTO_HERO metros, con la cabeza al 55,5 % de su
+    // ancho; en el celular, a todo el ancho. Solo con la toma del hero entera
+    // y sin las miniaturas a la vista.
+    if (pesoHeroActual() >= 0.9999 && !estadoRecorrido.minis) {
+      const altoCaja = (H * ALTO_HERO) / c.alto
+      const anchoCaja = celular ? W : (altoCaja * 14) / 15
+      const x = celular ? 0 : ax * W - 0.555 * anchoCaja
+      const yArriba = ay * H - altoCaja / 2
+      const x0 = Math.max(0, Math.floor(x))
+      const x1 = Math.min(W, Math.ceil(x + anchoCaja))
+      const y0 = Math.max(0, Math.floor(yArriba))
+      const y1 = Math.min(H, Math.ceil(yArriba + altoCaja))
+      recorteHero.current = x1 > x0 && y1 > y0 ? [x0, H - y1, x1 - x0, y1 - y0] : null
+    } else {
+      recorteHero.current = null
     }
 
     const escena = estadoRecorrido.escena
-    if (!escena || enHero) return
+    if (!escena) return
     // Píxeles por metro a la distancia del objetivo
     const ppm = H / c.alto
 
@@ -1013,12 +854,6 @@ function CamaraRecorrido({ modo, cuerpoUnico, hero }: {
     } else {
       escena.style.setProperty('--halo-o', '0')
     }
-
-    // Luz que sigue al cuerpo (borrador: radial en el pecho, 0,6 del lado
-    // mayor de la pantalla)
-    proyectado.set(0, 1.0, 0).project(cam)
-    escena.style.setProperty('--luz-x', `${((proyectado.x + 1) / 2) * W}px`)
-    escena.style.setProperty('--luz-y', `${((1 - proyectado.y) / 2) * H}px`)
   }, -1)
 
   return null
@@ -1037,37 +872,27 @@ function Listo({ alListo }: { alListo: () => void }) {
   return null
 }
 
-function Escena({ calidad, alListo, modo, cuerpoUnico, hero }: {
-  calidad: Quality
-  alListo: () => void
-  modo: Modo
-  cuerpoUnico: boolean
-  hero?: AjustesHero
-}) {
+function Escena({ calidad, alListo }: { calidad: Quality; alListo: () => void }) {
   const ancho = useThree((s) => s.size.width)
   const alto = useThree((s) => s.size.height)
-  const fondoRecorrido = useFondoEscena(ancho, alto)
-  // Cuerpo único: el vidrio refracta el degradé del hero (en el recorrido,
-  // el de la escena fija entera; en el celular, el degradé mide 140,2 % de
-  // la escena, como el hero alto de antes: .recorrido-escena en globals.css)
-  const degrade = useTexturaDegrade(
-    hero?.tramo ?? (ancho < ANCHO_DEGRADE_ALTO ? TRAMO_DEGRADE_CELULAR : null),
-  )
-  const fondo = cuerpoUnico ? degrade : fondoRecorrido
+  // El vidrio refracta el degradé del hero, el de la escena fija entera (en
+  // el celular, el degradé mide 140,2 % de la escena, como el hero alto de
+  // antes: .recorrido-escena en globals.css)
+  const fondo = useTexturaDegrade(ancho < ANCHO_DEGRADE_ALTO ? TRAMO_DEGRADE_CELULAR : null)
   // Celular: el degradé sube con el desliz del hero (tour-scroll.tsx mueve el
   // de CSS con --desliz), y el vidrio refracta el mismo tramo
   const deslizPintado = useRef(0)
   // Textura nueva (otro tamaño): se repinta en el próximo cuadro
   useLayoutEffect(() => {
     deslizPintado.current = -1
-  }, [degrade])
+  }, [fondo])
   useFrame(() => {
-    if (!cuerpoUnico || hero || ancho >= ANCHO_DEGRADE_ALTO) return
+    if (ancho >= ANCHO_DEGRADE_ALTO) return
     const d = deslizHero(estadoRecorrido.seg, true)
     if (Math.abs(d - deslizPintado.current) < 0.0005) return
     deslizPintado.current = d
     const [arriba, abajo] = TRAMO_DEGRADE_CELULAR
-    pintarDegrade(degrade, arriba + d * abajo, abajo + d * abajo)
+    pintarDegrade(fondo, arriba + d * abajo, abajo + d * abajo)
   }, -2)
   const invalidate = useThree((s) => s.invalidate)
   useLayoutEffect(() => invalidate(), [ancho, alto, invalidate])
@@ -1077,29 +902,27 @@ function Escena({ calidad, alListo, modo, cuerpoUnico, hero }: {
   const resto = useIntroPhase() === 'done'
   return (
     <>
-      <CamaraRecorrido modo={modo} cuerpoUnico={cuerpoUnico} hero={hero} />
-      <Pasadas modo={modo} hero={hero} />
-      {modo === 'recorrido' && <LuzImplantes />}
+      <CamaraRecorrido />
+      <Pasadas />
+      <LuzImplantes />
       <Suspense fallback={null}>
-        {modo === 'hero' || !resto ? (
-          <CuerpoHero calidad={calidad} fondo={fondo} modo={modo} cuerpoUnico={cuerpoUnico} hero={hero} />
+        {!resto ? (
+          <CuerpoHero calidad={calidad} fondo={fondo} />
         ) : (
           // Mientras llega el resto del cuerpo (después de la intro), sigue
           // el del hero: lo que falta queda debajo del corte de la toma hero
           <Suspense
-            fallback={
-              <CuerpoHero calidad={calidad} fondo={fondo} modo={modo} cuerpoUnico={cuerpoUnico} hero={hero} />
-            }
+            fallback={<CuerpoHero calidad={calidad} fondo={fondo} />}
           >
-            <CuerpoEntero calidad={calidad} fondo={fondo} modo={modo} cuerpoUnico={cuerpoUnico} hero={hero} />
+            <CuerpoEntero calidad={calidad} fondo={fondo} />
           </Suspense>
         )}
-        {cuerpoUnico && <CraneoHero modo={modo} />}
+        <CraneoHero />
         <Listo alListo={alListo} />
       </Suspense>
-      {modo === 'recorrido' && resto && (
+      {resto && (
         <Suspense fallback={null}>
-          <Implantes cuerpoUnico={cuerpoUnico} />
+          <Implantes />
           <Miniaturas />
         </Suspense>
       )}
@@ -1107,9 +930,10 @@ function Escena({ calidad, alListo, modo, cuerpoUnico, hero }: {
   )
 }
 
-// Resolución del hero (body-scene.tsx): arranca en la de la pantalla, hasta
-// 1,5x, y si faltan cuadros baja de a 0,25 hasta 1x y después pasa el vidrio
-// a calidad baja. Nunca vuelve a subir.
+// Resolución, como el hero de antes: arranca en la de la pantalla, hasta
+// 1,5x (y el tope de `dpr`), y si faltan cuadros mientras el hero anima baja
+// de a 0,25 hasta 1x y después pasa el vidrio a calidad baja. Nunca vuelve a
+// subir.
 const DPR_MAX_HERO = 1.5
 const DPR_MIN_HERO = 1
 
@@ -1118,17 +942,12 @@ export default function EscenaRecorrido({
   calidad,
   dpr,
   alListo,
-  hero,
 }: {
   activa: boolean
   calidad: Quality
   dpr: number
   alListo: () => void
-  // Con esto, la escena dibuja el hero del cuerpo único (modo 'hero')
-  hero?: AjustesHero
 }) {
-  const modo: Modo = hero ? 'hero' : 'recorrido'
-  const [cuerpoUnico] = useState(() => modo === 'hero' || cuerpoUnicoActivo())
   const [dprHero, setDprHero] = useState(() =>
     MathUtils.clamp(window.devicePixelRatio, DPR_MIN_HERO, DPR_MAX_HERO),
   )
@@ -1139,22 +958,19 @@ export default function EscenaRecorrido({
   }
   return (
     <Canvas
-      frameloop={!activa ? 'never' : hero?.animar ? 'always' : 'demand'}
-      dpr={hero ? dprHero : Math.min(dpr, dprHero)}
+      frameloop={activa ? 'demand' : 'never'}
+      dpr={Math.min(dpr, dprHero)}
       camera={{ position: [0, 0.85, 4], fov: FOV, near: 0.05, far: 20 }}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
     >
-      {/* En el recorrido, mide mientras se ve el hero (vaivén a cada
-          cuadro); con frameloop "demand" y quieto no recibe cuadros */}
+      {/* Mide mientras se ve el hero (vaivén a cada cuadro); con frameloop
+          "demand" y quieto no recibe cuadros */}
       <PerformanceMonitor onDecline={bajar} />
       <Escena
         calidad={calidadHero === 'baja' ? 'baja' : calidad}
         alListo={alListo}
-        modo={modo}
-        cuerpoUnico={cuerpoUnico}
-        hero={hero}
       />
-      {/* El mismo estudio de luz del busto (components/hero-3d/body-scene.tsx) */}
+      {/* El mismo estudio de luz del busto del hero de antes */}
       <Environment resolution={256}>
         <mesh scale={50}>
           <sphereGeometry args={[1, 32, 16]} />

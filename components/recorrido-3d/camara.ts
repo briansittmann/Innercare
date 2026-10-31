@@ -5,12 +5,13 @@
 // aunque no haya WebGL.
 //
 // El progreso p (0 a 1) del contenedor se reparte en 7 tramos entre 8 tomas:
-// seg = p × 7. k = 0 es la entrada (el cuerpo entero), k = 1…6 una parada por
-// implante (cabeza, maxilar, hombro, acetábulo, fémur proximal, diáfisis) y
-// k = 7 el cierre (el cuerpo entero).
+// seg = p × 7. k = 0 es el hero (la cabeza de perfil, como el busto de vidrio
+// de antes), k = 1…6 una parada por implante (cabeza, maxilar, hombro,
+// acetábulo, fémur proximal, diáfisis) y k = 7 el cierre (el cuerpo entero).
 //
-// Coordenadas del modelo (public/modelos/cuerpo.glb): metros, Y hacia arriba,
-// pies en 0, la figura mira a +Z y su lado derecho es -X.
+// Coordenadas del modelo (public/modelos/cuerpo-cabeza.glb y
+// cuerpo-resto.glb): metros, Y hacia arriba, pies en 0, la figura mira a +Z
+// y su lado derecho es -X.
 
 import type { ParadaId } from '@/content/recorrido'
 
@@ -55,20 +56,11 @@ export const clamp = (v: number, a = 0, b = 1) => (v < a ? a : v > b ? b : v)
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 export const smooth = (t: number) => t * t * (3 - 2 * t)
 
-// Entrada y cierre: el cuerpo entero anclado a la derecha (68 % del ancho),
-// con el texto a la izquierda; en el celular, centrado y debajo del texto.
-// Borrador: s = alto × 0,9 / 1000 (entrada) y × 0,88 (cierre) en escritorio,
-// × 0,6 en el celular.
+// Cierre: el cuerpo entero anclado a la derecha (68 % del ancho), con el
+// texto a la izquierda; en el celular, centrado y debajo del texto.
+// Borrador: s = alto × 0,88 / 1000 en escritorio y × 0,6 en el celular.
 const CENTRO_CUERPO: Vec3 = [0, 0.85, 0]
 const cuerpoEntero = (fraccion: number) => (1000 * UNIDAD) / fraccion
-
-const ENTRADA: Clave = {
-  objetivo: CENTRO_CUERPO,
-  azimut: -0.42,
-  elevacion: 0.04,
-  escritorio: { ancla: [0.68, 0.53], alto: cuerpoEntero(0.9) },
-  celular: { ancla: [0.5, 0.74], alto: cuerpoEntero(0.6) },
-}
 
 const CIERRE: Clave = {
   objetivo: CENTRO_CUERPO,
@@ -78,20 +70,20 @@ const CIERRE: Clave = {
   celular: { ancla: [0.5, 0.68], alto: cuerpoEntero(0.6) },
 }
 
-// --- Cuerpo único (prototipo, ?cuerpo-unico) --------------------------------
-// La toma del hero (components/hero-3d/), pasada a las coordenadas del
-// cuerpo: docs/landing/cuerpo-unico/base/MEDICIONES.md, "Cámara y pose del
-// hero". En el hero la cámara queda quieta en [0, 0,02, 0,92] mirando al
-// centro de la cabeza y el busto gira 62° (perfil); acá el cuerpo queda
-// quieto y la cámara gira −62° alrededor de la cabeza (y el estudio de luz
-// con ella: escena.tsx), que es la misma imagen.
+// --- Toma del hero -----------------------------------------------------------
+// La del busto de vidrio de antes (components/hero-3d/, ya borrado), pasada a
+// las coordenadas del cuerpo: docs/landing/cuerpo-unico/base/MEDICIONES.md,
+// "Cámara y pose del hero". En el busto la cámara quedaba quieta en
+// [0, 0,02, 0,92] mirando al centro de la cabeza y el busto giraba 62°
+// (perfil); acá el cuerpo queda quieto y la cámara gira −62° alrededor de la
+// cabeza (y el estudio de luz con ella: escena.tsx), que es la misma imagen.
 const HERO_ALTURA_CAMARA = 0.02
 const HERO_DISTANCIA = 0.92
 // Alto visible a la distancia del objetivo con fov 30°
 export const DISTANCIA_HERO = Math.hypot(HERO_DISTANCIA, HERO_ALTURA_CAMARA)
 export const ALTO_HERO = 2 * DISTANCIA_HERO * Math.tan((15 * Math.PI) / 180)
 
-// Giro del busto (body-scene.tsx): perfil a 62°, vaivén hasta 22° y vuelta
+// Giro del busto: perfil a 62°, vaivén hasta 22° y vuelta
 // cada 22 s; la entrada llega desde 55° más atrás y 2,5 cm más abajo en
 // 2,6 s, con cúbica de salida.
 const grados = (g: number) => (g * Math.PI) / 180
@@ -107,25 +99,22 @@ export const giroVaiven = (t: number) =>
 
 // La toma: objetivo en el centro de la cabeza (1,56 m), de perfil y apenas
 // desde arriba. El encuadre es el de la pantalla entera con la escena fija
-// arriba de todo; en el prototipo, el hero lo mide del DOM (hero-3d.tsx).
-// - Escritorio (1440 × 900): la caja del 3D del hero ocupa todo el alto y la
-//   cabeza cae a 1066 px (ancla 0,740).
-// - Celular (390 × 844): la caja del 3D empieza a 660 px y la cabeza cae a
+// arriba de todo, medido sobre el hero de antes:
+// - Escritorio (1440 × 900): la caja del 3D del hero ocupaba todo el alto y
+//   la cabeza caía a 1066 px (ancla 0,740).
+// - Celular (390 × 844): la caja del 3D empezaba a 660 px y la cabeza caía a
 //   922 px, debajo de la primera pantalla (ancla 1,092): con scroll 0 se ve
-//   la coronilla. En el prototipo el recorrido es otra sección, más abajo, y
-//   con esa toma arrancaba casi vacío: usa la que se ve al pie del hero
-//   (ancla 0,691, el busto entero), que es donde el usuario lo dejó.
-// - Estiramiento: la cámara del hero toma el aspecto del canvas antes de
+//   la coronilla, y con el desliz (deslizHero) sube hasta el busto entero.
+// - Estiramiento: la cámara del busto tomaba el aspecto del canvas antes de
 //   correr la figura con setViewOffset (R3F lo fija al crearla y después
-//   `manual` lo congela), así que la imagen sale estirada a lo ancho en
+//   `manual` lo congela), así que la imagen salía estirada a lo ancho en
 //   1 + 2 × |foco − 0,5|: 1,11 en escritorio (foco 0,555) y 1 en el celular.
-//   Es parte del busto que se ve hoy: se repite para no cambiarlo.
+//   Es parte del busto que le gusta al usuario: se repite para no cambiarlo.
 export const HERO: Clave = {
   objetivo: [0, 1.56, 0],
   azimut: -GIRO_PERFIL,
   elevacion: Math.atan2(HERO_ALTURA_CAMARA, HERO_DISTANCIA),
   escritorio: { ancla: [0.7404, 0.5], alto: ALTO_HERO, estiramiento: 1.11, distancia: DISTANCIA_HERO },
-  // Fase 3: el hero dentro de la escena fija, arriba de todo (1,092)
   celular: { ancla: [0.5, 1.092], alto: (ALTO_HERO * 844) / 523, estiramiento: 1, distancia: DISTANCIA_HERO },
 }
 
@@ -176,10 +165,8 @@ function claveParada(id: ParadaId): Clave {
   }
 }
 
-export const CLAVES: readonly Clave[] = [ENTRADA, ...ORDEN_PARADAS.map(claveParada), CIERRE]
-// Con el cuerpo único, la toma 0 es la del hero en lugar de la entrada
-const CLAVES_CUERPO_UNICO: readonly Clave[] = [HERO, ...CLAVES.slice(1)]
-
+// Las ocho tomas: el hero, las seis paradas y el cierre
+export const CLAVES: readonly Clave[] = [HERO, ...ORDEN_PARADAS.map(claveParada), CIERRE]
 
 export type Camara = {
   objetivo: Vec3
@@ -199,16 +186,12 @@ function distanciaDe(enc: Encuadre) {
   return (enc.alto * vistaEntera) / (2 * Math.tan(((FOV_GUION / 2) * Math.PI) / 180))
 }
 
-// Opciones del prototipo del cuerpo único: la toma 0 pasa a ser la del hero
-// y, si se da, con el encuadre medido en lugar del de la tabla.
 export type OpcionesCamara = {
-  cuerpoUnico?: boolean
-  encuadreHero?: Encuadre | null
   // Celular: cuánto se deslizó la toma del hero (deslizHero), en pantallas
   desliz?: number
 }
 
-// Celular (cuerpo único): la toma del hero se desliza como se deslizaba la
+// Celular: la toma del hero se desliza como se deslizaba la
 // página del hero de antes. Durante las primeras 0,4 pantallas de scroll el
 // texto, las fibras y el busto suben juntos (a 0,4 se ve el busto entero,
 // ancla 0,692, como en la base con unos 340 px de scroll); recién después la
@@ -227,18 +210,11 @@ export function segCuerpo(seg: number, celular: boolean) {
   return clamp((seg - DESLIZ_HERO) / (FIN_DESLIZ - DESLIZ_HERO))
 }
 
-function encuadreDe(clave: Clave, ancho: number, alto: number, opciones?: OpcionesCamara): Encuadre {
-  if (clave === HERO && opciones?.encuadreHero) return opciones.encuadreHero
+function encuadreDe(clave: Clave, ancho: number, opciones?: OpcionesCamara): Encuadre {
   if (ancho >= ANCHO_CELULAR) return clave.escritorio
   if (clave === HERO && opciones?.desliz) {
     const [x, y] = clave.celular.ancla
     return { ...clave.celular, ancla: [x, y - opciones.desliz] }
-  }
-  // En el celular, la entrada también se limita por el ancho (borrador:
-  // min(alto × 0,6 / 1000, ancho × 1,05 / 400)).
-  if (clave === ENTRADA) {
-    const porAncho = ((400 / 1.05) * UNIDAD * alto) / ancho
-    return { ...clave.celular, alto: Math.max(clave.celular.alto, porAncho) }
   }
   return clave.celular
 }
@@ -251,15 +227,13 @@ function encuadreDe(clave: Clave, ancho: number, alto: number, opciones?: Opcion
 export function camaraPara(
   seg: number,
   ancho: number,
-  alto: number,
   reducido: boolean,
   opciones?: OpcionesCamara,
 ): Camara {
-  const claves = opciones?.cuerpoUnico ? CLAVES_CUERPO_UNICO : CLAVES
   const s = clamp(seg, 0, TRAMOS)
   if (reducido) {
-    const clave = claves[Math.round(s)] ?? ENTRADA
-    const enc = encuadreDe(clave, ancho, alto, opciones)
+    const clave = CLAVES[Math.round(s)] ?? HERO
+    const enc = encuadreDe(clave, ancho, opciones)
     return {
       ...clave,
       ancla: enc.ancla,
@@ -271,10 +245,10 @@ export function camaraPara(
   const k = Math.min(TRAMOS - 1, Math.floor(s))
   const u = s - k
   const e = smooth(clamp((u - 0.22) / 0.56))
-  const a = claves[k] ?? ENTRADA
-  const b = claves[k + 1] ?? CIERRE
-  const ea = encuadreDe(a, ancho, alto, opciones)
-  const eb = encuadreDe(b, ancho, alto, opciones)
+  const a = CLAVES[k] ?? HERO
+  const b = CLAVES[k + 1] ?? CIERRE
+  const ea = encuadreDe(a, ancho, opciones)
+  const eb = encuadreDe(b, ancho, opciones)
   return {
     objetivo: [
       lerp(a.objetivo[0], b.objetivo[0], e),
@@ -295,7 +269,7 @@ export function camaraPara(
   }
 }
 
-// Peso del aspecto del hero en el cuerpo único: 1 en la toma 0 y 0 desde la
+// Peso del aspecto del hero: 1 en la toma 0 y 0 desde la
 // craneoplastía, con la misma curva que la cámara del primer tramo. Con
 // movimiento reducido, de golpe en la mitad del tramo.
 export function pesoHero(seg: number, reducido: boolean) {
@@ -303,7 +277,7 @@ export function pesoHero(seg: number, reducido: boolean) {
   return 1 - smooth(clamp((clamp(seg, 0, 1) - 0.22) / 0.56))
 }
 
-// Maxilar del cuerpo único: 0 con el hueso entero (hero y craneoplastía) y 1
+// Maxilar: 0 con el hueso entero (hero y craneoplastía) y 1
 // con el recortado y su implante. Se funde al acercarse a la parada 2
 // (seg 1,4 a 1,78, cuando su tarjeta termina de entrar) y queda así hasta el
 // cierre. Con movimiento reducido, el estado final de cada parada.
@@ -329,7 +303,7 @@ export function opacidadBase(seg: number, reducido: boolean) {
   return lerp(0.62, 0.26, clamp(s / 0.6))
 }
 
-// Texto de la entrada: se va entre seg 0 y 0,35. Cierre: aparece entre 6,55
+// Texto del hero (la entrada): se va entre seg 0 y 0,35. Cierre: aparece entre 6,55
 // y 6,85. Índice anatómico: visible entre 0,5 y 6,5.
 // En el celular el texto sube con el desliz del hero (deslizHero) y se va
 // después, entre 0,4 y 0,6: como en la página de antes, los botones siguen a

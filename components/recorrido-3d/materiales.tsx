@@ -2,17 +2,14 @@
 
 import { useRef, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { MeshTransmissionMaterial, useFBO } from '@react-three/drei'
+import { useFBO } from '@react-three/drei'
 import { NoToneMapping, UnsignedByteType, type Mesh, type Object3D, type Texture } from 'three'
 
-// Materiales del cuerpo de vidrio, asignados por nombre de malla
-// (body-model.tsx). Ver docs/ARQUITECTURA_MODELO_3D.md, "Capas".
+// Piezas del cuerpo de vidrio que venían del busto del hero (el antiguo
+// components/hero-3d/materials.tsx), hoy solo de la escena única
+// (escena.tsx). Ver docs/ARQUITECTURA_MODELO_3D.md, "Capas".
 
 export type Quality = 'alta' | 'media' | 'baja'
-
-// La calidad solo cambia cuántas muestras toma la refracción: el aspecto es
-// el mismo en las tres, para que un cambio a mitad del giro no se note.
-const REFRACTION_SAMPLES: Record<Quality, number> = { alta: 10, media: 4, baja: 3 }
 
 // Lo que se ve a través del vidrio: la escena sin la piel, dibujada en un
 // buffer propio cada cuadro. El de Drei no tiene antialiasing, y las barras
@@ -22,9 +19,9 @@ const REFRACTION_SAMPLES: Record<Quality, number> = { alta: 10, media: 4, baja: 
 // como fondo `background`: el tramo del degradé que queda detrás del canvas.
 // Devuelve el ref para la malla de vidrio (o el grupo de mallas de vidrio)
 // y la textura para su material.
-// `clip` (opcional, lo usa el cuerpo único): si tiene un rectángulo (x, y,
-// ancho, alto en píxeles CSS del canvas, origen abajo a la izquierda, como
-// gl.setScissor), el buffer se dibuja solo ahí.
+// `clip` (opcional): si tiene un rectángulo (x, y, ancho, alto en píxeles
+// CSS del canvas, origen abajo a la izquierda, como gl.setScissor), el
+// buffer se dibuja solo ahí (la caja del busto en la toma del hero).
 export function useGlassBuffer<T extends Object3D = Mesh>(
   background: Texture,
   clip?: RefObject<readonly [number, number, number, number] | null>,
@@ -56,28 +53,6 @@ export function useGlassBuffer<T extends Object3D = Mesh>(
   return [glass, target.texture as Texture] as const
 }
 
-// Vidrio celeste de la marca: el color tiñe todo, y la atenuación agrega más
-// azul donde el vidrio es más grueso (cuello y hombros), así los bordes
-// quedan claros, como en la referencia.
-export function Glass({ quality, buffer }: { quality: Quality; buffer: Texture }) {
-  return (
-    <MeshTransmissionMaterial
-      buffer={buffer}
-      samples={REFRACTION_SAMPLES[quality]}
-      thickness={0.05}
-      roughness={0.06}
-      ior={1.25}
-      chromaticAberration={0}
-      anisotropicBlur={0.1}
-      color="#c8e1fa"
-      attenuationColor="#5b9ee0"
-      attenuationDistance={0.35}
-      clearcoat={1}
-      clearcoatRoughness={0.1}
-    />
-  )
-}
-
 // Hueso blanco lechoso y tenue, sin transmisión: se lee como anatomía a
 // través del vidrio sin competir con el implante.
 export function Bone({ opacity }: { opacity: number }) {
@@ -92,10 +67,4 @@ export function Bone({ opacity }: { opacity: number }) {
       depthWrite={false}
     />
   )
-}
-
-// Titanio de impresión 3D: gris y mate. El de CNC (pulido) va con roughness
-// bajo, cuando estén esos implantes.
-export function TrabecularTitanium() {
-  return <meshStandardMaterial color="#9aa1aa" metalness={1} roughness={0.5} />
 }

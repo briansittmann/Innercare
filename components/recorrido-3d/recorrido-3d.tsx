@@ -6,8 +6,9 @@ import { getIntroPhase, INTRO_MAX_WAIT, loadedAtHome, startIntro, useIntroPhase 
 import { ANCHO_CELULAR } from './camara'
 import { estadoRecorrido } from './estado'
 
-// three.js solo en el navegador y en un bundle aparte: la escena se carga
-// cuando el recorrido está por entrar en pantalla.
+// three.js solo en el navegador y en un bundle aparte. La escena única (el
+// hero y el recorrido) se monta apenas el navegador queda libre: es el 3D
+// del primer pantallazo.
 const EscenaRecorrido = dynamic(() => import('./escena'), { ssr: false })
 
 // Resolución acotada: el vidrio del cuerpo entero llena la pantalla en las
@@ -49,15 +50,13 @@ class LimiteEscena extends Component<{ children: ReactNode }, { fallo: boolean }
   }
 }
 
-// Monta el canvas del recorrido. `cerca`: el recorrido está a menos de una
-// pantalla (se carga); `enVista`: se ve (se dibuja). Avisa con `alListo`
-// cuando el cuerpo ya está en pantalla, para quitar el lugar reservado.
+// Monta el canvas de la escena única. `enVista`: la sección se ve (se
+// dibuja). Avisa con `alListo` cuando el cuerpo ya está en pantalla, para
+// quitar el lugar reservado.
 export function Recorrido3D({
-  cerca,
   enVista,
   alListo,
 }: {
-  cerca: boolean
   enVista: boolean
   alListo: () => void
 }) {
@@ -80,8 +79,7 @@ export function Recorrido3D({
   // Arranque de la entrada de la home (components/intro.ts), mientras no
   // haya pantalla de carga: cuando el 3D está listo (alListo de la escena), o
   // a los INTRO_MAX_WAIT ms si tarda. Enseguida si no hay 3D, si se pide
-  // menos movimiento o si se llegó a la home desde otra página. Mudado de
-  // components/hero-3d/hero-3d.tsx (cuerpo único, fase 3).
+  // menos movimiento o si se llegó a la home desde otra página.
   useEffect(() => {
     if (getIntroPhase() !== 'waiting') return
     if (
@@ -106,16 +104,16 @@ export function Recorrido3D({
     estadoRecorrido.invalidar?.()
   }, [fase, primero])
 
-  // Carga diferida: cuando el recorrido se acerca y el navegador queda libre
+  // Carga diferida: cuando el navegador queda libre (como mucho, 1,5 s)
   useEffect(() => {
-    if (!webgl || !cerca || montar) return
+    if (!webgl || montar) return
     if ('requestIdleCallback' in window) {
       const id = window.requestIdleCallback(() => setMontar(true), { timeout: 1500 })
       return () => window.cancelIdleCallback(id)
     }
     const id = setTimeout(() => setMontar(true), 300)
     return () => clearTimeout(id)
-  }, [webgl, cerca, montar])
+  }, [webgl, montar])
 
   if (!montar) return null
 
