@@ -332,11 +332,11 @@ export function opacidadBase(seg: number, reducido: boolean) {
 // Texto de la entrada: se va entre seg 0 y 0,35. Cierre: aparece entre 6,55
 // y 6,85. Índice anatómico: visible entre 0,5 y 6,5.
 // En el celular el texto sube con el desliz del hero (deslizHero) y se va
-// más tarde, entre 0,2 y 0,45: como en la página de antes, los botones
-// siguen a la vista mientras asoma el busto entero.
+// después, entre 0,4 y 0,6: como en la página de antes, los botones siguen a
+// la vista mientras asoma el busto entero.
 export function opacidadEntrada(seg: number, reducido: boolean, celular = false) {
   if (reducido) return Math.round(seg) === 0 ? 1 : 0
-  if (celular) return 1 - clamp((seg - 0.2) / 0.25)
+  if (celular) return 1 - clamp((seg - 0.4) / 0.2)
   return 1 - clamp(seg / 0.35)
 }
 

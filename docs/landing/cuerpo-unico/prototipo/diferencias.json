@@ -1,8 +1,8 @@
 [
  {
   "nombre": "celular-movimiento-hero-abajo",
-  "media": 31.95,
-  "mas24": 35.3,
+  "media": 31.93,
+  "mas24": 35.28,
   "desplazamiento": [
    0,
    0
@@ -19,8 +19,8 @@
  },
  {
   "nombre": "celular-movimiento-intro-2000",
-  "media": 7.02,
-  "mas24": 0.34,
+  "media": 7.01,
+  "mas24": 0.31,
   "desplazamiento": [
    0,
    0
@@ -28,8 +28,8 @@
  },
  {
   "nombre": "celular-movimiento-intro-fin",
-  "media": 6.93,
-  "mas24": 0.58,
+  "media": 6.97,
+  "mas24": 0.7,
   "desplazamiento": [
    0,
    0
@@ -37,8 +37,8 @@
  },
  {
   "nombre": "celular-movimiento-vaiven-00",
-  "media": 6.91,
-  "mas24": 0.56,
+  "media": 6.82,
+  "mas24": 0.44,
   "desplazamiento": [
    0,
    0
@@ -46,7 +46,7 @@
  },
  {
   "nombre": "celular-movimiento-vaiven-05",
-  "media": 6.47,
+  "media": 6.45,
   "mas24": 0.16,
   "desplazamiento": [
    0,
@@ -55,8 +55,8 @@
  },
  {
   "nombre": "celular-movimiento-vaiven-11",
-  "media": 6.52,
-  "mas24": 0.12,
+  "media": 6.66,
+  "mas24": 0.21,
   "desplazamiento": [
    0,
    0
@@ -64,8 +64,8 @@
  },
  {
   "nombre": "celular-movimiento-vaiven-16",
-  "media": 6.48,
-  "mas24": 0.17,
+  "media": 6.64,
+  "mas24": 0.27,
   "desplazamiento": [
    0,
    0
@@ -82,8 +82,8 @@
  },
  {
   "nombre": "celular-reducido-hero-abajo",
-  "media": 31.78,
-  "mas24": 34.95,
+  "media": 31.79,
+  "mas24": 34.99,
   "desplazamiento": [
    0,
    0
@@ -92,7 +92,7 @@
  {
   "nombre": "celular-reducido-intro-0000",
   "media": 6.26,
-  "mas24": 0,
+  "mas24": 0.01,
   "desplazamiento": [
    0,
    0
@@ -167,7 +167,7 @@
  },
  {
   "nombre": "escritorio-movimiento-intro-2000",
-  "media": 1.53,
+  "media": 1.7,
   "mas24": 0.48,
   "desplazamiento": [
    0,
@@ -176,8 +176,8 @@
  },
  {
   "nombre": "escritorio-movimiento-intro-fin",
-  "media": 2.21,
-  "mas24": 0.89,
+  "media": 1.77,
+  "mas24": 0.53,
   "desplazamiento": [
    0,
    0
@@ -185,8 +185,8 @@
  },
  {
   "nombre": "escritorio-movimiento-vaiven-00",
-  "media": 2.04,
-  "mas24": 0.85,
+  "media": 1.72,
+  "mas24": 0.55,
   "desplazamiento": [
    0,
    0
@@ -194,8 +194,8 @@
  },
  {
   "nombre": "escritorio-movimiento-vaiven-05",
-  "media": 1.33,
-  "mas24": 0.28,
+  "media": 1.36,
+  "mas24": 0.31,
   "desplazamiento": [
    0,
    0
@@ -204,7 +204,7 @@
  {
   "nombre": "escritorio-movimiento-vaiven-11",
   "media": 1.35,
-  "mas24": 0.23,
+  "mas24": 0.25,
   "desplazamiento": [
    0,
    0
@@ -212,8 +212,8 @@
  },
  {
   "nombre": "escritorio-movimiento-vaiven-16",
-  "media": 1.49,
-  "mas24": 0.36,
+  "media": 1.43,
+  "mas24": 0.33,
   "desplazamiento": [
    0,
    0
