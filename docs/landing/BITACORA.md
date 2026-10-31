@@ -544,3 +544,28 @@ El verificador dio "no pasa" por una diferencia grave. Commit: el de este aparta
 - **`intro-0000`** difiere (11 a 20 de media): el primer cuadro ya muestra el canvas o la captura en otro momento; revisar.
 - **Sin revisar:** sin JS, el índice activo del menú (`use-active-section.ts`: `#recorrido` ahora es un `span`), el salto de "Recorrer los implantes" y el cambio del cuerpo del hero al entero al llegar el resto (un remontaje).
 - **Capturas:** `docs/landing/cuerpo-unico/fase3/capturas/` (hero, nombres de `base/capturas/`), `fase3/diferencias/`, `fase3/recorrido/` (seg 0,1 a 7, con y sin movimiento reducido, 1440 y 390) e `informe.json`.
+
+## Cuerpo único, fase 4 · Maxilar, fibras y pendientes de la fase 3 (2026-10-31)
+
+**Commits:** `8e7e236` (maxilar), `9c953ec` (fibras: pausa y posición en el celular), `6f33738` (punto activo del menú), `57b8316`, `d6e3272`, `82a5832` (capturas del hero), `3760653` (degradé desde el primer cuadro), `788c76f` (la captura del busto entra con la intro), `f609253` (script y capturas del recorrido), `cccfcd0` (mediciones) y el de esta entrada.
+
+**Qué se hizo.**
+- **Maxilar:** `pesoMaxilar(seg, reducido)` en `camara.ts` (0 hasta seg 1,4; 1 desde 1,78, con `smooth`). En `escena.tsx`, `hueso_maxilar_entero` pesa `1 − m` y `hueso_maxilar` (el recortado) `(1 − h) × m`; el implante maxilar, su brillo y su halo se multiplican por `m`. Con movimiento reducido: entero en el hero y en la craneoplastía, recortado con implante desde la parada 2.
+- **Fibras:** la capa `.recorrido-fondo-hero` pasa a `display: none` cuando el fundido de entrada termina (seg ≥ 0,35); su IntersectionObserver deja de ver caja y `GhostFibers` deja de dibujar; al volver arriba, despierta. `resize()` ignora la caja vacía, así que no se realoca nada. En el celular (< 768 px) la capa mide el 140,2 % del alto de la escena, el alto que tenía el hero como sección (1183 px a 390 × 844): la cinta vuelve a caer donde caía (diferencia de 11 a 6,5 de media, el resto es el borde del texto).
+- **`intro-0000`:** dos pérdidas visibles. El degradé del hero lo ponía el JS (`data-cuerpo-unico`) y la vista de respaldo del busto llevaba el fondo `.escenario`, que tapaba las fibras y blanqueaba el fondo; además la captura del busto aparecía nítida, fuera de `.intro-3d`. Ahora el degradé es CSS de `.recorrido-escena`, la vista del hero no lleva fondo y entra con `.intro-3d`. Diferencia contra la base: escritorio 0,9 a 1 (antes 11 a 14).
+- **Menú:** `#recorrido` medía 1 px y casi nunca cruzaba la mitad de la pantalla. Ahora va de la craneoplastía al pie de la sección (`.recorrido-ancla-seccion`): Implantes se marca desde seg ≈ 0,6 y el hero no marca nada.
+- **Comprobado** (build de producción en 3400, Chrome con GPU; `fase4/recorrido.mjs`): "Recorrer los implantes" baja a seg 1,002 en los cuatro casos; la llegada de `cuerpo-resto.glb` e `implantes-recorrido.glb` no cambia la toma hero (diferencia 0 con movimiento reducido); 2 contextos WebGL en el hero (el de las fibras queda vivo y pausado al pie); sin errores de consola; sin WebGL, la captura del busto y las vistas por parada; sin JS, hero y tarjetas en orden y legibles (solo se oculta el índice anatómico, como antes). Build, lint y `tsc` sin errores.
+- **Mediciones con la Mac enchufada** (alternando con la base `6492345` en un worktree): `fase4/MEDICIONES.md`.
+
+**Decidido sin preguntar.**
+- **Fundido del maxilar entre seg 1,4 y 1,78:** empieza cuando la tarjeta de la craneoplastía se va y termina cuando entra la del maxilar, así el hueso cambia en el tramo de cámara y no con la parada quieta.
+- **Pausa de las fibras con `display: none`** en lugar de una señal nueva entre `tour-scroll.tsx` y `GhostFibers`: reutiliza el IntersectionObserver que ya tenían.
+- **Alto de las fibras en el celular fijo en 140,2 %** (medido a 390 × 844) en lugar de calcularlo con el alto del texto: la cabeza también se ancla a la pantalla y no al texto.
+
+**Pendiente.**
+- **El recorrido en escritorio cae a 51,8 fps con tope** (p95 33 ms; la base, 60) y a la mitad de margen sin tope en los dos tamaños. Viene de la fase 3 (cuerpo único), no de esta. Medir por partes en la fase 5 (`fase4/MEDICIONES.md`, "Lectura"). El hero quieto y el paso a la craneoplastía mejoran.
+- Celular contra la base: 6,3 a 7 de media en todas las tomas, con el 0,2 % de píxeles que cambian de verdad (bordes del texto); `hero-abajo` ya no aplica.
+- Sin JS, las fotos de algunas tarjetas (hombro, acetábulo, fémur) salen vacías en la captura de página entera: revisar si es la carga diferida de las imágenes.
+- El contexto de las fibras sigue vivo aunque pausado (no se libera).
+
+**Capturas:** `docs/landing/cuerpo-unico/fase4/capturas/` (hero, nombres de `base/capturas/`), `fase4/diferencias/`, `fase4/recorrido/` (seg 0,1 a 7 con el fundido del maxilar en 1,3, 1,45, 1,55, 1,65 y 1,78, con y sin movimiento reducido, 1440 y 390; `*-hero-con-resto`, `*-sin-js` y `*-sin-webgl-*`; `informe.json`) y `fase4/medidas/`.
