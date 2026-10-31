@@ -125,7 +125,8 @@ export const HERO: Clave = {
   azimut: -GIRO_PERFIL,
   elevacion: Math.atan2(HERO_ALTURA_CAMARA, HERO_DISTANCIA),
   escritorio: { ancla: [0.7404, 0.5], alto: ALTO_HERO, estiramiento: 1.11, distancia: DISTANCIA_HERO },
-  celular: { ancla: [0.5, 0.691], alto: (ALTO_HERO * 844) / 523, estiramiento: 1, distancia: DISTANCIA_HERO },
+  // Fase 3: el hero dentro de la escena fija, arriba de todo (1,092)
+  celular: { ancla: [0.5, 1.092], alto: (ALTO_HERO * 844) / 523, estiramiento: 1, distancia: DISTANCIA_HERO },
 }
 
 // Paradas: el implante anclado al 34 % del ancho y la tarjeta a la derecha;
