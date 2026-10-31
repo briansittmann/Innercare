@@ -908,6 +908,8 @@ const GhostFibers = ({
     };
 
     const resize = () => {
+      // Sin caja (display: none, pausa): se conserva el tamaño
+      if (!container.clientWidth || !container.clientHeight) return;
       const s = settingsRef.current;
       const width = Math.max(1, container.clientWidth);
       const height = Math.max(1, container.clientHeight);

@@ -153,6 +153,9 @@ export function TourScroll({
       const entrada = opacidadEntrada(s, reducido)
       mostrar(capaEntrada.current, entrada)
       mostrar(capaFondo.current, entrada)
+      // Las fibras dejan de dibujar cuando terminan de irse: sin caja, su
+      // IntersectionObserver las pausa; vuelven al subir
+      if (capaFondo.current) capaFondo.current.style.display = entrada < 0.02 ? 'none' : ''
       const cierre = opacidadCierre(s, reducido)
       mostrar(capaCierre.current, cierre)
       // Al final del cierre, el degradé se funde en el gris de "Cómo

@@ -890,6 +890,17 @@ body {
   inset: 0;
 }
 
+/* Celular: la cinta se mide contra el alto que tenía el hero como sección
+   propia (1183 px a 390 × 844: el texto más el 62 % de la pantalla del
+   busto), no contra una pantalla, para que caiga donde caía. Lo que pasa del
+   pie lo recorta la escena. */
+@media (width < 768px) {
+  .recorrido-fondo-hero {
+    bottom: auto;
+    height: 140.2%;
+  }
+}
+
 .recorrido-fundido {
   opacity: 0;
   background: linear-gradient(to top, var(--color-surface), transparent 9rem);
