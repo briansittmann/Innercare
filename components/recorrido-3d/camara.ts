@@ -220,7 +220,8 @@ export const deslizHero = (seg: number, celular: boolean) =>
   celular ? clamp(seg, 0, DESLIZ_HERO) : 0
 
 // El seg con el que corren la cámara y el peso del hero: en el celular, el
-// primer tramo empieza después del desliz
+// primer tramo empieza después del desliz. Con movimiento reducido no se
+// usa: cada toma cambia en la mitad del tramo, como las tarjetas.
 export function segCuerpo(seg: number, celular: boolean) {
   if (!celular || seg >= 1) return seg
   return clamp((seg - DESLIZ_HERO) / (FIN_DESLIZ - DESLIZ_HERO))

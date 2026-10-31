@@ -1096,6 +1096,40 @@ body {
     gap: 1.5rem;
     max-width: 27.5rem;
   }
+
+  /* El hero, como era sin JS: el texto a la altura de siempre (sin el
+     relleno de la columna) y la captura del busto en su lugar, a la derecha
+     en escritorio y debajo del texto en el celular. Solo la vista del hero;
+     las de las paradas siguen ocultas. */
+  .recorrido-escena {
+    padding: 0 0 4rem;
+  }
+
+  .recorrido-riel,
+  .recorrido-cierre {
+    margin-inline: 1.25rem;
+  }
+
+  .recorrido-vistas {
+    display: block;
+    inset: 0 0 auto;
+    height: 100dvh;
+  }
+
+  .recorrido-vistas > :not([data-visible]) {
+    display: none;
+  }
+
+  .recorrido-texto.recorrido-hero {
+    position: relative;
+    min-height: 100dvh;
+  }
+
+  @media (width < 820px) {
+    .recorrido-texto.recorrido-hero {
+      min-height: calc(78.2dvh + 62vh);
+    }
+  }
 }
 
 /* Imágenes que ocupan el lugar del 3D o de una animación (escena del

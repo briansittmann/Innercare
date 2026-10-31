@@ -133,7 +133,8 @@ const recorteHero: { current: readonly [number, number, number, number] | null }
 function pesoHeroActual(modo: Modo, cuerpoUnico: boolean) {
   if (modo === 'hero') return 1
   if (!cuerpoUnico) return 0
-  return pesoHero(segCuerpo(estadoRecorrido.seg, estadoRecorrido.celular), estadoRecorrido.reducido)
+  const { seg, celular, reducido } = estadoRecorrido
+  return pesoHero(segCuerpo(seg, celular && !reducido), reducido)
 }
 
 // Corte por altura: en la toma del hero, la piel a 1,33 m y el hueso a
@@ -864,7 +865,7 @@ function CamaraRecorrido({ modo, cuerpoUnico, hero }: {
     const paso = Math.min(delta, 0.1)
     if (!enHero && fijo && !reducido) tiempo.current += paso
     const celular = cuerpoUnico && W < ANCHO_CELULAR
-    const c = camaraPara(segCuerpo(seg, celular), W, H, reducido, {
+    const c = camaraPara(segCuerpo(seg, celular && !reducido), W, H, reducido, {
       cuerpoUnico,
       encuadreHero: ajustesHero?.encuadre,
       desliz: deslizHero(seg, celular),
