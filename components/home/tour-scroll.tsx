@@ -255,7 +255,7 @@ export function TourScroll({
         />
       ))}
 
-      <div ref={escena} data-escena-3d data-listo={listo || undefined} data-minis={minis || undefined} className="recorrido-escena escenario">
+      <div ref={escena} data-escena-3d data-listo={listo || undefined} data-minis={minis || undefined} className="recorrido-escena">
         <div aria-hidden className="recorrido-luz" />
         <div ref={capaFundido} aria-hidden className="recorrido-fundido" />
 
@@ -271,7 +271,9 @@ export function TourScroll({
             <div
               key={i}
               data-visible={i === vista || undefined}
-              className="escena-vista escenario absolute inset-0"
+              // La captura del busto va sobre el degradé de la escena y las
+              // fibras, como en el hero; las paradas, sobre la luz del borrador
+              className={`escena-vista absolute inset-0 ${i === vistaInicio && vistaInicio > paradas.length ? '' : 'escenario'}`}
             >
               {v}
             </div>

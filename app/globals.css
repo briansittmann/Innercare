@@ -875,14 +875,14 @@ body {
   opacity: 1;
 }
 
-/* Prototipo del cuerpo único (?cuerpo-unico, components/home/tour-scroll.tsx):
-   la escena fija lleva el degradé del hero, que refracta el vidrio, sin la
-   luz azul del recorrido. */
-.recorrido-escena[data-cuerpo-unico] {
+/* Cuerpo único: la escena fija lleva el degradé del hero, que refracta el
+   vidrio, sin la luz azul del recorrido. En CSS y no con el atributo que pone
+   el JS, para que el primer cuadro (y la página sin JS) ya lo tenga. */
+.recorrido-escena {
   background: linear-gradient(var(--color-stage-from), var(--color-stage-to));
 }
 
-.recorrido-escena[data-cuerpo-unico] .recorrido-luz {
+.recorrido-escena .recorrido-luz {
   display: none;
 }
 
