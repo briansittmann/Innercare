@@ -1,5 +1,5 @@
 #!/bin/sh
-# Implantes, prototipo de cabeza, cuerpo entero y optimización para la web.
+# Implantes, cuerpo entero y optimización para la web.
 # Parte de la piel y del esqueleto ya generados (piel.py y anatomia.py, que
 # tardan más).
 # Blender: la ruta se puede cambiar con la variable BLENDER.
@@ -9,13 +9,13 @@ B=${BLENDER:-/Applications/Blender.app/Contents/MacOS/Blender}
 S=3d/salida
 G="npx -y @gltf-transform/cli@4"
 "$B" -b -P 3d/scripts/implantes.py -- $S/piel.glb $S/esqueleto.glb $S
-"$B" -b -P 3d/scripts/cabeza.py -- $S/anatomia.glb $S/cabeza.glb
 # Meshopt sin unir mallas: la escena asigna los materiales por nombre.
-# cabeza.glb e implantes.glb son el hero; implantes-recorrido.glb (los otros
-# cinco implantes), el recorrido de la home (components/recorrido-3d/).
+# implantes.glb (la craneoplastía) va en el primer pantallazo, con la toma
+# del hero; implantes-recorrido.glb (los otros cinco implantes), después de
+# la intro (components/recorrido-3d/implantes.ts).
 mkdir -p public/modelos
 OPCIONES="--join false --palette false --instance false --texture-compress false"
-for m in cabeza implantes implantes-recorrido; do
+for m in implantes implantes-recorrido; do
   $G optimize $S/$m.glb public/modelos/$m.glb --compress meshopt $OPCIONES
 done
 # El cuerpo (piel y esqueleto con los recortes de los seis implantes, más el

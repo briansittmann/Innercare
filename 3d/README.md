@@ -32,9 +32,8 @@ Fuentes, licencias, versiones y comandos de los modelos del cuerpo translúcido.
 |---|---|
 | `scripts/piel.py` | Une busto y cuerpo de Tripo, suaviza, borra pezones y vulva, escala a 1,70 m y exporta `salida/piel.glb`. |
 | `scripts/anatomia.py` | Importa los huesos del atlas, los ajusta dentro de la piel, los simplifica, los agrupa por zona y exporta `salida/esqueleto.glb`. |
-| `scripts/implantes.py` | Genera los seis implantes sobre el esqueleto y recorta los huesos que reemplazan. Exporta, para el hero, `salida/implantes.glb` (la craneoplastía) y `salida/anatomia.glb` (piel y esqueleto con el recorte del cráneo); para el recorrido de la home, `salida/implantes-recorrido.glb` (los otros cinco) y `salida/cuerpo.glb` (con todos los recortes, más `hueso_maxilar_entero`). |
-| `scripts/cabeza.py` | Prototipo: recorta el busto de `anatomia.glb` (piel tapada debajo de las clavículas, cráneo, maxilar, mandíbula y cervicales) y exporta `salida/cabeza.glb`. |
-| `scripts/modelos.sh` | `npm run modelos`: corre los dos anteriores y optimiza con `gltf-transform` (meshopt, con `npx`) a `public/modelos/`: `cabeza.glb`, `implantes.glb`, `implantes-recorrido.glb`, y el cuerpo partido en `cuerpo-cabeza.glb` y `cuerpo-resto.glb`. |
+| `scripts/implantes.py` | Genera los seis implantes sobre el esqueleto y recorta los huesos que reemplazan. Exporta `salida/implantes.glb` (la craneoplastía, la pieza de la toma del hero), `salida/implantes-recorrido.glb` (los otros cinco) y `salida/cuerpo.glb` (piel y esqueleto con todos los recortes, más `hueso_maxilar_entero`). |
+| `scripts/modelos.sh` | `npm run modelos`: corre `implantes.py` y optimiza con `gltf-transform` (meshopt, con `npx`) a `public/modelos/`: `implantes.glb`, `implantes-recorrido.glb`, y el cuerpo partido en `cuerpo-cabeza.glb` y `cuerpo-resto.glb`. |
 | `scripts/partir.mjs` | Comandos de la CLI de gltf-transform (`--config`): `partir` comprime el cuerpo y lo parte (piel en tres por altura, columna en dos, hero y resto en dos archivos) copiando los valores cuantizados; `verificar` comprueba que es el cuerpo entero, valor por valor. |
 | `scripts/preview.py` | Renders de control en PNG. Con una piel como tercer argumento, la compone translúcida encima del modelo. Con `--extra <glb>` suma otro modelo y con `--zona <nombre> <x> <y> <z> <tamaño>` hace primeros planos de una zona, con los implantes en azul, tapados por el hueso y encima (`-encima`, como los dibuja el recorrido). |
 
@@ -46,7 +45,7 @@ $B -b -P 3d/scripts/piel.py -- 3d/fuentes/CuerpoCompleto.glb 3d/fuentes/busto.gl
 $B -b -P 3d/scripts/anatomia.py -- 3d/fuentes/bodyparts3d 3d/salida/piel.glb 3d/salida/esqueleto.glb
 $B -b -P 3d/scripts/preview.py -- 3d/salida/esqueleto.glb 3d/salida/preview/esqueleto
 $B -b -P 3d/scripts/preview.py -- 3d/salida/esqueleto.glb 3d/salida/preview/esqueleto-piel 3d/salida/piel.glb
-npm run modelos   # implantes.py, cabeza.py, la optimización y la partición del cuerpo a public/modelos/
+npm run modelos   # implantes.py, la optimización y la partición del cuerpo a public/modelos/
 # Control de los implantes del recorrido (coordenadas de Blender: -X es el lado derecho de la figura)
 $B -b -P 3d/scripts/preview.py -- 3d/salida/cuerpo.glb 3d/salida/preview/implantes \
   --extra 3d/salida/implantes-recorrido.glb --zona hombro -0.15 0.02 1.30 0.2

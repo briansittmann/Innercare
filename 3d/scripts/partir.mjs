@@ -2,7 +2,7 @@
 // zona. Son comandos propios de la CLI de gltf-transform, que se cargan con
 // --config (los corre 3d/scripts/modelos.sh):
 //
-//   gltf-transform partir <cuerpo-optimizado.glb> <cabeza.glb> [--resto <resto.glb>] --config 3d/scripts/partir.mjs
+//   gltf-transform partir <cuerpo-optimizado.glb> <cuerpo-cabeza.glb> [--resto <resto.glb>] --config 3d/scripts/partir.mjs
 //   gltf-transform verificar <cuerpo-entero.glb> <partidos.glb...> --config 3d/scripts/partir.mjs
 //
 // `partir` recibe el cuerpo de `optimize --compress false` (simplificado,
@@ -29,12 +29,13 @@
 // - piel → piel_cabeza, piel_torso y piel_piernas, por caras completas
 //   según la altura de su vértice más alto (ZONAS_PIEL). piel_cabeza es lo
 //   que llega arriba del corte del busto (1,33 m, CORTE_PIEL en
-//   components/recorrido-3d/cuerpo-unico.ts): en la toma del hero, la
+//   components/recorrido-3d/aspecto-hero.ts): en la toma del hero, la
 //   escena oculta las otras dos. piel_torso empieza debajo de la punta de
 //   los dedos (0,686 m), así la junta no cruza las manos.
 // - hueso_columna → hueso_columna_alta y hueso_columna_baja, por piezas
 //   sueltas (vértebras y discos) según la altura media de cada una, como el
-//   busto (3d/scripts/cabeza.py): las de arriba de 1,35 m son las del busto.
+//   busto del hero de antes (el corte de 1,35 m del antiguo cabeza.py): las
+//   de arriba son las del busto.
 
 import { createRequire } from 'node:module'
 import { pathToFileURL } from 'node:url'
@@ -47,7 +48,7 @@ const ZONAS_PIEL = [
   ['piel_piernas', -Infinity],
 ]
 const CORTE_COLUMNA = 1.35
-// Lo que se ve en la toma del hero (HUESOS_BUSTO en cuerpo-unico.ts, más la
+// Lo que se ve en la toma del hero (HUESOS_BUSTO en aspecto-hero.ts, más la
 // piel de arriba del corte)
 const MALLAS_HERO = new Set([
   'piel_cabeza',

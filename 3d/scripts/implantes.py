@@ -21,13 +21,13 @@
 #    parche achicado, para que el borde apoye sobre el hueso.
 #
 # Exporta:
-# - implantes.glb: la craneoplastía sola, y anatomia.glb: la piel y el
-#   esqueleto con el recorte del cráneo. Son el prototipo de cabeza del hero
-#   (cabeza.py parte de anatomia.glb): no cambian con los otros implantes.
+# - implantes.glb: la craneoplastía sola (la pieza de la toma del hero).
 # - implantes-recorrido.glb: los otros cinco (implante_<parada>), y
 #   cuerpo.glb: la piel y el esqueleto con todos los recortes, más una copia
-#   del maxilar sin recortar (hueso_maxilar_entero) para el cuerpo único.
-#   Son los del recorrido de la home (components/recorrido-3d/implantes.ts).
+#   del maxilar sin recortar (hueso_maxilar_entero) para el hero y la
+#   craneoplastía. Son los de la escena única de la home
+#   (components/recorrido-3d/implantes.ts); modelos.sh parte cuerpo.glb en
+#   cuerpo-cabeza.glb y cuerpo-resto.glb (partir.mjs).
 #
 # Uso:
 #   blender -b -P 3d/scripts/implantes.py -- <piel.glb> <esqueleto.glb> <carpeta_salida>
@@ -334,9 +334,9 @@ bm.to_mesh(craneo.data)
 bm.free()
 print(f'[implantes] cráneo: {len(borrar)} caras recortadas debajo del parche')
 
-# Exportar el prototipo de cabeza (el hero): la craneoplastía sola y la
-# anatomía con el recorte del cráneo. cabeza.py parte de anatomia.glb, así
-# que el busto del hero no cambia con los implantes del recorrido.
+# Exportar la craneoplastía sola (implantes.glb). Hasta la fase 5 del
+# cuerpo único salía también anatomia.glb (la anatomía con solo el recorte
+# del cráneo), de la que cabeza.py recortaba el busto del hero; ya no se usa.
 salida.mkdir(parents=True, exist_ok=True)
 
 
@@ -349,8 +349,6 @@ def exportar(objs, ruta):
 
 
 exportar([parche], salida / 'implantes.glb')
-anatomia = [o for o in bpy.context.scene.objects if o.type == 'MESH' and o is not parche]
-exportar(anatomia, salida / 'anatomia.glb')
 
 
 # =============================================================================
