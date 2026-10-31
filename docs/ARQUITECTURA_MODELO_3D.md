@@ -14,6 +14,7 @@ Estado al 2026-10-29. El hero muestra el prototipo de cabeza; el cuerpo entero v
   - Para medir: `?medir` en la home muestra cuadros por segundo, triángulos, tiempos y bytes; `?calidad=alta|media|baja` fija el vidrio; `?hueso=0.3`, la opacidad del hueso, y `?fondo` dibuja en el canvas el tramo del degradé que refracta el vidrio (si no coincide con el del CSS, se ve un rectángulo); `?fibras=no` apaga las fibras y `?fibras=1x|2x` fija su resolución (por defecto, 2x en escritorio y 1x en el celular). Es del prototipo: se quita antes del lanzamiento.
 - **Hecho (2026-10-30, fase 3 de la landing):** el cuerpo entero en el recorrido de la home (`#recorrido`, `components/recorrido-3d/`). `npm run modelos` optimiza `salida/anatomia.glb` a `public/modelos/cuerpo.glb` (918 KB, 695 KB transferidos con gzip; unos 177 000 triángulos). La craneoplastía es la real; los otros cinco implantes son primitivas detrás de `components/recorrido-3d/implantes.ts`, cuyo contrato explica cómo reemplazarlas. Detalle en `docs/landing/BITACORA.md`.
 - **Hecho (2026-10-30, fase 4 de la landing):** los otros cinco implantes, generados en `implantes.py` (maxilar, hombro reverso, acetábulo, endoprótesis de fémur e intercalar de fémur), con los huesos que reemplazan recortados. Van en `public/modelos/implantes-recorrido.glb` (313 KB, 195 KB con gzip; unos 41 000 triángulos) y el cuerpo recortado en `cuerpo.glb` (902 KB). El hero no cambia: `cabeza.glb` e `implantes.glb` salen igual que antes (la craneoplastía sola y el esqueleto con el recorte del cráneo). Renders de control en `3d/salida/preview/implantes/`. Detalle y medidas estimadas en `docs/landing/BITACORA.md`.
+- **Hecho (2026-10-31, cuerpo único, fase 2):** el cuerpo va partido en dos archivos, `cuerpo-cabeza.glb` (lo que se ve en la toma del hero: 381 KB, 306 KB con gzip) y `cuerpo-resto.glb` (595 KB), en lugar de `cuerpo.glb` (970 KB). La piel va en tres mallas por altura y la columna en dos (ver "Nombres"), con los mismos triángulos, vértices cuantizados, normales y nodo que las mallas enteras: lo hace `3d/scripts/partir.mjs` después de `optimize`, y `npm run modelos` lo comprueba valor por valor. El primer pantallazo del cuerpo único (cabeza del cuerpo y craneoplastía) pesa 454 KB, menos que el del busto (498 KB). Detalle y motivos en `docs/landing/BITACORA.md`, "Cuerpo único, fase 2".
 - **Siguiente:** medir en un celular real el busto del hero y el cuerpo del recorrido (hoy medido solo en escritorio y con emulación de celular). El recorrido tiene la resolución fija (1,5x) y el vidrio en calidad baja en el celular, porque dibuja a demanda y no puede medir los cuadros solo. Ese día, con el build de producción en la red local y `?medir`, comparar `?fibras=no|1x|2x` y `?calidad=alta|media|baja`, y ajustar la calidad por defecto, la transmisión, la opacidad del hueso y la resolución de las fibras en el celular (hoy 1x por precaución). Para abrirlo desde el teléfono, el firewall de macOS tiene que dejar entrar conexiones a Node.
 - **Del esqueleto, a revisar con el material de vidrio:**
   - El cráneo queda algo bajo dentro de la cabeza, porque la del maniquí es más alta que la del atlas: entra escalado por eje (0,98 × 1,05 × 0,86).
@@ -25,7 +26,7 @@ Estado al 2026-10-29. El hero muestra el prototipo de cabeza; el cuerpo entero v
   - `Blender -b -P 3d/scripts/piel.py -- 3d/fuentes/CuerpoCompleto.glb 3d/fuentes/busto.glb 3d/salida/piel.glb`
   - `Blender -b -P 3d/scripts/anatomia.py -- 3d/fuentes/bodyparts3d 3d/salida/piel.glb 3d/salida/esqueleto.glb`
   - `Blender -b -P 3d/scripts/preview.py -- <modelo.glb> 3d/salida/preview [<piel.glb>]` (con la piel, se compone translúcida encima)
-  - `npm run modelos`: implantes, prototipo de cabeza y optimización (`3d/scripts/modelos.sh`; la ruta de Blender se cambia con `BLENDER`).
+  - `npm run modelos`: implantes, prototipo de cabeza, optimización y partición del cuerpo (`3d/scripts/modelos.sh` y `partir.mjs`; la ruta de Blender se cambia con `BLENDER`).
 
 ---
 
@@ -132,8 +133,10 @@ No se modela a mano en una interfaz. **Todo se genera con scripts de Python para
 
 La escena asigna los materiales por nombre de malla. Así se ajusta el aspecto en el código sin reexportar, y una pieza CAD de Innercare reemplaza a la generada solo con respetar el nombre.
 
-- `piel`
+- `piel` en los intermedios de Blender (`3d/salida/`). En la web va partida por caras completas según la altura de su vértice más alto: `piel_cabeza` (lo que llega arriba de 1,33 m, el corte del busto), `piel_torso` (hasta 0,68 m, debajo de la punta de los dedos, para que la junta no cruce las manos) y `piel_piernas`. Las tres comparten el nodo de la piel entera (la escala de la cuantización, de la que depende el espesor del vidrio) y la junta es estanca: los vértices de los dos lados son los mismos valores. La escena las trata como una sola (el buffer del vidrio oculta el grupo) y, en el cuerpo único, oculta las que quedan enteras debajo del corte.
 - `hueso_<nombre>` (por ejemplo `hueso_femur_izq`)
+- `hueso_maxilar_entero`: copia del maxilar antes del recorte del implante (`implantes.py`), para el cuerpo único (en el hero y la craneoplastía el maxilar se ve entero, como en el busto). El recorrido sin el parámetro no la dibuja.
+- `hueso_columna` en Blender; en la web, `hueso_columna_alta` (las vértebras y discos con el centro arriba de 1,35 m, las del busto, como en `cabeza.py`) y `hueso_columna_baja`.
 - `implante_craneoplastia` (en `implantes.glb`, compartido con el hero) y, en `implantes-recorrido.glb`, `implante_<parada>` con el id de la parada de `content/recorrido.ts`: `implante_maxilar`, `implante_hombro`, `implante_acetabulo`, `implante_femur` (la endoprótesis) e `implante_intercalar`
 - Sufijo `_pulido` o `_trabecular` cuando una pieza combina las dos terminaciones. Hoy cada implante es una sola malla con un solo acabado (`implantes.ts`): la base porosa de la glenosfera y el inserto del hombro van pulidos como el resto.
 
@@ -153,9 +156,14 @@ La escena asigna los materiales por nombre de malla. Así se ajusta el aspecto e
 public/modelos/
   cabeza.glb         busto del hero (piel y esqueleto con el recorte del cráneo)
   implantes.glb      la craneoplastía (hero y recorrido)
-  cuerpo.glb         piel y esqueleto con los recortes de los seis implantes (recorrido)
+  cuerpo-cabeza.glb  lo del cuerpo que entra en el hero: piel_cabeza, cráneo, maxilar
+                     entero, mandíbula y columna alta (CUERPO.hero en implantes.ts)
+  cuerpo-resto.glb   el resto de la piel y del esqueleto, con los recortes de los
+                     seis implantes (el recorrido carga los dos)
   implantes-recorrido.glb  los otros cinco implantes (recorrido)
 ```
+
+`3d/scripts/partir.mjs` (comandos propios de la CLI de gltf-transform, con `--config`) parte el cuerpo: `optimize --compress false` lo simplifica, `partir` lo cuantiza y comprime con meshopt como `optimize --compress meshopt` y, antes de escribir, separa la piel, la columna y los dos archivos copiando los valores ya cuantizados; `verificar` compara el resultado con el cuerpo comprimido entero. No se parte en Blender: `optimize` simplifica cada malla con un error relativo a su tamaño y la cuantiza en su propia grilla, así que partida antes la piel quedaba en 108 000 triángulos en lugar de 62 000 (1,17 MB) y con la junta en dos grillas distintas. Tampoco se parte el archivo ya comprimido: volver a comprimir pasa otra vez las normales por el filtro octaédrico de meshopt y corre unas 3900.
 
 `npm run modelos` corre los scripts y la optimización con `gltf-transform`.
 

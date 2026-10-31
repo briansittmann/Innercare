@@ -1,0 +1,350 @@
+[
+ {
+  "nombre": "escritorio-movimiento-intro-0000",
+  "desde": "running",
+  "msDesde": [
+   39,
+   157
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 1
+ },
+ {
+  "nombre": "escritorio-movimiento-intro-2000",
+  "desde": "running",
+  "msDesde": [
+   2035,
+   2244
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "escritorio-movimiento-intro-fin",
+  "desde": "done",
+  "msDesde": [
+   38,
+   233
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "escritorio-movimiento-vaiven-00",
+  "desde": "done",
+  "msDesde": [
+   374,
+   551
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "escritorio-movimiento-vaiven-05",
+  "desde": "done",
+  "msDesde": [
+   5036,
+   5222
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "escritorio-movimiento-vaiven-11",
+  "desde": "done",
+  "msDesde": [
+   11032,
+   11213
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "escritorio-movimiento-vaiven-16",
+  "desde": "done",
+  "msDesde": [
+   16030,
+   16232
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "escritorio-movimiento",
+  "running": 1043.5,
+  "done": 5046.9,
+  "listo": 1043.6,
+  "errores": []
+ },
+ {
+  "nombre": "escritorio-reducido-intro-0000",
+  "desde": "running",
+  "msDesde": [
+   109,
+   286
+  ],
+  "canvasVisible": false,
+  "respaldoOpacidad": 1
+ },
+ {
+  "nombre": "escritorio-reducido-intro-2000",
+  "desde": "running",
+  "msDesde": [
+   2016,
+   2165
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "escritorio-reducido-intro-fin",
+  "desde": "done",
+  "msDesde": [
+   22,
+   175
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "escritorio-reducido-vaiven-00",
+  "desde": "done",
+  "msDesde": [
+   311,
+   417
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "escritorio-reducido-vaiven-05",
+  "desde": "done",
+  "msDesde": [
+   5003,
+   5166
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "escritorio-reducido-vaiven-11",
+  "desde": "done",
+  "msDesde": [
+   11018,
+   11158
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "escritorio-reducido-vaiven-16",
+  "desde": "done",
+  "msDesde": [
+   16022,
+   16199
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "escritorio-reducido-detalle",
+  "desde": "done",
+  "msDesde": [
+   16343,
+   16797
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "escritorio-reducido",
+  "running": 343.9,
+  "done": 4290.3,
+  "listo": 983.9,
+  "errores": []
+ },
+ {
+  "nombre": "celular-movimiento-intro-0000",
+  "desde": "running",
+  "msDesde": [
+   41,
+   116
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 1
+ },
+ {
+  "nombre": "celular-movimiento-intro-2000",
+  "desde": "running",
+  "msDesde": [
+   2032,
+   2144
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-movimiento-intro-fin",
+  "desde": "done",
+  "msDesde": [
+   36,
+   121
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-movimiento-vaiven-00",
+  "desde": "done",
+  "msDesde": [
+   332,
+   426
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-movimiento-vaiven-05",
+  "desde": "done",
+  "msDesde": [
+   5036,
+   5138
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-movimiento-vaiven-11",
+  "desde": "done",
+  "msDesde": [
+   11035,
+   11143
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-movimiento-vaiven-16",
+  "desde": "done",
+  "msDesde": [
+   16038,
+   16145
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-movimiento-hero-abajo",
+  "desde": "done",
+  "msDesde": [
+   16808,
+   16915
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-movimiento",
+  "running": 791.9,
+  "done": 4791.9,
+  "listo": 791.9,
+  "errores": []
+ },
+ {
+  "nombre": "celular-reducido-intro-0000",
+  "desde": "running",
+  "msDesde": [
+   27,
+   127
+  ],
+  "canvasVisible": false,
+  "respaldoOpacidad": 1
+ },
+ {
+  "nombre": "celular-reducido-intro-2000",
+  "desde": "running",
+  "msDesde": [
+   2033,
+   2096
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-reducido-intro-fin",
+  "desde": "done",
+  "msDesde": [
+   17,
+   75
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-reducido-vaiven-00",
+  "desde": "done",
+  "msDesde": [
+   313,
+   378
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-reducido-vaiven-05",
+  "desde": "done",
+  "msDesde": [
+   5015,
+   5086
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-reducido-vaiven-11",
+  "desde": "done",
+  "msDesde": [
+   11017,
+   11092
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-reducido-vaiven-16",
+  "desde": "done",
+  "msDesde": [
+   16014,
+   16093
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-reducido-detalle",
+  "desde": "done",
+  "msDesde": [
+   16149,
+   16394
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-reducido-hero-abajo",
+  "desde": "done",
+  "msDesde": [
+   17243,
+   17332
+  ],
+  "canvasVisible": true,
+  "respaldoOpacidad": 0
+ },
+ {
+  "nombre": "celular-reducido",
+  "running": 260.1,
+  "done": 4213.3,
+  "listo": 801.3,
+  "errores": []
+ }
+]
