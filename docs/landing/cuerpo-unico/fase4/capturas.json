@@ -3,8 +3,8 @@
   "nombre": "escritorio-movimiento-intro-0000",
   "desde": "running",
   "msDesde": [
-   69,
-   249
+   28,
+   171
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -13,8 +13,8 @@
   "nombre": "escritorio-movimiento-intro-2000",
   "desde": "running",
   "msDesde": [
-   2023,
-   2539
+   2028,
+   2192
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -23,8 +23,8 @@
   "nombre": "escritorio-movimiento-intro-fin",
   "desde": "done",
   "msDesde": [
-   2964,
-   6676
+   61,
+   271
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -33,8 +33,8 @@
   "nombre": "escritorio-movimiento-vaiven-00",
   "desde": "done",
   "msDesde": [
-   11928,
-   12927
+   428,
+   585
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -43,8 +43,8 @@
   "nombre": "escritorio-movimiento-vaiven-05",
   "desde": "done",
   "msDesde": [
-   14048,
-   15726
+   5021,
+   5178
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -53,8 +53,8 @@
   "nombre": "escritorio-movimiento-vaiven-11",
   "desde": "done",
   "msDesde": [
-   20907,
-   24791
+   11015,
+   11169
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -63,25 +63,25 @@
   "nombre": "escritorio-movimiento-vaiven-16",
   "desde": "done",
   "msDesde": [
-   27264,
-   29005
+   16015,
+   16624
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
  },
  {
   "nombre": "escritorio-movimiento",
-  "running": 3436.6,
-  "done": 7462.3,
-  "listo": 3436.6,
+  "running": 1077.3,
+  "done": 5086,
+  "listo": 1077.4,
   "errores": []
  },
  {
   "nombre": "escritorio-reducido-intro-0000",
   "desde": "running",
   "msDesde": [
-   208,
-   754
+   39,
+   339
   ],
   "canvasVisible": false,
   "respaldoOpacidad": 1
@@ -90,8 +90,8 @@
   "nombre": "escritorio-reducido-intro-2000",
   "desde": "running",
   "msDesde": [
-   2015,
-   2362
+   2006,
+   2132
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -100,8 +100,8 @@
   "nombre": "escritorio-reducido-intro-fin",
   "desde": "done",
   "msDesde": [
-   191,
-   1179
+   109,
+   257
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -110,8 +110,8 @@
   "nombre": "escritorio-reducido-vaiven-00",
   "desde": "done",
   "msDesde": [
-   2100,
-   2854
+   391,
+   501
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -120,8 +120,8 @@
   "nombre": "escritorio-reducido-vaiven-05",
   "desde": "done",
   "msDesde": [
-   5010,
-   5225
+   5023,
+   5179
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -130,8 +130,8 @@
   "nombre": "escritorio-reducido-vaiven-11",
   "desde": "done",
   "msDesde": [
-   11014,
-   11167
+   11019,
+   11163
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -140,8 +140,8 @@
   "nombre": "escritorio-reducido-vaiven-16",
   "desde": "done",
   "msDesde": [
-   16022,
-   16181
+   16019,
+   16163
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -150,201 +150,17 @@
   "nombre": "escritorio-reducido-detalle",
   "desde": "done",
   "msDesde": [
-   16326,
-   16895
+   16290,
+   16739
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
  },
  {
   "nombre": "escritorio-reducido",
-  "running": 1263.1,
-  "done": 5109.9,
-  "listo": 2564.1,
-  "errores": []
- },
- {
-  "nombre": "celular-movimiento-intro-0000",
-  "desde": "running",
-  "msDesde": [
-   23,
-   67
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-movimiento-intro-2000",
-  "desde": "running",
-  "msDesde": [
-   2012,
-   2134
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-movimiento-intro-fin",
-  "desde": "done",
-  "msDesde": [
-   70,
-   131
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-movimiento-vaiven-00",
-  "desde": "done",
-  "msDesde": [
-   339,
-   429
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-movimiento-vaiven-05",
-  "desde": "done",
-  "msDesde": [
-   5008,
-   5062
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-movimiento-vaiven-11",
-  "desde": "done",
-  "msDesde": [
-   11011,
-   11062
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-movimiento-vaiven-16",
-  "desde": "done",
-  "msDesde": [
-   16007,
-   16069
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-movimiento-hero-abajo",
-  "desde": "done",
-  "msDesde": [
-   16778,
-   16822
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-movimiento",
-  "running": 1015.5,
-  "done": 5017.5,
-  "listo": 1015.6,
-  "errores": []
- },
- {
-  "nombre": "celular-reducido-intro-0000",
-  "desde": "running",
-  "msDesde": [
-   65,
-   194
-  ],
-  "canvasVisible": false,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-reducido-intro-2000",
-  "desde": "running",
-  "msDesde": [
-   2018,
-   2073
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-reducido-intro-fin",
-  "desde": "done",
-  "msDesde": [
-   49,
-   94
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-reducido-vaiven-00",
-  "desde": "done",
-  "msDesde": [
-   365,
-   411
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-reducido-vaiven-05",
-  "desde": "done",
-  "msDesde": [
-   5026,
-   5080
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-reducido-vaiven-11",
-  "desde": "done",
-  "msDesde": [
-   11026,
-   11086
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-reducido-vaiven-16",
-  "desde": "done",
-  "msDesde": [
-   16031,
-   16119
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-reducido-detalle",
-  "desde": "done",
-  "msDesde": [
-   16240,
-   16966
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-reducido-hero-abajo",
-  "desde": "done",
-  "msDesde": [
-   18124,
-   18200
-  ],
-  "canvasVisible": true,
-  "respaldoOpacidad": 1
- },
- {
-  "nombre": "celular-reducido",
-  "running": 402.5,
-  "done": 4353.2,
-  "listo": 1001.8,
+  "running": 469.9,
+  "done": 4389.6,
+  "listo": 1170.1,
   "errores": []
  }
 ]
