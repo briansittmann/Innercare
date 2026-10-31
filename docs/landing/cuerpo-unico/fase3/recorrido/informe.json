@@ -1,0 +1,30 @@
+[
+  {
+    "tam": "escritorio",
+    "reducido": false,
+    "contextosHero": 2,
+    "contextosPie": 2,
+    "errores": []
+  },
+  {
+    "tam": "escritorio",
+    "reducido": true,
+    "contextosHero": 2,
+    "contextosPie": 2,
+    "errores": []
+  },
+  {
+    "tam": "celular",
+    "reducido": false,
+    "contextosHero": 2,
+    "contextosPie": 2,
+    "errores": []
+  },
+  {
+    "tam": "celular",
+    "reducido": true,
+    "contextosHero": 2,
+    "contextosPie": 2,
+    "errores": []
+  }
+]
