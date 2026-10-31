@@ -799,6 +799,14 @@ body {
   height: 1px;
 }
 
+/* #recorrido va de la craneoplastía al pie de la sección: así cruza la mitad
+   de la pantalla durante todo el recorrido y el menú marca Implantes
+   (use-active-section.ts); el hero no marca nada, como antes */
+.recorrido-ancla-seccion {
+  bottom: 0;
+  height: auto;
+}
+
 .recorrido-escena {
   position: sticky;
   top: 0;

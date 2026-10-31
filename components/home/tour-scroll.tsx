@@ -244,7 +244,7 @@ export function TourScroll({
       {/* Anclas de cada parada, a la altura de scroll donde la cámara llega a
           ella (k pantallas desde el principio del recorrido) */}
       {/* #recorrido (menú y "Recorrer los implantes"): la craneoplastía */}
-      <span id="recorrido" aria-hidden className="recorrido-ancla" style={{ '--k': 1 } as CSSProperties} />
+      <span id="recorrido" aria-hidden className="recorrido-ancla recorrido-ancla-seccion" style={{ '--k': 1 } as CSSProperties} />
       {paradas.map((parada, i) => (
         <span
           key={parada.ancla}
