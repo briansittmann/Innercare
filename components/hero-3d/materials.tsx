@@ -3,7 +3,7 @@
 import { useRef, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { MeshTransmissionMaterial, useFBO } from '@react-three/drei'
-import { NoToneMapping, UnsignedByteType, type Mesh, type Texture } from 'three'
+import { NoToneMapping, UnsignedByteType, type Mesh, type Object3D, type Texture } from 'three'
 
 // Materiales del cuerpo de vidrio, asignados por nombre de malla
 // (body-model.tsx). Ver docs/ARQUITECTURA_MODELO_3D.md, "Capas".
@@ -20,15 +20,16 @@ const REFRACTION_SAMPLES: Record<Quality, number> = { alta: 10, media: 4, baja: 
 // transmissionSampler: ese buffer no ve objetos transparentes, y el hueso lo
 // es. El canvas es transparente (el fondo es CSS), así que el buffer lleva
 // como fondo `background`: el tramo del degradé que queda detrás del canvas.
-// Devuelve el ref para la malla de vidrio y la textura para su material.
+// Devuelve el ref para la malla de vidrio (o el grupo de mallas de vidrio)
+// y la textura para su material.
 // `clip` (opcional, lo usa el cuerpo único): si tiene un rectángulo (x, y,
 // ancho, alto en píxeles CSS del canvas, origen abajo a la izquierda, como
 // gl.setScissor), el buffer se dibuja solo ahí.
-export function useGlassBuffer(
+export function useGlassBuffer<T extends Object3D = Mesh>(
   background: Texture,
   clip?: RefObject<readonly [number, number, number, number] | null>,
 ) {
-  const glass = useRef<Mesh>(null)
+  const glass = useRef<T>(null)
   const target = useFBO({ samples: 2, type: UnsignedByteType })
   useFrame(({ gl, scene, camera }) => {
     const mesh = glass.current

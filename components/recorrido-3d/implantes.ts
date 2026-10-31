@@ -10,7 +10,7 @@
 //   · { tipo: 'primitiva', crear }: una geometría de three armada acá, en
 //     coordenadas locales alrededor de `posicion`.
 // - `posicion` (metros), `rotacion` (radianes, orden XYZ) y `escala` ubican la
-//   pieza en el cuerpo (public/modelos/cuerpo.glb: Y hacia arriba, pies en 0,
+//   pieza en el cuerpo (CUERPO, abajo: Y hacia arriba, pies en 0,
 //   la figura mira a +Z y su lado derecho es -X). Un .glb generado sobre el
 //   esqueleto (como hace 3d/scripts/implantes.py) ya viene en esas
 //   coordenadas: va con posición y rotación 0 y escala 1.
@@ -27,7 +27,7 @@
 // craneoplastía sale de implantes.glb (el mismo archivo del busto del hero,
 // que ya está en caché) y las otras cinco de implantes-recorrido.glb. Los dos
 // ya vienen en las coordenadas del cuerpo, con los huesos que reemplazan
-// recortados en cuerpo.glb. Cuando lleguen los CAD de Innercare, reemplazan a
+// recortados en el cuerpo. Cuando lleguen los CAD de Innercare, reemplazan a
 // estos respetando el nombre de malla.
 //
 // Las primitivas (`tipo: 'primitiva'`) quedan en el contrato para piezas
@@ -39,6 +39,33 @@ import type { Vec3 } from './camara'
 
 export const IMPLANTES_GLB = '/modelos/implantes.glb'
 export const IMPLANTES_RECORRIDO_GLB = '/modelos/implantes-recorrido.glb'
+
+// --- El cuerpo (piel y esqueleto) -------------------------------------------
+// Va en dos archivos (3d/scripts/partir.mjs, desde npm run modelos), para
+// que el primer pantallazo pese como el busto:
+// - `hero`: lo que se ve en la toma del hero (CUERPO.mallasHero). Se pide
+//   primero; el hero del cuerpo único carga solo este.
+// - `resto`: todo lo demás. El recorrido carga los dos y busca cada malla
+//   por nombre en cualquiera de ellos.
+// La piel va partida por altura en tres mallas (CUERPO.piel), con los mismos
+// triángulos, vértices, normales y nodo que la piel entera: la escena las
+// trata como una sola y oculta las que quedan enteras debajo del corte. La
+// columna va en dos: hueso_columna_alta (las vértebras del busto, arriba de
+// 1,35 m) y hueso_columna_baja.
+export const CUERPO = {
+  hero: '/modelos/cuerpo-cabeza.glb',
+  resto: '/modelos/cuerpo-resto.glb',
+  mallasHero: [
+    'piel_cabeza',
+    'hueso_craneo',
+    'hueso_maxilar_entero',
+    'hueso_mandibula',
+    'hueso_columna_alta',
+  ],
+  piel: ['piel_cabeza', 'piel_torso', 'piel_piernas'],
+} as const
+
+export const esPiel = (nombre: string) => nombre.startsWith('piel_')
 
 export type FuenteImplante =
   | { tipo: 'glb'; url: string; malla: string }

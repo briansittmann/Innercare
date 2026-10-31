@@ -5,15 +5,7 @@
 
 import { useEffect, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
-import {
-  BufferGeometry,
-  CanvasTexture,
-  Color,
-  Mesh,
-  SRGBColorSpace,
-  Vector3,
-  type Material,
-} from 'three'
+import { CanvasTexture, Color, SRGBColorSpace, type Material } from 'three'
 
 // Fondo del hero: el degradé de --color-stage-from a --color-stage-to
 // (globals.css). Si cambian ahí, cambian acá y en hero-3d/body-scene.tsx.
@@ -61,7 +53,7 @@ export function useTexturaDegrade(tramo: readonly [number, number] | null) {
 // El espesor del vidrio de three se multiplica por la escala de la malla, y
 // la compresión (meshopt) guarda en la escala del nodo la cuantización de las
 // posiciones: depende del tamaño de cada malla. La piel del busto
-// (cabeza.glb) tiene escala 0,2117 y la del cuerpo (cuerpo.glb), 0,8496, así
+// (cabeza.glb) tiene escala 0,2117 y la del cuerpo (sus tres trozos), 0,8496, así
 // que el mismo `thickness` da un vidrio casi cuatro veces más grueso (más
 // azul y más oscuro) en el cuerpo. Por eso el del hero va en metros del
 // mundo (0,05 × 0,2117) y la escena lo divide por la escala de su piel.
@@ -96,7 +88,9 @@ export const OPACIDAD_HUESO_HERO = 0.4
 // Los huesos del busto (3d/scripts/cabeza.py): el resto del esqueleto no se
 // ve en la toma del hero. El maxilar va entero (hueso_maxilar_entero): el
 // recortado y su implante entran en la parada del maxilar.
-// De la columna, solo las vértebras de arriba del corte (partirColumna).
+// De la columna, solo las vértebras de arriba del corte: hueso_columna_alta
+// (3d/scripts/partir.mjs la separa al exportar). Son las mallas de
+// CUERPO.hero (implantes.ts), salvo la piel.
 export const HUESOS_BUSTO = new Set([
   'hueso_craneo',
   'hueso_maxilar_entero',
@@ -166,128 +160,4 @@ export function aplicarCorte(material: Material, uniformes: UniformesCorte) {
   }
   material.customProgramCacheKey = () => `corte|${clave}`
   material.needsUpdate = true
-}
-
-// La columna del busto (cabeza.py) no se corta con un plano: se quitan
-// enteras las piezas (vértebras y discos) con el centro por debajo de
-// CORTE_HUESO. Acá se parte la del cuerpo igual, en dos mallas que comparten
-// los vértices: `hueso_columna_alta` (las que quedan en el busto, sin corte)
-// y `hueso_columna_baja` (las demás, que entran con el resto del esqueleto).
-// Las piezas salen de los triángulos conectados, uniendo también los
-// vértices repetidos en el mismo lugar (el .glb los separa por normales).
-export function partirColumna(malla: Mesh): [Mesh, Mesh] {
-  const geometria = malla.geometry
-  const posicion = geometria.getAttribute('position')
-  const indice = geometria.getIndex()
-  malla.updateWorldMatrix(true, false)
-  const n = posicion.count
-  const padre = new Int32Array(n).map((_, i) => i)
-  const raiz = (i: number): number => {
-    while (padre[i] !== i) {
-      const p = padre[i] ?? i
-      padre[i] = padre[p] ?? p
-      i = padre[i] ?? i
-    }
-    return i
-  }
-  const unir = (a: number, b: number) => {
-    const ra = raiz(a)
-    const rb = raiz(b)
-    if (ra !== rb) padre[ra] = rb
-  }
-  const lugar = new Map<string, number>()
-  for (let i = 0; i < n; i++) {
-    const clave = `${posicion.getX(i).toFixed(4)},${posicion.getY(i).toFixed(4)},${posicion.getZ(i).toFixed(4)}`
-    const otro = lugar.get(clave)
-    if (otro === undefined) lugar.set(clave, i)
-    else unir(i, otro)
-  }
-  const triangulos = indice ? indice.count / 3 : n / 3
-  const vertice = (t: number, k: number) => (indice ? indice.getX(t * 3 + k) : t * 3 + k)
-  for (let t = 0; t < triangulos; t++) {
-    unir(vertice(t, 0), vertice(t, 1))
-    unir(vertice(t, 1), vertice(t, 2))
-  }
-  // Altura media de cada pieza, en el mundo
-  const suma = new Map<number, [number, number]>()
-  const v = new Vector3()
-  for (let i = 0; i < n; i++) {
-    v.fromBufferAttribute(posicion, i).applyMatrix4(malla.matrixWorld)
-    const r = raiz(i)
-    const s = suma.get(r) ?? [0, 0]
-    s[0] += v.y
-    s[1] += 1
-    suma.set(r, s)
-  }
-  const alta: number[] = []
-  const baja: number[] = []
-  for (let t = 0; t < triangulos; t++) {
-    const a = vertice(t, 0)
-    const [total, cuenta] = suma.get(raiz(a)) ?? [0, 1]
-    ;(total / cuenta >= CORTE_HUESO ? alta : baja).push(a, vertice(t, 1), vertice(t, 2))
-  }
-  const parte = (indices: number[], nombre: string) => {
-    const g = new BufferGeometry()
-    for (const [nombreAtributo, atributo] of Object.entries(geometria.attributes)) {
-      g.setAttribute(nombreAtributo, atributo)
-    }
-    g.setIndex(indices)
-    const m = new Mesh(g)
-    m.name = nombre
-    m.position.copy(malla.position)
-    m.quaternion.copy(malla.quaternion)
-    m.scale.copy(malla.scale)
-    return m
-  }
-  return [parte(alta, 'hueso_columna_alta'), parte(baja, 'hueso_columna_baja')]
-}
-
-// La piel del cuerpo es una sola malla de 62 000 triángulos y en la toma del
-// hero se ve menos de un tercio (la del busto tiene 21 600). Para no
-// procesar lo que el corte descarta, se ordenan sus triángulos de arriba
-// abajo por su vértice más alto y se dibujan solo los que llegan por encima
-// del corte (drawRange). Devuelve la geometría ordenada, que comparte los
-// vértices con la original, y la función que da cuántos índices dibujar
-// para un corte (en metros del mundo).
-export function ordenarPorAltura(malla: Mesh) {
-  const geometria = malla.geometry
-  const posicion = geometria.getAttribute('position')
-  const indice = geometria.getIndex()
-  malla.updateWorldMatrix(true, false)
-  const triangulos = indice ? indice.count / 3 : posicion.count / 3
-  const vertice = (t: number, k: number) => (indice ? indice.getX(t * 3 + k) : t * 3 + k)
-  const v = new Vector3()
-  const alturaDe = (i: number) => v.fromBufferAttribute(posicion, i).applyMatrix4(malla.matrixWorld).y
-  const alturas = new Float32Array(posicion.count)
-  for (let i = 0; i < posicion.count; i++) alturas[i] = alturaDe(i)
-  const orden = Array.from({ length: triangulos }, (_, t) => {
-    const a = alturas[vertice(t, 0)] ?? 0
-    const b = alturas[vertice(t, 1)] ?? 0
-    const c = alturas[vertice(t, 2)] ?? 0
-    return { t, tope: Math.max(a, b, c) }
-  }).sort((p, q) => q.tope - p.tope)
-  const indices = new Uint32Array(triangulos * 3)
-  orden.forEach(({ t }, j) => {
-    indices[j * 3] = vertice(t, 0)
-    indices[j * 3 + 1] = vertice(t, 1)
-    indices[j * 3 + 2] = vertice(t, 2)
-  })
-  const ordenada = new BufferGeometry()
-  for (const [nombre, atributo] of Object.entries(geometria.attributes)) ordenada.setAttribute(nombre, atributo)
-  ordenada.setIndex(Array.from(indices))
-  ordenada.boundingSphere = geometria.boundingSphere
-  ordenada.boundingBox = geometria.boundingBox
-  const topes = orden.map((o) => o.tope)
-  // Cuántos índices tienen el vértice más alto por encima del corte
-  const indicesSobre = (corte: number) => {
-    let lo = 0
-    let hi = topes.length
-    while (lo < hi) {
-      const m = (lo + hi) >> 1
-      if ((topes[m] ?? 0) >= corte) lo = m + 1
-      else hi = m
-    }
-    return lo * 3
-  }
-  return { geometria: ordenada, indicesSobre }
 }

@@ -12,6 +12,7 @@ import {
 import {
   AdditiveBlending,
   BackSide,
+  Box3,
   CanvasTexture,
   Color,
   DoubleSide,
@@ -27,6 +28,7 @@ import {
   SRGBColorSpace,
   Vector3,
   type BufferGeometry,
+  type Group,
   type Mesh,
   type MeshPhysicalMaterial,
   type Object3D,
@@ -58,13 +60,11 @@ import {
   VIDRIO_HERO,
   VIDRIO_RECORRIDO,
   aplicarCorte,
-  ordenarPorAltura,
-  partirColumna,
   uniformesCorte,
   useTexturaDegrade,
 } from './cuerpo-unico'
 import { cuerpoUnicoActivo, estadoRecorrido } from './estado'
-import { IMPLANTES, IMPLANTES_GLB, IMPLANTES_RECORRIDO_GLB, type Implante } from './implantes'
+import { CUERPO, IMPLANTES, IMPLANTES_GLB, IMPLANTES_RECORRIDO_GLB, esPiel, type Implante } from './implantes'
 import { Miniaturas } from './miniaturas'
 
 // Escena 3D del recorrido (#recorrido): el cuerpo de vidrio entero con el
@@ -75,12 +75,11 @@ import { Miniaturas } from './miniaturas'
 // Mismo lenguaje que el busto del hero (components/hero-3d/): el vidrio, el
 // hueso y el estudio de luz son los mismos.
 
-const CUERPO_URL = '/modelos/cuerpo.glb'
-
-// El cuerpo y la craneoplastía se piden al cargar el módulo (también los usa
-// el hero del cuerpo único); los otros cinco implantes, al montar la escena
-// del recorrido (EscenaRecorrido).
-useGLTF.preload(CUERPO_URL, false, true)
+// Lo que se ve en el hero (CUERPO.hero) y la craneoplastía se piden al
+// cargar el módulo (también los usa el hero del cuerpo único); el resto del
+// cuerpo y los otros cinco implantes, al montar la escena del recorrido
+// (EscenaRecorrido).
+useGLTF.preload(CUERPO.hero, false, true)
 useGLTF.preload(IMPLANTES_GLB, false, true)
 
 // --- Cuerpo único (prototipo, ?cuerpo-unico) --------------------------------
@@ -216,6 +215,10 @@ function Vidrio({ calidad, buffer, cuerpoUnico, alCrear }: {
       // (Cuerpo lo cambia cuadro a cuadro)
       transparent={cuerpoUnico}
       buffer={buffer}
+      // Con `buffer`, los buffers propios de drei no se usan: de 1 px, así
+      // los tres trozos de la piel no reservan seis del tamaño del canvas
+      resolution={1}
+      backsideResolution={1}
       samples={MUESTRAS[calidad]}
       thickness={0.06}
       roughness={0.05}
@@ -274,45 +277,60 @@ function materialBorde() {
   })
 }
 
-function Cuerpo({ calidad, fondo, modo, cuerpoUnico, hero }: {
+type PropsCuerpo = {
   calidad: Quality
   fondo: Texture
   modo: Modo
   cuerpoUnico: boolean
   hero?: AjustesHero
-}) {
-  const cuerpo = useGLTF(CUERPO_URL, false, true)
-  const mallas = useMemo(() => {
-    const todas = mallasDe(cuerpo.scene)
-    // El maxilar entero es solo del cuerpo único, que además parte la
-    // columna como el busto (partirColumna)
-    if (!cuerpoUnico) return todas.filter((m) => m.name !== 'hueso_maxilar_entero')
-    return todas.flatMap((m) => (m.name === 'hueso_columna' ? partirColumna(m) : [m]))
-  }, [cuerpo.scene, cuerpoUnico])
+}
+
+// El cuerpo sale de dos archivos (CUERPO en implantes.ts): el hero carga solo
+// el suyo; el recorrido, los dos. Cada uno con su useGLTF (la caché es por
+// archivo: pedirlos como lista los volvía a descargar).
+function CuerpoHero(props: PropsCuerpo) {
+  const hero = useGLTF(CUERPO.hero, false, true)
+  const escenas = useMemo(() => [hero.scene], [hero.scene])
+  return <Cuerpo {...props} escenas={escenas} />
+}
+
+function CuerpoEntero(props: PropsCuerpo) {
+  const hero = useGLTF(CUERPO.hero, false, true)
+  const resto = useGLTF(CUERPO.resto, false, true)
+  const escenas = useMemo(() => [hero.scene, resto.scene], [hero.scene, resto.scene])
+  return <Cuerpo {...props} escenas={escenas} />
+}
+
+function Cuerpo({ calidad, fondo, modo, cuerpoUnico, hero, escenas }: PropsCuerpo & { escenas: Object3D[] }) {
+  const { pieles, huesosCuerpo, topes } = useMemo(() => {
+    const todas = escenas.flatMap(mallasDe)
+    // El maxilar entero es solo del cuerpo único
+    const mallas = cuerpoUnico ? todas : todas.filter((m) => m.name !== 'hueso_maxilar_entero')
+    const pieles = mallas.filter((m) => esPiel(m.name))
+    // Altura del punto más alto de cada trozo de piel, en el mundo: debajo
+    // del corte, el trozo entero se oculta
+    const topes = new Map(pieles.map((m) => [m.name, new Box3().setFromObject(m).max.y]))
+    return { pieles, huesosCuerpo: mallas.filter((m) => !esPiel(m.name)), topes }
+  }, [escenas, cuerpoUnico])
   // Hero del cuerpo único: el buffer del vidrio, solo en la caja del busto
   const recorte = useRef<readonly [number, number, number, number] | null>(null)
   const altoCanvas = useThree((s) => s.size.height)
   useLayoutEffect(() => {
     recorte.current = recorteGL(hero, altoCanvas)
   }, [hero, altoCanvas])
-  const [piel, buffer] = useGlassBuffer(fondo, recorte)
+  // El buffer del vidrio oculta la piel entera (el grupo de sus trozos)
+  const [piel, buffer] = useGlassBuffer<Group>(fondo, recorte)
   const borde = useMemo(() => materialBorde(), [])
   useEffect(() => () => borde.dispose(), [borde])
-  const geometriaPiel = mallas.find((m) => m.name === 'piel')
-  // Hero del cuerpo único: la piel ordenada por altura, para dibujar solo lo
-  // que queda arriba del corte. Solo en el hero: el orden por altura rompe la
-  // localidad de la malla, y con el cuerpo entero a la vista el recorrido
-  // bajaba de 60 a 47 cuadros (medido).
-  const pielOrdenada = useMemo(
-    () => (modo === 'hero' && geometriaPiel ? ordenarPorAltura(geometriaPiel) : null),
-    [modo, geometriaPiel],
-  )
+  // Los trozos de la piel comparten el nodo (la escala de la cuantización)
+  const escalaPiel = pieles[0]?.scale.x ?? 1
 
   // Cuerpo único: el vidrio, el hueso, el borde y el corte pasan del aspecto
   // del busto al del recorrido con el peso del hero.
-  const vidrio = useRef<MeshPhysicalMaterial | null>(null)
+  const vidrios = useRef(new Map<string, MeshPhysicalMaterial>())
+  const trozos = useRef(new Map<string, Mesh>())
+  const bordes = useRef(new Map<string, Mesh>())
   const huesos = useRef(new Map<string, Mesh>())
-  const mallaBorde = useRef<Mesh>(null)
   const cortes = useRef({ piel: uniformesCorte(CORTE_PIEL), hueso: uniformesCorte(CORTE_HUESO) })
   useFrame(() => {
     if (!cuerpoUnico) return
@@ -321,12 +339,11 @@ function Cuerpo({ calidad, fondo, modo, cuerpoUnico, hero }: {
     corte.piel.corteY.value = corteDe(CORTE_PIEL, h)
     corte.hueso.corteY.value = corteDe(CORTE_HUESO, h)
     corte.piel.corteBanda.value = corte.hueso.corteBanda.value = bandaDe(h)
-    if (pielOrdenada) {
-      // Lo que el corte descarta entero no se dibuja (la banda, sí)
-      pielOrdenada.geometria.setDrawRange(0, pielOrdenada.indicesSobre(corte.piel.corteY.value))
-    }
-    const v = vidrio.current
-    if (v) {
+    // Lo que el corte descarta entero no se dibuja (en el hero, solo queda
+    // piel_cabeza: los mismos triángulos que el busto)
+    const visible = (nombre: string) => (topes.get(nombre) ?? Infinity) > corte.piel.corteY.value
+    for (const [nombre, m] of trozos.current) m.visible = visible(nombre)
+    for (const v of vidrios.current.values()) {
       aplicarCorte(v, corte.piel)
       // Opaco con el aspecto del hero entero, como el busto (la banda del
       // corte mide 4 mm y no necesita fundirse); transparente en cuanto el
@@ -340,7 +357,6 @@ function Cuerpo({ calidad, fondo, modo, cuerpoUnico, hero }: {
       const b = VIDRIO_HERO
       // Propiedades del vidrio de drei (uniformes con getters y setters)
       const m = v as MeshPhysicalMaterial & { thickness: number; attenuationDistance: number }
-      const escalaPiel = geometriaPiel?.scale.x ?? 1
       m.thickness = MathUtils.lerp(a.thickness, ESPESOR_HERO_MUNDO / escalaPiel, h)
       m.roughness = MathUtils.lerp(a.roughness, b.roughness, h)
       m.ior = MathUtils.lerp(a.ior, b.ior, h)
@@ -359,62 +375,77 @@ function Cuerpo({ calidad, fondo, modo, cuerpoUnico, hero }: {
       material.opacity = opacidad * peso
       malla.visible = material.opacity > 0.002
     }
-    const mb = mallaBorde.current
-    if (mb) {
+    for (const [nombre, mb] of bordes.current) {
+      // El material del borde es uno solo, compartido por los trozos
       const materialBorde = mb.material as ShaderMaterial
       aplicarCorte(materialBorde, corte.piel)
       const fuerza = materialBorde.uniforms.uFuerza
       if (fuerza) fuerza.value = 0.85 * (1 - h)
-      mb.visible = h < 0.999
+      mb.visible = h < 0.999 && visible(nombre)
     }
   }, -1)
 
   return (
     <group>
-      {mallas.map((malla) => (
+      {huesosCuerpo.map((malla) => (
         <mesh
           key={malla.uuid}
-          ref={
-            malla.name === 'piel'
-              ? piel
-              : (m: Mesh | null) => {
-                  if (m) huesos.current.set(malla.name, m)
-                  else huesos.current.delete(malla.name)
-                }
-          }
+          ref={(m: Mesh | null) => {
+            if (m) huesos.current.set(malla.name, m)
+            else huesos.current.delete(malla.name)
+          }}
           name={malla.name}
-          geometry={malla.name === 'piel' && pielOrdenada ? pielOrdenada.geometria : malla.geometry}
+          geometry={malla.geometry}
           position={malla.position}
           quaternion={malla.quaternion}
           scale={malla.scale}
-          // El vidrio se dibuja sobre el hueso
-          renderOrder={malla.name === 'piel' ? 1 : 0}
         >
-          {malla.name === 'piel' ? (
+          <Bone opacity={OPACIDAD_HUESO} />
+        </mesh>
+      ))}
+      <group ref={piel}>
+        {pieles.map((malla) => (
+          <mesh
+            key={malla.uuid}
+            ref={(m: Mesh | null) => {
+            if (m) trozos.current.set(malla.name, m)
+            else trozos.current.delete(malla.name)
+          }}
+            name={malla.name}
+            geometry={malla.geometry}
+            position={malla.position}
+            quaternion={malla.quaternion}
+            scale={malla.scale}
+            // El vidrio se dibuja sobre el hueso
+            renderOrder={1}
+          >
             <Vidrio
               calidad={calidad}
               buffer={buffer}
               cuerpoUnico={cuerpoUnico}
               alCrear={(m) => {
-                vidrio.current = m
+                if (m) vidrios.current.set(malla.name, m)
+                else vidrios.current.delete(malla.name)
               }}
             />
-          ) : (
-            <Bone opacity={OPACIDAD_HUESO} />
-          )}
-        </mesh>
-      ))}
-      {geometriaPiel && (
+          </mesh>
+        ))}
+      </group>
+      {pieles.map((malla) => (
         <mesh
-          ref={mallaBorde}
-          geometry={geometriaPiel.geometry}
-          position={geometriaPiel.position}
-          quaternion={geometriaPiel.quaternion}
-          scale={geometriaPiel.scale}
+          key={malla.uuid}
+          ref={(m: Mesh | null) => {
+            if (m) bordes.current.set(malla.name, m)
+            else bordes.current.delete(malla.name)
+          }}
+          geometry={malla.geometry}
+          position={malla.position}
+          quaternion={malla.quaternion}
+          scale={malla.scale}
           material={borde}
           layers={CAPA_BORDE}
         />
-      )}
+      ))}
     </group>
   )
 }
@@ -930,7 +961,11 @@ function Escena({ calidad, alListo, modo, cuerpoUnico, hero }: {
       <Pasadas modo={modo} hero={hero} />
       {modo === 'recorrido' && <LuzImplantes />}
       <Suspense fallback={null}>
-        <Cuerpo calidad={calidad} fondo={fondo} modo={modo} cuerpoUnico={cuerpoUnico} hero={hero} />
+        {modo === 'hero' ? (
+          <CuerpoHero calidad={calidad} fondo={fondo} modo={modo} cuerpoUnico={cuerpoUnico} hero={hero} />
+        ) : (
+          <CuerpoEntero calidad={calidad} fondo={fondo} modo={modo} cuerpoUnico={cuerpoUnico} hero={hero} />
+        )}
         {cuerpoUnico && <CraneoHero modo={modo} />}
         {modo === 'recorrido' && (
           <>
@@ -966,9 +1001,11 @@ export default function EscenaRecorrido({
 }) {
   const modo: Modo = hero ? 'hero' : 'recorrido'
   const [cuerpoUnico] = useState(() => modo === 'hero' || cuerpoUnicoActivo())
-  // Los otros cinco implantes, solo en el recorrido
+  // El resto del cuerpo y los otros cinco implantes, solo en el recorrido
   useState(() => {
-    if (modo === 'recorrido') useGLTF.preload(IMPLANTES_RECORRIDO_GLB, false, true)
+    if (modo !== 'recorrido') return
+    useGLTF.preload(CUERPO.resto, false, true)
+    useGLTF.preload(IMPLANTES_RECORRIDO_GLB, false, true)
   })
   const [dprHero, setDprHero] = useState(() =>
     MathUtils.clamp(window.devicePixelRatio, DPR_MIN_HERO, DPR_MAX_HERO),
