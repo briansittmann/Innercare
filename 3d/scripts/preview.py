@@ -16,9 +16,13 @@
 # Cada vista sale dos veces: con el hueso tapando lo que queda adentro, y
 # con los implantes encima (`-encima`), como los dibuja el recorrido.
 #
+# Con `--por-malla`, cada trozo de la piel partida (piel_cabeza, piel_torso,
+# piel_piernas: 3d/scripts/partir.mjs) sale de un color, para revisar dónde
+# caen las juntas y que no dejen huecos ni sombras.
+#
 # Uso:
 #   blender -b -P 3d/scripts/preview.py -- <modelo.glb> <carpeta_salida> [<piel.glb>]
-#       [--extra <otro.glb>]... [--zona <nombre> <x> <y> <z> <tamaño>]...
+#       [--extra <otro.glb>]... [--zona <nombre> <x> <y> <z> <tamaño>]... [--por-malla]
 
 import sys
 from pathlib import Path
@@ -31,9 +35,12 @@ OPACIDAD_PIEL = 0.45
 
 args = sys.argv[sys.argv.index('--') + 1:]
 posicionales, extras, zonas = [], [], []
+por_malla = False
 while args:
     a = args.pop(0)
-    if a == '--extra':
+    if a == '--por-malla':
+        por_malla = True
+    elif a == '--extra':
         extras.append(Path(args.pop(0)).resolve())
     elif a == '--zona':
         nombre, *numeros = args[:5]
@@ -84,6 +91,16 @@ escena.render.resolution_y = 1536
 escena.render.film_transparent = False
 escena.world = bpy.data.worlds.new('fondo')
 escena.world.color = (1, 1, 1)
+
+COLORES_PIEL = {
+    'piel_cabeza': (0.35, 0.6, 0.95, 1),
+    'piel_torso': (0.95, 0.65, 0.3, 1),
+    'piel_piernas': (0.45, 0.8, 0.45, 1),
+}
+if por_malla:
+    escena.display.shading.color_type = 'OBJECT'
+    for o in mallas:
+        o.color = COLORES_PIEL.get(o.name, (0.8, 0.8, 0.8, 1))
 
 camara_datos = bpy.data.cameras.new('camara')
 camara_datos.type = 'ORTHO'

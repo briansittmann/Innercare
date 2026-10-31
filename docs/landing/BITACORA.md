@@ -483,3 +483,37 @@ El verificador dio "no pasa" por una diferencia grave. Commit: el de este aparta
 - **No se midieron cuadros por segundo** después de la corrección (batería al 12 %).
 - Build, lint y `tsc` sin errores.
 
+
+---
+
+## Cuerpo único, fase 2 · Blender y partición del cuerpo (2026-10-31)
+
+**Commits:** `2a40c70` (cuerpo partido en dos archivos, piel por altura, escena adaptada), `b2309cf` (documentación y capturas) y el de esta entrada (renders, `preview.py --por-malla` y bitácora).
+
+**Qué se hizo.**
+- **`hueso_maxilar_entero`:** ya salía del script (`implantes.py`, copia del maxilar antes del recorte, exportada con el cuerpo). Se comprobó que `npm run modelos` lo regenera: el cuerpo optimizado entero sale idéntico, byte por byte, al `cuerpo.glb` del commit `0aeedd0`.
+- **Piel partida** en `piel_cabeza` (12 699 triángulos: los que llegan arriba de 1,33 m, el mismo conjunto que dibujaba el `drawRange` de la fase 1), `piel_torso` (30 413, hasta 0,68 m, debajo de la punta de los dedos, que está a 0,686 m) y `piel_piernas` (19 300). Total 62 412, igual que antes. **Columna** partida en `hueso_columna_alta` (7 584, las vértebras del busto) y `hueso_columna_baja` (22 767), con el mismo criterio que usaba la escena.
+- **Dos archivos:** `cuerpo-cabeza.glb` (381 KB, 306 KB con gzip: piel_cabeza, cráneo, maxilar entero, mandíbula y columna alta) y `cuerpo-resto.glb` (595 KB, 457 KB con gzip). Reemplazan a `cuerpo.glb` (970 KB, 747 KB con gzip).
+- **`3d/scripts/partir.mjs`:** comandos propios de la CLI de gltf-transform (`--config`, sin dependencias nuevas). `partir` toma el cuerpo de `optimize --compress false`, lo cuantiza y comprime con el mismo `meshopt()` que `optimize --compress meshopt` y, antes de escribir, parte copiando los valores ya cuantizados; `verificar` compara el resultado con el cuerpo comprimido entero, triángulo por triángulo (posición, normal y matriz del nodo): 186 114 triángulos, todos iguales. `modelos.sh` corre los dos.
+- **Escena** (`escena.tsx`): el hero del cuerpo único carga solo `cuerpo-cabeza.glb`; el recorrido, los dos, cada uno con su `useGLTF` (la caché es por archivo). La piel es un grupo de tres mallas (el buffer del vidrio oculta el grupo); en el cuerpo único, cada trozo se oculta cuando queda entero debajo del corte. Se quitaron `ordenarPorAltura` y `partirColumna` de `cuerpo-unico.ts`: ya no hay trabajo en tiempo de ejecución. Contrato en `implantes.ts` (`CUERPO`: qué archivo es del hero, qué mallas lleva y cuáles son la piel).
+
+**Decidido sin preguntar.**
+- **La partición no se hace en Blender sino después de `optimize`**, en la misma pasada que la compresión. Medido: partida en Blender (antes de optimizar), la piel queda en 107 914 triángulos en lugar de 62 412 y el archivo en 1,17 MB, porque `optimize` simplifica cada malla con un error relativo a su tamaño; además cada trozo se cuantiza en su propia grilla y la junta se abre. Partida después, los trozos son los mismos triángulos, vértices, normales y nodo (la escala de la cuantización, que es la del espesor del vidrio, no cambia): la junta es estanca y no hay que recalcular nada. Tampoco se parte el archivo ya comprimido: volver a comprimir pasa otra vez las normales por el filtro octaédrico y corre 3 925 triángulos (sin el filtro queda exacto pero pesa 114 KB más).
+- **Partir en dos archivos, sí.** Con el cuerpo único, el primer pantallazo es `cuerpo-cabeza.glb` + `implantes.glb` = 454 KB (361 KB transferidos), contra 498 KB (397 KB) del busto de hoy y 1 049 KB si el cuerpo fuera entero. El resto se pide al montar el recorrido.
+- **Corte de la piel en 1,33 m exacto** (el del busto) y no más abajo: en el hero se dibuja justo lo mismo que en la fase 1. **Torso hasta 0,68 m** y no 0,80: a 0,80 la junta cruzaba las manos.
+- **`resolution={1}` en el vidrio del recorrido:** con `buffer`, drei igual reserva dos buffers del tamaño del canvas por material; con tres trozos de piel eran seis sin uso.
+- **`implantes-recorrido.glb` no se actualizó:** `npm run modelos` lo regenera con los mismos triángulos pero 148 bytes distintos (Blender no es determinista en los booleanos); se dejó el del commit para no tocar lo verificado.
+- **`useGlassBuffer` acepta un grupo** (`components/hero-3d/materials.tsx`, solo el tipo; el busto no cambia).
+
+**Comprobado.**
+- Build, lint y `tsc` sin errores. Sin errores de consola en la home con y sin `?cuerpo-unico`, en escritorio y celular; cada modelo se descarga una vez.
+- **Hero del prototipo contra las capturas de la fase 1** (`medir.mjs capturas --param cuerpo-unico`): con movimiento reducido, las 16 tomas (1440 y 390, incluido el detalle a resolución completa) dan diferencia 0,00, idénticas píxel por píxel. Con movimiento, 1,1 a 1,7 de media (las fibras y el vaivén cambian solos entre corridas), salvo `vaiven-11` y `-16` de escritorio (2,7 y 4,4), el mismo atraso del vaivén en batería que ya anotó la fase 1.
+- **Recorrido** (base y prototipo, movimiento reducido): cierre, acetábulo, craneoplastía y el paso del hero a la craneoplastía, revisados a ojo. El cuerpo se ve continuo en las dos juntas (cuello y mitad del muslo) y no faltan piezas.
+- **Renders de control** (`preview.py --por-malla`, sobre los `.glb` publicados): las juntas siguen caras enteras, sin huecos ni cortes de sombreado.
+
+**Pendiente.**
+- **No se midieron cuadros por segundo:** la Mac estuvo en batería (7 % a 6 %). Falta, enchufada, el hero del prototipo alternado con la base y el recorrido, como pide la memoria del proyecto.
+- **Comparación del recorrido antes y después:** solo a ojo. No hubo batería para un segundo build del commit anterior. La geometría es la misma valor por valor; lo que cambia es el orden de dibujo entre los trozos de piel y entre las dos partes de la columna (objetos transparentes), que puede mover algún tono donde se superponen.
+- Lo que quedaba de la fase 1 sigue igual: canvas del hero del tamaño de la caja, paso al recorrido sin tope y luz de las paradas.
+
+**Capturas y renders:** `docs/landing/cuerpo-unico/fase2/capturas/` (hero del prototipo con los nombres de `prototipo/capturas/`, y `parada-*`: el recorrido base y con `?cuerpo-unico`), `fase2/diferencias/` (contra la fase 1, × 4) y `fase2/renders/piel-zonas-*.webp`.
