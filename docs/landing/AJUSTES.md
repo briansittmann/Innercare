@@ -10,6 +10,13 @@ Decisiones del usuario (2026-10-30) sobre `LANDING_SPEC.md` y `landing-borrador.
   - Centrado abajo, el aviso "Deslizá para recorrer el cuerpo".
   - Las dos entran en la línea de tiempo de la intro (`components/intro.ts`), no con entrada propia.
 
+### Hero reabierto: un solo cuerpo (2026-10-31)
+
+- **El usuario reabrió el hero** para que el busto y el cuerpo del recorrido sean un solo modelo, como pedían el guion y el borrador. La condición: **sin cambio visual**. El hero tenía que quedar igual de lindo (pose, giro, colores, vidrio, titanio, degradé, fibras, textos y entrada).
+- **El cuerpo único reemplaza al busto del hero y al cuerpo del recorrido.** El hero es la primera toma de la escena fija del recorrido: con el scroll, el texto se va, la cámara sube un poco hasta la craneoplastía y desde ahí sigue el recorrido, sin cambiar de modelo.
+- La paridad con el hero de antes está verificada captura por captura (`docs/landing/cuerpo-unico/`, `comparacion.html`).
+- Lo demás de esta sección sigue vigente: el hero no se vuelve a tocar sin pedido explícito.
+
 ## Páginas
 
 - **Una sola página** por ahora. Si después hacen falta más, se plantean con el cliente.
