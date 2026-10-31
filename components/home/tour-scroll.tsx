@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { AnchorLink } from '@/components/anchor-link'
 import {
+  ANCHO_CELULAR,
   TRAMOS,
   clamp,
+  deslizHero,
   indiceVisible,
   opacidadCierre,
   opacidadEntrada,
@@ -137,6 +139,8 @@ export function TourScroll({
       const reducido = movimiento.matches
       estadoRecorrido.seg = s
       estadoRecorrido.reducido = reducido
+      const celular = window.innerWidth < ANCHO_CELULAR
+      estadoRecorrido.celular = celular
       let mejor = -1
       let peso = 0
       tarjetas.forEach((tarjeta, i) => {
@@ -150,9 +154,15 @@ export function TourScroll({
         const y = reducido ? 0 : (1 - w) * 22 * (s < i + 1 ? 1 : -1)
         tarjeta.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0)`
       })
-      const entrada = opacidadEntrada(s, reducido)
+      const entrada = opacidadEntrada(s, reducido, celular)
       mostrar(capaEntrada.current, entrada)
       mostrar(capaFondo.current, entrada)
+      // Celular: el texto y las fibras suben con el busto (la cámara usa el
+      // mismo desliz), como subía el hero de antes con el scroll
+      const desliz = deslizHero(s, celular) * (escena.current?.clientHeight ?? window.innerHeight)
+      const subir = desliz ? `translate3d(0, ${(-desliz).toFixed(1)}px, 0)` : ''
+      if (capaEntrada.current) capaEntrada.current.style.transform = subir
+      if (capaFondo.current) capaFondo.current.style.transform = subir
       // Las fibras dejan de dibujar cuando terminan de irse: sin caja, su
       // IntersectionObserver las pausa; vuelven al subir
       if (capaFondo.current) capaFondo.current.style.display = entrada < 0.02 ? 'none' : ''

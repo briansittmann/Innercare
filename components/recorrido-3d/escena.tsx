@@ -46,11 +46,13 @@ import {
   SUBIDA_ENTRADA,
   TOMAS_PARADA,
   camaraPara,
+  deslizHero,
   giroVaiven,
   opacidadBase,
   pesoHero,
   pesoMaxilar,
   pesoTarjeta,
+  segCuerpo,
   type Encuadre,
 } from './camara'
 import {
@@ -131,7 +133,7 @@ const recorteHero: { current: readonly [number, number, number, number] | null }
 function pesoHeroActual(modo: Modo, cuerpoUnico: boolean) {
   if (modo === 'hero') return 1
   if (!cuerpoUnico) return 0
-  return pesoHero(estadoRecorrido.seg, estadoRecorrido.reducido)
+  return pesoHero(segCuerpo(estadoRecorrido.seg, estadoRecorrido.celular), estadoRecorrido.reducido)
 }
 
 // Corte por altura: en la toma del hero, la piel a 1,33 m y el hueso a
@@ -474,8 +476,12 @@ function Cuerpo({ calidad, fondo, modo, cuerpoUnico, hero, escenas }: PropsCuerp
 }
 
 // Cuerpo único: la craneoplastía con el titanio del busto, en la capa del
-// vidrio (0), así que se ve refractada a través de él como en el hero. Se
-// desvanece con el peso del hero, cuando entra la de la capa de implantes.
+// vidrio (0), así que se ve refractada a través de él como en el hero. Le
+// cede el lugar a la de la capa de implantes en un cruce corto (peso del hero
+// de 0,56 a 0,44, unos 2 % de pantalla de scroll): la refracción las corre y,
+// con un fundido largo, se veían dos craneoplastías desalineadas.
+const cruceCraneo = (h: number) => MathUtils.smoothstep(h, 0.44, 0.56)
+
 function CraneoHero({ modo }: { modo: Modo }) {
   const archivo = useGLTF(IMPLANTES_GLB, false, true)
   const malla = useMemo(
@@ -491,9 +497,9 @@ function CraneoHero({ modo }: { modo: Modo }) {
   useFrame(() => {
     const m = ref.current
     if (!m) return
-    const h = pesoHeroActual(modo, true)
-    ;(m.material as MeshStandardMaterial).opacity = h
-    m.visible = h > 0.001
+    const a = cruceCraneo(pesoHeroActual(modo, true))
+    ;(m.material as MeshStandardMaterial).opacity = a
+    m.visible = a > 0.001
   }, -1)
   if (!malla) return null
   return (
@@ -657,7 +663,9 @@ function Implantes({ cuerpoUnico }: { cuerpoUnico: boolean }) {
     const { seg, reducido } = estadoRecorrido
     const base = opacidadBase(seg, reducido)
     // Cuerpo único: en la toma del hero no hay implantes encima del vidrio
-    const visibles = 1 - pesoHeroActual('recorrido', cuerpoUnico)
+    const h = pesoHeroActual('recorrido', cuerpoUnico)
+    const visibles = 1 - h
+    const visibleCraneo = 1 - cruceCraneo(h)
     const pesos = piezas.map(({ implante }) =>
       pesoTarjeta(seg, ORDEN_PARADAS.indexOf(implante.parada), reducido),
     )
@@ -677,15 +685,16 @@ function Implantes({ cuerpoUnico }: { cuerpoUnico: boolean }) {
       })
       // El implante maxilar entra con el hueso recortado
       const maxilar = cuerpoUnico && pieza.implante.parada === 'maxilar' ? pesoMaxilar(seg, reducido) : 1
-      material.opacity = Math.max(base * apagado, w) * visibles * maxilar
+      const enVista = pieza.implante.parada === 'craneo' ? visibleCraneo : visibles
+      material.opacity = Math.max(base * apagado, w) * enVista * maxilar
       material.emissiveIntensity = INTENSIDAD_BRILLO * w * maxilar
       material.depthWrite = material.opacity > 0.9
       const malla = mallas.current[i]
       if (malla) malla.visible = material.opacity > 0.002
       const resplandor = resplandores.current[i]
       if (resplandor) {
-        resplandor.material.opacity = 0.85 * w * visibles * maxilar
-        resplandor.visible = w * visibles * maxilar > 0.01
+        resplandor.material.opacity = 0.85 * w * enVista * maxilar
+        resplandor.visible = w * enVista * maxilar > 0.01
       }
     })
   })
@@ -854,9 +863,11 @@ function CamaraRecorrido({ modo, cuerpoUnico, hero }: {
     const reducido = enHero ? !ajustesHero?.animar : estadoRecorrido.reducido
     const paso = Math.min(delta, 0.1)
     if (!enHero && fijo && !reducido) tiempo.current += paso
-    const c = camaraPara(seg, W, H, reducido, {
+    const celular = cuerpoUnico && W < ANCHO_CELULAR
+    const c = camaraPara(segCuerpo(seg, celular), W, H, reducido, {
       cuerpoUnico,
       encuadreHero: ajustesHero?.encuadre,
+      desliz: deslizHero(seg, celular),
     })
     if (enHero) {
       if (!reducido) {

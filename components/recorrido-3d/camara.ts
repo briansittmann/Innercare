@@ -201,11 +201,38 @@ function distanciaDe(enc: Encuadre) {
 
 // Opciones del prototipo del cuerpo único: la toma 0 pasa a ser la del hero
 // y, si se da, con el encuadre medido en lugar del de la tabla.
-export type OpcionesCamara = { cuerpoUnico?: boolean; encuadreHero?: Encuadre | null }
+export type OpcionesCamara = {
+  cuerpoUnico?: boolean
+  encuadreHero?: Encuadre | null
+  // Celular: cuánto se deslizó la toma del hero (deslizHero), en pantallas
+  desliz?: number
+}
+
+// Celular (cuerpo único): la toma del hero se desliza como se deslizaba la
+// página del hero de antes. Durante las primeras 0,4 pantallas de scroll el
+// texto, las fibras y el busto suben juntos (a 0,4 se ve el busto entero,
+// ancla 0,692, como en la base con unos 340 px de scroll); recién después la
+// cámara va a la craneoplastía, entre seg 0,4 y 0,9.
+export const DESLIZ_HERO = 0.4
+const FIN_DESLIZ = 0.9
+
+export const deslizHero = (seg: number, celular: boolean) =>
+  celular ? clamp(seg, 0, DESLIZ_HERO) : 0
+
+// El seg con el que corren la cámara y el peso del hero: en el celular, el
+// primer tramo empieza después del desliz
+export function segCuerpo(seg: number, celular: boolean) {
+  if (!celular || seg >= 1) return seg
+  return clamp((seg - DESLIZ_HERO) / (FIN_DESLIZ - DESLIZ_HERO))
+}
 
 function encuadreDe(clave: Clave, ancho: number, alto: number, opciones?: OpcionesCamara): Encuadre {
   if (clave === HERO && opciones?.encuadreHero) return opciones.encuadreHero
   if (ancho >= ANCHO_CELULAR) return clave.escritorio
+  if (clave === HERO && opciones?.desliz) {
+    const [x, y] = clave.celular.ancla
+    return { ...clave.celular, ancla: [x, y - opciones.desliz] }
+  }
   // En el celular, la entrada también se limita por el ancho (borrador:
   // min(alto × 0,6 / 1000, ancho × 1,05 / 400)).
   if (clave === ENTRADA) {
@@ -303,8 +330,12 @@ export function opacidadBase(seg: number, reducido: boolean) {
 
 // Texto de la entrada: se va entre seg 0 y 0,35. Cierre: aparece entre 6,55
 // y 6,85. Índice anatómico: visible entre 0,5 y 6,5.
-export function opacidadEntrada(seg: number, reducido: boolean) {
+// En el celular el texto sube con el desliz del hero (deslizHero) y se va
+// más tarde, entre 0,2 y 0,45: como en la página de antes, los botones
+// siguen a la vista mientras asoma el busto entero.
+export function opacidadEntrada(seg: number, reducido: boolean, celular = false) {
   if (reducido) return Math.round(seg) === 0 ? 1 : 0
+  if (celular) return 1 - clamp((seg - 0.2) / 0.25)
   return 1 - clamp(seg / 0.35)
 }
 

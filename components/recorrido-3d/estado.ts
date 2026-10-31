@@ -7,6 +7,8 @@ export const estadoRecorrido = {
   // Progreso del recorrido, amortiguado: 0 (entrada) a 7 (cierre)
   seg: 0,
   reducido: false,
+  // Pantalla de celular (< ANCHO_CELULAR): la toma del hero se desliza
+  celular: false,
   // Las miniaturas 3D ya se ven por el hueco de las tarjetas (data-minis):
   // hasta entonces el ensamble no arranca, así no se lo pierde detrás de la
   // foto
