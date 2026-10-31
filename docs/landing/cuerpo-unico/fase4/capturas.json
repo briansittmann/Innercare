@@ -3,8 +3,8 @@
   "nombre": "escritorio-movimiento-intro-0000",
   "desde": "running",
   "msDesde": [
-   25,
-   210
+   69,
+   249
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -13,8 +13,8 @@
   "nombre": "escritorio-movimiento-intro-2000",
   "desde": "running",
   "msDesde": [
-   2024,
-   2322
+   2023,
+   2539
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -23,8 +23,8 @@
   "nombre": "escritorio-movimiento-intro-fin",
   "desde": "done",
   "msDesde": [
-   104,
-   379
+   2964,
+   6676
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -33,8 +33,8 @@
   "nombre": "escritorio-movimiento-vaiven-00",
   "desde": "done",
   "msDesde": [
-   525,
-   711
+   11928,
+   12927
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -43,8 +43,8 @@
   "nombre": "escritorio-movimiento-vaiven-05",
   "desde": "done",
   "msDesde": [
-   5012,
-   5202
+   14048,
+   15726
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -53,8 +53,8 @@
   "nombre": "escritorio-movimiento-vaiven-11",
   "desde": "done",
   "msDesde": [
-   11015,
-   11204
+   20907,
+   24791
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -63,25 +63,25 @@
   "nombre": "escritorio-movimiento-vaiven-16",
   "desde": "done",
   "msDesde": [
-   16014,
-   16210
+   27264,
+   29005
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
  },
  {
   "nombre": "escritorio-movimiento",
-  "running": 1103.6,
-  "done": 5109.6,
-  "listo": 1103.6,
+  "running": 3436.6,
+  "done": 7462.3,
+  "listo": 3436.6,
   "errores": []
  },
  {
   "nombre": "escritorio-reducido-intro-0000",
   "desde": "running",
   "msDesde": [
-   33,
-   265
+   208,
+   754
   ],
   "canvasVisible": false,
   "respaldoOpacidad": 1
@@ -90,8 +90,8 @@
   "nombre": "escritorio-reducido-intro-2000",
   "desde": "running",
   "msDesde": [
-   2021,
-   2153
+   2015,
+   2362
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -100,8 +100,8 @@
   "nombre": "escritorio-reducido-intro-fin",
   "desde": "done",
   "msDesde": [
-   97,
-   250
+   191,
+   1179
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -110,8 +110,8 @@
   "nombre": "escritorio-reducido-vaiven-00",
   "desde": "done",
   "msDesde": [
-   383,
-   519
+   2100,
+   2854
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -120,8 +120,8 @@
   "nombre": "escritorio-reducido-vaiven-05",
   "desde": "done",
   "msDesde": [
-   5018,
-   5154
+   5010,
+   5225
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -130,8 +130,8 @@
   "nombre": "escritorio-reducido-vaiven-11",
   "desde": "done",
   "msDesde": [
-   11019,
-   11184
+   11014,
+   11167
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -140,8 +140,8 @@
   "nombre": "escritorio-reducido-vaiven-16",
   "desde": "done",
   "msDesde": [
-   16021,
-   16189
+   16022,
+   16181
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -150,25 +150,25 @@
   "nombre": "escritorio-reducido-detalle",
   "desde": "done",
   "msDesde": [
-   16318,
-   16814
+   16326,
+   16895
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
  },
  {
   "nombre": "escritorio-reducido",
-  "running": 327,
-  "done": 4280.1,
-  "listo": 898,
+  "running": 1263.1,
+  "done": 5109.9,
+  "listo": 2564.1,
   "errores": []
  },
  {
   "nombre": "celular-movimiento-intro-0000",
   "desde": "running",
   "msDesde": [
-   10,
-   112
+   23,
+   67
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -177,8 +177,8 @@
   "nombre": "celular-movimiento-intro-2000",
   "desde": "running",
   "msDesde": [
-   2009,
-   2126
+   2012,
+   2134
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -187,8 +187,8 @@
   "nombre": "celular-movimiento-intro-fin",
   "desde": "done",
   "msDesde": [
-   8,
-   99
+   70,
+   131
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -197,8 +197,8 @@
   "nombre": "celular-movimiento-vaiven-00",
   "desde": "done",
   "msDesde": [
-   383,
-   454
+   339,
+   429
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -207,8 +207,8 @@
   "nombre": "celular-movimiento-vaiven-05",
   "desde": "done",
   "msDesde": [
-   5035,
-   5139
+   5008,
+   5062
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -217,8 +217,8 @@
   "nombre": "celular-movimiento-vaiven-11",
   "desde": "done",
   "msDesde": [
-   11039,
-   11138
+   11011,
+   11062
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -227,8 +227,8 @@
   "nombre": "celular-movimiento-vaiven-16",
   "desde": "done",
   "msDesde": [
-   16034,
-   16144
+   16007,
+   16069
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -237,25 +237,25 @@
   "nombre": "celular-movimiento-hero-abajo",
   "desde": "done",
   "msDesde": [
-   16810,
-   16889
+   16778,
+   16822
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
  },
  {
   "nombre": "celular-movimiento",
-  "running": 914.3,
-  "done": 4919.5,
-  "listo": 914.3,
+  "running": 1015.5,
+  "done": 5017.5,
+  "listo": 1015.6,
   "errores": []
  },
  {
   "nombre": "celular-reducido-intro-0000",
   "desde": "running",
   "msDesde": [
-   25,
-   146
+   65,
+   194
   ],
   "canvasVisible": false,
   "respaldoOpacidad": 1
@@ -264,8 +264,8 @@
   "nombre": "celular-reducido-intro-2000",
   "desde": "running",
   "msDesde": [
-   2023,
-   2083
+   2018,
+   2073
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -274,8 +274,8 @@
   "nombre": "celular-reducido-intro-fin",
   "desde": "done",
   "msDesde": [
-   10,
-   90
+   49,
+   94
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -285,7 +285,7 @@
   "desde": "done",
   "msDesde": [
    365,
-   420
+   411
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -294,8 +294,8 @@
   "nombre": "celular-reducido-vaiven-05",
   "desde": "done",
   "msDesde": [
-   5027,
-   5103
+   5026,
+   5080
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -304,8 +304,8 @@
   "nombre": "celular-reducido-vaiven-11",
   "desde": "done",
   "msDesde": [
-   11029,
-   11095
+   11026,
+   11086
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -314,8 +314,8 @@
   "nombre": "celular-reducido-vaiven-16",
   "desde": "done",
   "msDesde": [
-   16026,
-   16104
+   16031,
+   16119
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -324,8 +324,8 @@
   "nombre": "celular-reducido-detalle",
   "desde": "done",
   "msDesde": [
-   16164,
-   16416
+   16240,
+   16966
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
@@ -334,17 +334,17 @@
   "nombre": "celular-reducido-hero-abajo",
   "desde": "done",
   "msDesde": [
-   17266,
-   17328
+   18124,
+   18200
   ],
   "canvasVisible": true,
   "respaldoOpacidad": 1
  },
  {
   "nombre": "celular-reducido",
-  "running": 253.5,
-  "done": 4216.8,
-  "listo": 776.9,
+  "running": 402.5,
+  "done": 4353.2,
+  "listo": 1001.8,
   "errores": []
  }
 ]
