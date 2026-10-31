@@ -356,9 +356,13 @@ function Cuerpo({ calidad, fondo, modo, cuerpoUnico, hero, escenas }: PropsCuerp
     for (const v of vidrios.current.values()) {
       aplicarCorte(v, corte.piel)
       // Opaco con el aspecto del hero entero, como el busto (la banda del
-      // corte mide 4 mm y no necesita fundirse); transparente en cuanto el
-      // corte empieza a bajar
-      const transparente = h < 0.999
+      // corte mide 4 mm y no necesita fundirse); transparente solo mientras
+      // el corte baja. Con el corte ya debajo de los pies (h = 0, desde la
+      // craneoplastía) vuelve a ser opaco, como el vidrio del recorrido
+      // original: transparente, el esqueleto se dibujaba entero debajo del
+      // vidrio en cada cuadro (el vidrio lo tapa igual; opaco, la prueba de
+      // profundidad lo descarta) y el recorrido de escritorio caía a 52 fps
+      const transparente = h > 0.001 && h < 0.999
       if (v.transparent !== transparente) {
         v.transparent = transparente
         v.needsUpdate = true
