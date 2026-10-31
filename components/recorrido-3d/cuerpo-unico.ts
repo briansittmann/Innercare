@@ -22,22 +22,9 @@ export function useTexturaDegrade(tramo: readonly [number, number] | null) {
     const canvas = document.createElement('canvas')
     canvas.width = 2
     canvas.height = 512
-    const ctx = canvas.getContext('2d')
-    if (ctx) {
-      const tramoAlto = abajo - arriba
-      const g = ctx.createLinearGradient(
-        0,
-        (-arriba / tramoAlto) * canvas.height,
-        0,
-        ((1 - arriba) / tramoAlto) * canvas.height,
-      )
-      g.addColorStop(0, STAGE_FROM)
-      g.addColorStop(1, STAGE_TO)
-      ctx.fillStyle = g
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-    }
     const map = new CanvasTexture(canvas)
     map.colorSpace = SRGBColorSpace
+    pintarDegrade(map, arriba, abajo)
     return map
   }, [arriba, abajo])
   const invalidate = useThree((s) => s.invalidate)
@@ -46,6 +33,26 @@ export function useTexturaDegrade(tramo: readonly [number, number] | null) {
     return () => textura.dispose()
   }, [textura, invalidate])
   return textura
+}
+
+// Repinta la textura del degradé con otro tramo, sin crear otra (el desliz
+// del hero en el celular la mueve cuadro a cuadro)
+export function pintarDegrade(textura: CanvasTexture, arriba: number, abajo: number) {
+  const canvas = textura.image as HTMLCanvasElement
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  const tramoAlto = abajo - arriba
+  const g = ctx.createLinearGradient(
+    0,
+    (-arriba / tramoAlto) * canvas.height,
+    0,
+    ((1 - arriba) / tramoAlto) * canvas.height,
+  )
+  g.addColorStop(0, STAGE_FROM)
+  g.addColorStop(1, STAGE_TO)
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  textura.needsUpdate = true
 }
 
 // Vidrio del busto (hero-3d/materials.tsx) y del recorrido (escena.tsx): la

@@ -163,6 +163,7 @@ export function TourScroll({
       const subir = desliz ? `translate3d(0, ${(-desliz).toFixed(1)}px, 0)` : ''
       if (capaEntrada.current) capaEntrada.current.style.transform = subir
       if (capaFondo.current) capaFondo.current.style.transform = subir
+      escena.current?.style.setProperty('--desliz', `${desliz.toFixed(1)}px`)
       // Las fibras dejan de dibujar cuando terminan de irse: sin caja, su
       // IntersectionObserver las pausa; vuelven al subir
       if (capaFondo.current) capaFondo.current.style.display = entrada < 0.02 ? 'none' : ''

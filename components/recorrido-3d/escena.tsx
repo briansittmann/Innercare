@@ -65,6 +65,7 @@ import {
   VIDRIO_HERO,
   VIDRIO_RECORRIDO,
   aplicarCorte,
+  pintarDegrade,
   uniformesCorte,
   useTexturaDegrade,
 } from './cuerpo-unico'
@@ -1053,6 +1054,21 @@ function Escena({ calidad, alListo, modo, cuerpoUnico, hero }: {
     hero?.tramo ?? (ancho < ANCHO_DEGRADE_ALTO ? TRAMO_DEGRADE_CELULAR : null),
   )
   const fondo = cuerpoUnico ? degrade : fondoRecorrido
+  // Celular: el degradé sube con el desliz del hero (tour-scroll.tsx mueve el
+  // de CSS con --desliz), y el vidrio refracta el mismo tramo
+  const deslizPintado = useRef(0)
+  // Textura nueva (otro tamaño): se repinta en el próximo cuadro
+  useLayoutEffect(() => {
+    deslizPintado.current = -1
+  }, [degrade])
+  useFrame(() => {
+    if (!cuerpoUnico || hero || ancho >= ANCHO_DEGRADE_ALTO) return
+    const d = deslizHero(estadoRecorrido.seg, true)
+    if (Math.abs(d - deslizPintado.current) < 0.0005) return
+    deslizPintado.current = d
+    const [arriba, abajo] = TRAMO_DEGRADE_CELULAR
+    pintarDegrade(degrade, arriba + d * abajo, abajo + d * abajo)
+  }, -2)
   const invalidate = useThree((s) => s.invalidate)
   useLayoutEffect(() => invalidate(), [ancho, alto, invalidate])
   // El resto del cuerpo y los otros cinco implantes se piden cuando terminó

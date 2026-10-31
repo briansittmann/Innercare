@@ -913,6 +913,8 @@ body {
   .recorrido-escena {
     background-size: 100% 140.2%;
     background-repeat: no-repeat;
+    /* Sube con el desliz del hero (tour-scroll.tsx), como subía la página */
+    background-position: 0 calc(-1 * var(--desliz, 0px));
   }
 }
 
