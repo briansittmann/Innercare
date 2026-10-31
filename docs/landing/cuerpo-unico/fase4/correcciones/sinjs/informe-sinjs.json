@@ -1,0 +1,196 @@
+{
+ "escritorio": {
+  "alto": 9178,
+  "imagenes": [
+   {
+    "src": "image?url=%2Flogo.png&w=384&q=75",
+    "completa": true,
+    "w": 96,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Fcaso-craneo-3d.jpg&w=1920&q=75",
+    "completa": true,
+    "w": 145,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Fcaso-anclaje-planificacion.jpg&w=1920&q=75",
+    "completa": true,
+    "w": 298,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Fhombro-planificacion-implante.jpg&w=1920&q=75",
+    "completa": true,
+    "w": 192,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Fcaso-acetabular-segmentacion.jpg&w=1920&q=75",
+    "completa": true,
+    "w": 122,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Ffemur-planificacion.jpg&w=1920&q=75",
+    "completa": true,
+    "w": 340,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Fcaso-intercalar-guias.jpg&w=1920&q=75",
+    "completa": true,
+    "w": 89,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Fcuerpo-entero.webp&w=1080&q=75",
+    "completa": true,
+    "w": 275,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Fcinta-contacto-movil.webp&w=3840&q=75",
+    "completa": true,
+    "w": 268,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   }
+  ],
+  "ocultos": [
+   "Cráneo",
+   "Cráneo",
+   "Maxilar",
+   "Maxilar",
+   "Hombro",
+   "Hombro",
+   "Acetábulo",
+   "Acetábulo",
+   "Fémur proximal",
+   "Fémur proximal",
+   "Diáfisis femoral",
+   "Diáfisis femoral",
+   "Hueso",
+   "Zona a resecar",
+   "Implante y guías"
+  ],
+  "consola": [
+   "requestfailed: http://localhost:3400/_next/static/chunks/0om590q-tq0l9.js"
+  ]
+ },
+ "celular": {
+  "alto": 8736,
+  "imagenes": [
+   {
+    "src": "image?url=%2Flogo.png&w=640&q=75",
+    "completa": true,
+    "w": 96,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Fcaso-craneo-3d.jpg&w=1080&q=75",
+    "completa": true,
+    "w": 137,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Fcaso-anclaje-planificacion.jpg&w=1080&q=75",
+    "completa": true,
+    "w": 280,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Fhombro-planificacion-implante.jpg&w=1080&q=75",
+    "completa": true,
+    "w": 181,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Fcaso-acetabular-segmentacion.jpg&w=1080&q=75",
+    "completa": true,
+    "w": 115,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Ffemur-planificacion.jpg&w=1080&q=75",
+    "completa": true,
+    "w": 320,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Fcaso-intercalar-guias.jpg&w=1080&q=75",
+    "completa": true,
+    "w": 84,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Fcuerpo-entero.webp&w=1080&q=75",
+    "completa": true,
+    "w": 170,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   },
+   {
+    "src": "image?url=%2Fimg%2Fcinta-contacto.webp&w=1200&q=75",
+    "completa": true,
+    "w": 390,
+    "vis": false,
+    "op": "1",
+    "loading": "lazy"
+   }
+  ],
+  "ocultos": [
+   "Cráneo",
+   "Cráneo",
+   "Maxilar",
+   "Maxilar",
+   "Hombro",
+   "Hombro",
+   "Acetábulo",
+   "Acetábulo",
+   "Fémur proximal",
+   "Fémur proximal",
+   "Diáfisis femoral",
+   "Diáfisis femoral",
+   "Hueso",
+   "Zona a resecar",
+   "Implante y guías"
+  ],
+  "consola": [
+   "requestfailed: http://localhost:3400/_next/static/chunks/0om590q-tq0l9.js"
+  ]
+ }
+}

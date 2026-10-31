@@ -1,0 +1,36 @@
+{
+ "celular-false": {
+  "menu": {
+   "0": "-",
+   "1": "ImplantesImplantes",
+   "0.1": "-",
+   "0.2": "-",
+   "0.3": "-",
+   "0.35": "-",
+   "0.4": "-",
+   "0.45": "-",
+   "0.5": "-",
+   "0.6": "ImplantesImplantes",
+   "0.7": "ImplantesImplantes",
+   "0.85": "ImplantesImplantes"
+  },
+  "consola": []
+ },
+ "celular-true": {
+  "menu": {
+   "0": "-",
+   "1": "ImplantesImplantes",
+   "0.1": "-",
+   "0.2": "-",
+   "0.3": "-",
+   "0.35": "-",
+   "0.4": "-",
+   "0.45": "-",
+   "0.5": "-",
+   "0.6": "ImplantesImplantes",
+   "0.7": "ImplantesImplantes",
+   "0.85": "ImplantesImplantes"
+  },
+  "consola": []
+ }
+}
