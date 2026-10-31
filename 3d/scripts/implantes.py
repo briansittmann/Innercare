@@ -25,8 +25,9 @@
 #   esqueleto con el recorte del cráneo. Son el prototipo de cabeza del hero
 #   (cabeza.py parte de anatomia.glb): no cambian con los otros implantes.
 # - implantes-recorrido.glb: los otros cinco (implante_<parada>), y
-#   cuerpo.glb: la piel y el esqueleto con todos los recortes. Son los del
-#   recorrido de la home (components/recorrido-3d/implantes.ts).
+#   cuerpo.glb: la piel y el esqueleto con todos los recortes, más una copia
+#   del maxilar sin recortar (hueso_maxilar_entero) para el cuerpo único.
+#   Son los del recorrido de la home (components/recorrido-3d/implantes.ts).
 #
 # Uso:
 #   blender -b -P 3d/scripts/implantes.py -- <piel.glb> <esqueleto.glb> <carpeta_salida>
@@ -902,6 +903,14 @@ def maxilar():
     print(f'[implantes] maxilar: {borrar_caras(hueso, dentro)} caras recortadas')
     return obj
 
+
+# Copia del maxilar entero, antes del recorte: el cuerpo único lo muestra en
+# el hero y la parada del cráneo, como el busto, y lo cambia por el recortado
+# con el implante al llegar a la parada del maxilar (components/recorrido-3d/).
+maxilar_entero = objetos['hueso_maxilar'].copy()
+maxilar_entero.data = objetos['hueso_maxilar'].data.copy()
+maxilar_entero.name = 'hueso_maxilar_entero'
+bpy.context.scene.collection.objects.link(maxilar_entero)
 
 nuevos.append(maxilar())
 
