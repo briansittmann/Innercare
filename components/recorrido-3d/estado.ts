@@ -21,3 +21,14 @@ export const estadoRecorrido = {
   // de la luz (variables CSS), que son HTML encima y debajo del canvas.
   escena: null as HTMLElement | null,
 }
+
+// Prototipo del cuerpo único (docs/landing/cuerpo-unico/): con
+// ?cuerpo-unico en la URL de la home, el hero dibuja la escena del recorrido
+// en la toma del hero y el recorrido arranca en esa toma. Sin el parámetro,
+// todo queda como antes. Se lee una sola vez y solo en el navegador.
+let cuerpoUnico: boolean | undefined
+export function cuerpoUnicoActivo() {
+  if (typeof window === 'undefined') return false
+  cuerpoUnico ??= new URLSearchParams(window.location.search).has('cuerpo-unico')
+  return cuerpoUnico
+}

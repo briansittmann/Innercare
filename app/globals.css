@@ -870,6 +870,17 @@ body {
   opacity: 1;
 }
 
+/* Prototipo del cuerpo único (?cuerpo-unico, components/home/tour-scroll.tsx):
+   la escena fija lleva el degradé del hero, que refracta el vidrio, sin la
+   luz azul del recorrido. */
+.recorrido-escena[data-cuerpo-unico] {
+  background: linear-gradient(var(--color-stage-from), var(--color-stage-to));
+}
+
+.recorrido-escena[data-cuerpo-unico] .recorrido-luz {
+  display: none;
+}
+
 .recorrido-halo {
   display: none;
   position: absolute;

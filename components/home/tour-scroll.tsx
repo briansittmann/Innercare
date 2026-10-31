@@ -10,7 +10,7 @@ import {
   opacidadEntrada,
   pesoTarjeta,
 } from '@/components/recorrido-3d/camara'
-import { estadoRecorrido } from '@/components/recorrido-3d/estado'
+import { cuerpoUnicoActivo, estadoRecorrido } from '@/components/recorrido-3d/estado'
 import { Recorrido3D } from '@/components/recorrido-3d/recorrido-3d'
 import { useIntroPhase } from '@/components/intro'
 
@@ -115,6 +115,10 @@ export function TourScroll({
     estadoRecorrido.escena = fijo
     const tarjetas = [...nodo.querySelectorAll<HTMLElement>('[data-tarjeta]')]
     const movimiento = window.matchMedia('(prefers-reduced-motion: reduce)')
+    // Prototipo del cuerpo único: la toma 0 es la del hero (sin el título de
+    // entrada) y la escena lleva el degradé del hero (globals.css)
+    const cuerpoUnico = cuerpoUnicoActivo()
+    if (cuerpoUnico) fijo.dataset.cuerpoUnico = ''
 
     let objetivo = 0
     let seg = -1
@@ -154,7 +158,7 @@ export function TourScroll({
         const y = reducido ? 0 : (1 - w) * 22 * (s < i + 1 ? 1 : -1)
         tarjeta.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0)`
       })
-      mostrar(capaEntrada.current, opacidadEntrada(s, reducido))
+      mostrar(capaEntrada.current, cuerpoUnico ? 0 : opacidadEntrada(s, reducido))
       mostrar(capaCierre.current, opacidadCierre(s, reducido))
       const nav = indice.current
       if (nav) {
@@ -225,6 +229,7 @@ export function TourScroll({
       movimiento.removeEventListener('change', alMover)
       cancelAnimationFrame(cuadro)
       if (estadoRecorrido.escena === fijo) estadoRecorrido.escena = null
+      delete fijo.dataset.cuerpoUnico
     }
   }, [])
 

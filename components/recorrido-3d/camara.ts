@@ -26,18 +26,34 @@ type Toma = {
   elevacion: number
 }
 
-type Encuadre = {
+export type Encuadre = {
   // Fracción del ancho y del alto de la pantalla donde queda el objetivo
   ancla: readonly [x: number, y: number]
   // Alto de la pantalla, en metros, a la distancia del objetivo
   alto: number
+  // Estiramiento horizontal de la imagen (1: ninguno). Solo la toma del
+  // hero lo usa: ver HERO.
+  estiramiento?: number
+  // Distancia de la cámara al objetivo, en metros. Sin valor, sale del fov
+  // de 30° sobre la vista entera (la pantalla agrandada para dejar el
+  // objetivo en el ancla). Solo la toma del hero la fija: ahí la perspectiva
+  // tiene que ser la del busto aunque la cabeza no quede en el centro del
+  // alto (en el celular), y el fov sale de la distancia.
+  distancia?: number
 }
+
+// Fov vertical del guion, sobre la vista entera
+export const FOV_GUION = 30
 
 export type Clave = Toma & { escritorio: Encuadre; celular: Encuadre }
 
 // Escala del borrador: el cuerpo dibujado mide 1000 unidades y la figura,
 // unas 945 (1,70 m). Una unidad son 1,8 mm.
 const UNIDAD = 0.0018
+
+export const clamp = (v: number, a = 0, b = 1) => (v < a ? a : v > b ? b : v)
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+export const smooth = (t: number) => t * t * (3 - 2 * t)
 
 // Entrada y cierre: el cuerpo entero anclado a la derecha (68 % del ancho),
 // con el texto a la izquierda; en el celular, centrado y debajo del texto.
@@ -60,6 +76,54 @@ const CIERRE: Clave = {
   elevacion: 0.04,
   escritorio: { ancla: [0.68, 0.53], alto: cuerpoEntero(0.88) },
   celular: { ancla: [0.5, 0.68], alto: cuerpoEntero(0.6) },
+}
+
+// --- Cuerpo único (prototipo, ?cuerpo-unico) --------------------------------
+// La toma del hero (components/hero-3d/), pasada a las coordenadas del
+// cuerpo: docs/landing/cuerpo-unico/base/MEDICIONES.md, "Cámara y pose del
+// hero". En el hero la cámara queda quieta en [0, 0,02, 0,92] mirando al
+// centro de la cabeza y el busto gira 62° (perfil); acá el cuerpo queda
+// quieto y la cámara gira −62° alrededor de la cabeza (y el estudio de luz
+// con ella: escena.tsx), que es la misma imagen.
+const HERO_ALTURA_CAMARA = 0.02
+const HERO_DISTANCIA = 0.92
+// Alto visible a la distancia del objetivo con fov 30°
+export const DISTANCIA_HERO = Math.hypot(HERO_DISTANCIA, HERO_ALTURA_CAMARA)
+export const ALTO_HERO = 2 * DISTANCIA_HERO * Math.tan((15 * Math.PI) / 180)
+
+// Giro del busto (body-scene.tsx): perfil a 62°, vaivén hasta 22° y vuelta
+// cada 22 s; la entrada llega desde 55° más atrás y 2,5 cm más abajo en
+// 2,6 s, con cúbica de salida.
+const grados = (g: number) => (g * Math.PI) / 180
+export const GIRO_PERFIL = grados(62)
+export const GIRO_FRENTE = grados(22)
+export const PERIODO_VAIVEN = 22
+export const GIRO_ENTRADA = grados(55)
+export const SUBIDA_ENTRADA = 0.025
+export const SEGUNDOS_ENTRADA = 2.6
+
+export const giroVaiven = (t: number) =>
+  lerp(GIRO_PERFIL, GIRO_FRENTE, (1 - Math.cos((t / PERIODO_VAIVEN) * Math.PI * 2)) / 2)
+
+// La toma: objetivo en el centro de la cabeza (1,56 m), de perfil y apenas
+// desde arriba. El encuadre es el de la pantalla entera con la escena fija
+// arriba de todo; en el prototipo, el hero lo mide del DOM (hero-3d.tsx).
+// - Escritorio (1440 × 900): la caja del 3D del hero ocupa todo el alto y la
+//   cabeza cae a 1066 px (ancla 0,740).
+// - Celular (390 × 844): la caja del 3D empieza a 660 px y la cabeza cae a
+//   922 px, debajo de la primera pantalla (ancla 1,092): con scroll 0 se ve
+//   la coronilla, como hoy.
+// - Estiramiento: la cámara del hero toma el aspecto del canvas antes de
+//   correr la figura con setViewOffset (R3F lo fija al crearla y después
+//   `manual` lo congela), así que la imagen sale estirada a lo ancho en
+//   1 + 2 × |foco − 0,5|: 1,11 en escritorio (foco 0,555) y 1 en el celular.
+//   Es parte del busto que se ve hoy: se repite para no cambiarlo.
+export const HERO: Clave = {
+  objetivo: [0, 1.56, 0],
+  azimut: -GIRO_PERFIL,
+  elevacion: Math.atan2(HERO_ALTURA_CAMARA, HERO_DISTANCIA),
+  escritorio: { ancla: [0.7404, 0.5], alto: ALTO_HERO, estiramiento: 1.11, distancia: DISTANCIA_HERO },
+  celular: { ancla: [0.5, 1.092], alto: (ALTO_HERO * 844) / 523, estiramiento: 1, distancia: DISTANCIA_HERO },
 }
 
 // Paradas: el implante anclado al 34 % del ancho y la tarjeta a la derecha;
@@ -110,10 +174,9 @@ function claveParada(id: ParadaId): Clave {
 }
 
 export const CLAVES: readonly Clave[] = [ENTRADA, ...ORDEN_PARADAS.map(claveParada), CIERRE]
+// Con el cuerpo único, la toma 0 es la del hero en lugar de la entrada
+const CLAVES_CUERPO_UNICO: readonly Clave[] = [HERO, ...CLAVES.slice(1)]
 
-export const clamp = (v: number, a = 0, b = 1) => (v < a ? a : v > b ? b : v)
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t
-export const smooth = (t: number) => t * t * (3 - 2 * t)
 
 export type Camara = {
   objetivo: Vec3
@@ -121,9 +184,24 @@ export type Camara = {
   elevacion: number
   ancla: readonly [number, number]
   alto: number
+  estiramiento: number
+  // Distancia de la cámara; null: la del fov del guion (camara.ts, Encuadre)
+  distancia: number | null
 }
 
-function encuadreDe(clave: Clave, ancho: number, alto: number): Encuadre {
+// Distancia que da el fov del guion para un encuadre, o la fijada
+function distanciaDe(enc: Encuadre) {
+  if (enc.distancia) return enc.distancia
+  const vistaEntera = 1 + 2 * Math.abs(enc.ancla[1] - 0.5)
+  return (enc.alto * vistaEntera) / (2 * Math.tan(((FOV_GUION / 2) * Math.PI) / 180))
+}
+
+// Opciones del prototipo del cuerpo único: la toma 0 pasa a ser la del hero
+// y, si se da, con el encuadre medido en lugar del de la tabla.
+export type OpcionesCamara = { cuerpoUnico?: boolean; encuadreHero?: Encuadre | null }
+
+function encuadreDe(clave: Clave, ancho: number, alto: number, opciones?: OpcionesCamara): Encuadre {
+  if (clave === HERO && opciones?.encuadreHero) return opciones.encuadreHero
   if (ancho >= ANCHO_CELULAR) return clave.escritorio
   // En el celular, la entrada también se limita por el ancho (borrador:
   // min(alto × 0,6 / 1000, ancho × 1,05 / 400)).
@@ -139,20 +217,33 @@ function encuadreDe(clave: Clave, ancho: number, alto: number): Encuadre {
 // principio y al final de cada tramo para leer la tarjeta. El alto visible
 // se interpola en escala logarítmica. Con movimiento reducido, cada parada
 // muestra su toma sin transición (cambia en la mitad del tramo).
-export function camaraPara(seg: number, ancho: number, alto: number, reducido: boolean): Camara {
+export function camaraPara(
+  seg: number,
+  ancho: number,
+  alto: number,
+  reducido: boolean,
+  opciones?: OpcionesCamara,
+): Camara {
+  const claves = opciones?.cuerpoUnico ? CLAVES_CUERPO_UNICO : CLAVES
   const s = clamp(seg, 0, TRAMOS)
   if (reducido) {
-    const clave = CLAVES[Math.round(s)] ?? ENTRADA
-    const enc = encuadreDe(clave, ancho, alto)
-    return { ...clave, ancla: enc.ancla, alto: enc.alto }
+    const clave = claves[Math.round(s)] ?? ENTRADA
+    const enc = encuadreDe(clave, ancho, alto, opciones)
+    return {
+      ...clave,
+      ancla: enc.ancla,
+      alto: enc.alto,
+      estiramiento: enc.estiramiento ?? 1,
+      distancia: enc.distancia ?? null,
+    }
   }
   const k = Math.min(TRAMOS - 1, Math.floor(s))
   const u = s - k
   const e = smooth(clamp((u - 0.22) / 0.56))
-  const a = CLAVES[k] ?? ENTRADA
-  const b = CLAVES[k + 1] ?? CIERRE
-  const ea = encuadreDe(a, ancho, alto)
-  const eb = encuadreDe(b, ancho, alto)
+  const a = claves[k] ?? ENTRADA
+  const b = claves[k + 1] ?? CIERRE
+  const ea = encuadreDe(a, ancho, alto, opciones)
+  const eb = encuadreDe(b, ancho, alto, opciones)
   return {
     objetivo: [
       lerp(a.objetivo[0], b.objetivo[0], e),
@@ -163,7 +254,22 @@ export function camaraPara(seg: number, ancho: number, alto: number, reducido: b
     elevacion: lerp(a.elevacion, b.elevacion, e),
     ancla: [lerp(ea.ancla[0], eb.ancla[0], e), lerp(ea.ancla[1], eb.ancla[1], e)],
     alto: Math.exp(lerp(Math.log(ea.alto), Math.log(eb.alto), e)),
+    estiramiento: lerp(ea.estiramiento ?? 1, eb.estiramiento ?? 1, e),
+    // Solo si alguna de las dos tomas fija la distancia (la del hero): se
+    // interpola en escala logarítmica, como el alto
+    distancia:
+      ea.distancia || eb.distancia
+        ? Math.exp(lerp(Math.log(distanciaDe(ea)), Math.log(distanciaDe(eb)), e))
+        : null,
   }
+}
+
+// Peso del aspecto del hero en el cuerpo único: 1 en la toma 0 y 0 desde la
+// craneoplastía, con la misma curva que la cámara del primer tramo. Con
+// movimiento reducido, de golpe en la mitad del tramo.
+export function pesoHero(seg: number, reducido: boolean) {
+  if (reducido) return Math.round(clamp(seg, 0, TRAMOS)) === 0 ? 1 : 0
+  return 1 - smooth(clamp((clamp(seg, 0, 1) - 0.22) / 0.56))
 }
 
 // Peso de la tarjeta i (parada i + 1): w = 1 − clamp((|seg − (i + 1)| − 0,22) / 0,24).

@@ -12,12 +12,17 @@ import {
   type ReactNode,
 } from 'react'
 import { getIntroPhase, INTRO_MAX_WAIT, loadedAtHome, startIntro, useIntroPhase } from '../intro'
+import { ALTO_HERO, DISTANCIA_HERO, type Encuadre } from '../recorrido-3d/camara'
+import { cuerpoUnicoActivo } from '../recorrido-3d/estado'
 import type { Entrance, FrameStats, Framing } from './body-scene'
 import type { Quality } from './materials'
 
 // three.js solo existe en el navegador: la escena se carga aparte y sin SSR,
 // para que no pese en el HTML ni en el bundle inicial.
 const BodyScene = dynamic(() => import('./body-scene'), { ssr: false })
+// Prototipo del cuerpo único (?cuerpo-unico): en lugar del busto, la escena
+// del recorrido en la toma del hero (components/recorrido-3d/escena.tsx).
+const EscenaCuerpo = dynamic(() => import('../recorrido-3d/escena'), { ssr: false })
 
 // Imagen fija de la parada 1: se ve mientras carga el 3D, y en su lugar si
 // no hay WebGL o si la escena falla. Es una captura del canvas, con fondo
@@ -114,22 +119,56 @@ function readTuning(): Tuning {
 // tramo, y en qué punto del ancho va la figura (--hero-3d-foco). Con
 // offsetTop y no getBoundingClientRect: la entrada (.intro-3d) escala el
 // canvas y desplazaría la medida.
-function measureFraming(node: HTMLElement): Framing | null {
+// Prototipo del cuerpo único: el canvas no es la caja del busto sino la
+// pantalla entera al pie del hero (como la escena fija del recorrido), y la
+// cámara pone la cabeza donde el busto la pone hoy. `lienzo` es la caja del
+// canvas respecto de la del busto; `encuadre`, la toma (camara.ts).
+type Lienzo = { left: number; top: number; width: number; height: number }
+type FramingHero = Framing & { lienzo?: Lienzo; encuadre?: Encuadre }
+
+function measureFraming(node: HTMLElement): FramingHero | null {
   const section = node.closest('section')
   if (!section || section.offsetHeight === 0) return null
   const top = node.offsetTop / section.offsetHeight
   const bottom = (node.offsetTop + node.offsetHeight) / section.offsetHeight
   const focus = Number.parseFloat(getComputedStyle(node).getPropertyValue('--hero-3d-foco'))
-  return { stage: [top, bottom], focusX: Number.isFinite(focus) ? focus : 0.5 }
+  const focusX = Number.isFinite(focus) ? focus : 0.5
+  if (!cuerpoUnicoActivo()) return { stage: [top, bottom], focusX }
+  // La pantalla entera (o el hero, si es más bajo) contra el pie del hero,
+  // de borde a borde
+  const alto = section.offsetHeight
+  const lienzoAlto = Math.min(alto, window.innerHeight)
+  const lienzoTop = alto - lienzoAlto
+  const cabezaX = node.offsetLeft + focusX * node.offsetWidth
+  const cabezaY = node.offsetTop + node.offsetHeight / 2
+  return {
+    stage: [lienzoTop / alto, 1],
+    focusX,
+    lienzo: {
+      left: -node.offsetLeft,
+      top: lienzoTop - node.offsetTop,
+      width: section.offsetWidth,
+      height: lienzoAlto,
+    },
+    encuadre: {
+      ancla: [cabezaX / section.offsetWidth, (cabezaY - lienzoTop) / lienzoAlto],
+      alto: (ALTO_HERO * lienzoAlto) / node.offsetHeight,
+      // El estiramiento del busto de hoy (camara.ts, HERO)
+      estiramiento: 1 + 2 * Math.abs(focusX - 0.5),
+      // La perspectiva del busto: la cámara a 0,92 m
+      distancia: DISTANCIA_HERO,
+    },
+  }
 }
 
-function sameFraming(a: Framing | null, b: Framing | null) {
+function sameFraming(a: FramingHero | null, b: FramingHero | null) {
   return (
     a !== null &&
     b !== null &&
     a.focusX === b.focusX &&
     Math.abs(a.stage[0] - b.stage[0]) < 1e-4 &&
-    Math.abs(a.stage[1] - b.stage[1]) < 1e-4
+    Math.abs(a.stage[1] - b.stage[1]) < 1e-4 &&
+    JSON.stringify(a.lienzo) === JSON.stringify(b.lienzo)
   )
 }
 
@@ -187,7 +226,7 @@ export function Hero3D({ className = '' }: { className?: string }) {
     reducedMotion ? 'skip' : phase === 'waiting' ? 'hold' : sceneFirst ? 'play' : 'skip'
   // Fuera de pantalla no se renderiza: ahorra GPU y batería.
   const [visible, setVisible] = useState(false)
-  const [framing, setFraming] = useState<Framing | null>(null)
+  const [framing, setFraming] = useState<FramingHero | null>(null)
   const [tuning, setTuning] = useState<Tuning>({
     measure: false,
     boneOpacity: BONE_OPACITY,
@@ -228,7 +267,12 @@ export function Hero3D({ className = '' }: { className?: string }) {
     const observer = new ResizeObserver(update)
     observer.observe(node)
     observer.observe(section)
-    return () => observer.disconnect()
+    // El canvas del cuerpo único depende también del alto de la pantalla
+    window.addEventListener('resize', update)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', update)
+    }
   }, [])
 
   // Arranque de la entrada de la home (components/intro.ts), mientras no haya
@@ -269,20 +313,50 @@ export function Hero3D({ className = '' }: { className?: string }) {
       ref={ref}
       role="img"
       aria-label="Busto de vidrio con el cráneo a la vista y una craneoplastía de titanio trabecular en el lado derecho"
-      className={`relative overflow-hidden ${className}`}
+      className={`relative ${framing?.lienzo ? '' : 'overflow-hidden'} ${className}`}
     >
       {/* La imagen queda entera mientras el 3D aparece encima, y se quita al
           terminar el fundido: con fondo transparente, cruzar las dos opacidades
-          dejaría el busto a medio tono. */}
-      <picture>
-        <source media="(min-width: 768px)" srcSet={desktopPoster.srcSet} sizes={desktopPoster.sizes} />
-        <img
-          {...mobilePoster}
-          alt=""
-          className={`absolute top-0 left-[calc(var(--hero-3d-foco)*100%)] h-full w-auto max-w-none -translate-x-1/2 transition-opacity duration-0 ${ready ? 'opacity-0 delay-700' : 'opacity-100'}`}
-        />
-      </picture>
-      {mount && framing && (
+          dejaría el busto a medio tono. Recortada a la caja (es más ancha). */}
+      <div className="absolute inset-0 overflow-hidden">
+        <picture>
+          <source media="(min-width: 768px)" srcSet={desktopPoster.srcSet} sizes={desktopPoster.sizes} />
+          <img
+            {...mobilePoster}
+            alt=""
+            className={`absolute top-0 left-[calc(var(--hero-3d-foco)*100%)] h-full w-auto max-w-none -translate-x-1/2 transition-opacity duration-0 ${ready ? 'opacity-0 delay-700' : 'opacity-100'}`}
+          />
+        </picture>
+      </div>
+      {mount && framing?.lienzo && framing.encuadre && (
+        <SceneBoundary>
+          <div
+            style={framing.lienzo}
+            className={`absolute transition-opacity duration-700 ${ready ? 'opacity-100' : 'opacity-0'}`}
+          >
+            <EscenaCuerpo
+              activa={visible}
+              calidad="media"
+              dpr={1}
+              hero={{
+                animar: !reducedMotion,
+                entrada: entrance,
+                encuadre: framing.encuadre,
+                tramo: framing.stage,
+              }}
+              alListo={() => {
+                setReady(true)
+                if (getIntroPhase() === 'waiting') {
+                  setSceneFirst(true)
+                  startIntro()
+                }
+                setTimes((t) => ({ ...t, ready: t.ready ?? performance.now() }))
+              }}
+            />
+          </div>
+        </SceneBoundary>
+      )}
+      {mount && framing && !framing.lienzo && (
         <SceneBoundary>
           <div
             className={`absolute inset-0 transition-opacity duration-700 ${ready ? 'opacity-100' : 'opacity-0'}`}
