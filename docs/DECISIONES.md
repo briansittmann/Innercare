@@ -436,7 +436,7 @@ Rama `rediseno`. Pedido del usuario. Reemplaza, de "Secciones de la landing", lo
 
 ## 2026-10-30 · Recorrido 3D de la home
 
-Rama `rediseno`. Fase 3 de la landing. Detalle en `docs/landing/BITACORA.md`.
+Rama `rediseno`. Fase 3 de la landing. Detalle en `docs/landing/BITACORA.md`. Lo provisional (el recorrido como sección propia, con el busto en el hero) está **Reemplazado por** "Un solo cuerpo del hero al recorrido" (2026-10-31); el comportamiento del borrador sigue vigente.
 
 **Provisional** (anotado en la fase 7): el recorrido como sección propia, con el busto en el hero y el cuerpo entero recién abajo, es la solución mientras el hero no se toca (AJUSTES.md). El guion pide un solo cuerpo que va del hero al recorrido; si el hero se reabre, se revisa.
 
@@ -524,7 +524,7 @@ Rama `rediseno`. Fase 2 de la landing.
 
 ## 2026-10-30 · Tomas, anclas y respaldos del recorrido
 
-Rama `rediseno`. Fases 3 y 4 de la landing. Completa "Recorrido 3D de la home".
+Rama `rediseno`. Fases 3 y 4 de la landing. Completa "Recorrido 3D de la home". La carga (después de la intro y con el recorrido asomando) y el respaldo de la entrada están **Reemplazados por** "Un solo cuerpo del hero al recorrido" (2026-10-31).
 
 **Decisión.**
 - Cada parada tiene, además del encuadre del borrador (implante al 34 % del ancho), un azimut y una elevación: el 3D deja girar alrededor del cuerpo, y la cabeza se ve de tres cuartos y desde arriba para que se lea la craneoplastía. La toma del maxilar está más cerrada (`vis` 82) para que la pieza ocupe cerca del 14 % del ancho.
@@ -575,7 +575,7 @@ Rama `rediseno`. Fase 5 de la landing. Completa "Partículas y animaciones de la
 
 ## 2026-10-30 · Contextos WebGL de la home
 
-Rama `rediseno`. Fases 3 a 6 de la landing. Resume la regla de rendimiento de AJUSTES.md tal como quedó.
+Rama `rediseno`. Fases 3 a 6 de la landing. Resume la regla de rendimiento de AJUSTES.md tal como quedó. **Reemplazada por** "Un solo cuerpo del hero al recorrido" (2026-10-31): dos contextos en lugar de tres.
 
 **Decisión.**
 - Tres contextos WebGL en toda la home: busto y fibras del hero, y el del recorrido. Las miniaturas son vistas del canvas del recorrido; el proceso y la fabricación son canvas 2D (`components/animaciones/`); la cinta del cierre es una imagen fija.
@@ -597,6 +597,37 @@ Rama `rediseno`. Fases 2 y 6 de la landing.
 **Decisión.** El logo en blanco del cierre de contacto es el mismo PNG con `brightness-0 invert`. El footer conserva el lema en texto aunque el logo ya lo trae, porque al tamaño del footer el del logo no se lee.
 
 **Motivo.** No hay archivos de logo claro ni sin lema; no se inventan.
+
+## 2026-10-31 · Un solo cuerpo del hero al recorrido
+
+Rama `cuerpo-unico`. Pedido del usuario, que reabrió el hero con una condición: que quede igual de lindo. Plan y fases en `docs/landing/BITACORA.md` (entradas "Cuerpo único") y `docs/landing/cuerpo-unico/ESTADO.md`. Reemplaza lo provisional de "Recorrido 3D de la home" (el recorrido como sección propia), la carga de "Tomas, anclas y respaldos del recorrido" y "Contextos WebGL de la home".
+
+**Decisión.** El busto del hero y el cuerpo entero del recorrido pasan a ser un solo modelo en un solo canvas. El hero es la toma 0 de la escena fija del recorrido: con el scroll, el texto se va, la cámara sube hasta la craneoplastía y sigue el recorrido.
+
+**Reglas resultantes.**
+- **Un canvas.** La escena única (`components/recorrido-3d/escena.tsx`) se monta apenas el navegador queda libre (como mucho, 1,5 s) y arranca la intro (`startIntro()`) al estar lista, o a los 2,5 s. Dos contextos WebGL en la home: la escena y las fibras. `components/hero-3d/` ya no existe.
+- **El look es el del hero, no el del recorrido.** En la toma 0, el vidrio, el titanio de la craneoplastía (dentro del vidrio, refractado), el hueso y la luz son los del busto de antes (`aspecto-hero.ts`). El degradé del hero es el fondo de toda la escena fija y lo refracta el vidrio. Con el scroll, el aspecto pasa al del recorrido con el peso del hero (`pesoHero`, la misma curva que la cámara del primer tramo). El estudio de luz gira con la cámara.
+- **Corte bajo el cuello (`corteY`).** En la toma del hero, la piel se corta a 1,33 m y el hueso a 1,35 m, rectos (en materiales opacos se descarta sin tocar el alfa: así no aparece el filo blanco). Con el scroll, el corte baja hasta debajo de los pies y la banda se ensancha de 4 mm a 40 cm. Las vértebras del busto (`hueso_columna_alta`) van enteras.
+- **Keyframe `hero`** (`HERO` en `camara.ts`): objetivo en el centro de la cabeza (1,56 m), de perfil (azimut −62°), a 0,92 m, con el estiramiento de 1,11 que tenía el busto en escritorio. En el celular, la cabeza arranca debajo de la primera pantalla (ancla 1,092), como el hero de antes, y durante las primeras 0,4 pantallas el texto, las fibras, el degradé y el busto suben juntos (`deslizHero`); después la cámara va a la craneoplastía. La entrada (+55° en 2,6 s) y el vaivén (62° a 22° cada 22 s) del busto son giros de la cámara y se amortiguan a cero al empezar el scroll.
+- **Maxilar entero → recortado.** En el hero y en la craneoplastía se ve `hueso_maxilar_entero`; entre seg 1,4 y 1,78 se funde con el recortado y aparece el implante (`pesoMaxilar`).
+- **Fibras pausadas.** Se funden con el texto del hero y, cuando terminan de irse, su capa pasa a `display: none`: su IntersectionObserver deja de dibujar. Al volver arriba, despiertan.
+- **Dos archivos de cuerpo.** `cuerpo-cabeza.glb` (lo que se ve en el hero) e `implantes.glb` van en el primer pantallazo (454 KB, contra 498 KB del busto); `cuerpo-resto.glb` e `implantes-recorrido.glb`, después de la intro. Mientras llega el resto, sigue el cuerpo del hero (lo que falta queda debajo del corte). La craneoplastía sigue sola en `implantes.glb` (`implantes.ts` explica por qué).
+- **Piel por zonas.** `piel_cabeza`, `piel_torso` y `piel_piernas` (y la columna en dos), partidas después de `optimize`, en la misma pasada que la compresión (`3d/scripts/partir.mjs`): mismos triángulos, junta estanca. La escena oculta los trozos que quedan enteros debajo del corte.
+- **Vidrio opaco fuera del hero.** El vidrio es transparente solo mientras el corte baja (peso del hero entre 0,001 y 0,999); en el hero entero y desde la craneoplastía es opaco. Transparente, el esqueleto se dibujaba entero debajo del vidrio en cada cuadro y el recorrido de escritorio caía a 52 fps.
+- **Recorte a la caja del busto.** Con la toma del hero entera y sin miniaturas a la vista, la escena dibuja solo en la caja que ocupaba el busto (tijera en la pasada principal y en el buffer del vidrio), con el mismo costo por píxel que el busto.
+- Sin WebGL, la toma 0 muestra las capturas del busto (`cuerpo-inicio*.webp`) y las paradas, sus vistas. Sin JS, el hero se lee con su captura y las tarjetas en orden.
+
+**Motivo.** Es la idea original del usuario, la del guion y la del borrador: el objeto del hero es el protagonista de todo el relato (como Apple en AirPods Pro o iPhone). Las dos tomas ya eran casi la misma (la craneoplastía está a 0,92 m y apenas más arriba). Un modelo elimina un contexto WebGL y una descarga, el paso a ≈51 fps entre el hero y el recorrido (dos cuerpos dibujando a la vez) y el corte recto entre el degradé y el gris, y deja una sola fuente de verdad para materiales y luz. La compuerta de paridad (el cuadro 0 indistinguible del hero) pasó en la segunda pasada del verificador; la paridad se mantuvo en las fases siguientes. Medido con la GPU del M1: hero quieto en escritorio a 109 a 119 fps sin tope (la base, 71 a 72), recorrido a 60 con tope en escritorio y celular.
+
+**Descartado.**
+- Dos instancias de la misma escena (hero y recorrido): fue solo el prototipo, para medir y comparar sin rearmar las secciones.
+- Canvas del tamaño de la caja del busto en el hero: rinde parecido al recorte con tijera, pero obliga a cambiar el tamaño del canvas al empezar el scroll.
+- Partir la piel en Blender antes de optimizar: 107 914 triángulos en lugar de 62 412 (la simplificación es relativa a cada malla) y juntas abiertas.
+- El cuerpo entero en un archivo: 1 049 KB en el primer pantallazo.
+- Fundido largo entre las dos craneoplastías (la refractada y la de la capa de implantes): se veían dos piezas corridas. Quedó un cruce corto.
+- Llevar la craneoplastía a `implantes-recorrido.glb`: obligaba a bajarlo entero antes de la intro o a partirlo, y a regenerar los modelos.
+
+**Pendiente.** Detalle y rutas en `docs/landing/cuerpo-unico/ESTADO.md`: medir en un celular real; el tramo corto del hero (0,3 pantallas) rinde menos que la base sin tope; el hombro asoma bajo el corte desde seg 0,33 en escritorio; el degradé del cierre se oscurece antes de fundirse; el contexto de las fibras queda vivo, pausado.
 
 ## Pendientes abiertos
 
