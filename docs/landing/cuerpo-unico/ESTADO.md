@@ -39,7 +39,7 @@ Recorrido entero con tope en escritorio (`verificacion-fase4/partes.mjs`, cuatro
 | Contextos WebGL vivos | 3 (busto, fibras y recorrido) | 2 (escena y fibras) |
 | Primer pantallazo | `cabeza.glb` + `implantes.glb`: 498 KB (397 KB transferidos) | `cuerpo-cabeza.glb` + `implantes.glb`: 454 KB (362 KB transferidos) |
 | Después de la intro | `cuerpo.glb` + `implantes-recorrido.glb`: 1 215 KB | `cuerpo-resto.glb` + `implantes-recorrido.glb`: 908 KB |
-| Arranque de la intro (localhost) | 0,83 a 1,28 s | 0,8 a 1,0 s |
+| Arranque de la intro (localhost) | 0,83 a 1,28 s | 0,8 a 1,4 s |
 
 ## Qué hay en cada carpeta
 

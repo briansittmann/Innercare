@@ -583,3 +583,50 @@ El verificador dio "no pasa" por una diferencia grave. Commit: el de este aparta
 - **Decidido sin preguntar:** el desliz del celular llega a 0,4 pantallas (los 338 px de la base) y el texto se funde después, para que ese cuadro sea el de la base; el cruce de la craneoplastía es corto en lugar de alinear las copias (la refracción las corre por diseño); el degradé solo se estira por debajo de 768 px, el corte de la maqueta del hero de antes.
 - **Comprobado** (build de producción, Chrome con GPU): hero contra la base, escritorio 0,9 a 1,8 y celular 0,3 a 2,4 de media (`hero-abajo` ya no aplica: el hero no es más una sección); 2 contextos WebGL en el hero; menú, "Recorrer los implantes" (seg 1,002) y llegada del resto sin cambios; sin WebGL y sin JS, en orden; consola sin errores. Build, lint y `tsc` sin errores.
 - **Capturas:** `fase4/correcciones/transicion/` (seg 0 a 1 en el celular y 0 a 3 en escritorio, con y sin movimiento reducido), `fase4/correcciones/sinjs/`, `fase4/capturas/` y `fase4/diferencias/` (hero), `fase4/recorrido/` (paradas, sin WebGL, sin JS, `informe.json`) y `fase4/medidas/correcciones*/`.
+
+---
+
+## Cuerpo único, fase 5 · Limpieza y documentación (2026-10-31)
+
+**Commits:** `6c85f98` (fuera `components/hero-3d/` y los interruptores del prototipo), `257a216` (CSS muerto), `a68d370` (`?fibras`), `1b0e008` (`cabeza.glb`, `cabeza.py` y la exportación de `anatomia.glb`), `dc3ae84` (`AJUSTES.md`), `8ad84b1` (`DECISIONES.md`), `a77e928` (`CLAUDE.md`), `e8e80ab` (`ARQUITECTURA_MODELO_3D.md`), `bab3658` (`ESTADO.md`) y el de esta entrada (bitácora y capturas de la fase).
+
+**Qué se hizo.**
+- **Código.** `components/hero-3d/` se borró entero: de ahí solo se usaban `useGlassBuffer`, `Bone` y el tipo `Quality`, que pasaron a `components/recorrido-3d/materiales.tsx`. `cuerpo-unico.ts` pasa a llamarse `aspecto-hero.ts`. En `escena.tsx` salió el modo `hero` (la escena dibujando el hero aparte, del prototipo), la bandera `cuerpoUnico` (siempre verdadera desde la fase 3), el fondo gris del recorrido de antes (`useFondoEscena`) y las escrituras de `--luz-x/y`. En `camara.ts`, la toma de entrada del cuerpo entero (`ENTRADA`) y las opciones `cuerpoUnico` y `encuadreHero`: `CLAVES` empieza en `HERO`. En `estado.ts`, `cuerpoUnicoActivo()`. En `tour-scroll.tsx`, el `data-cuerpo-unico` (ningún CSS lo leía), la constante `cerca` (siempre verdadera; `Recorrido3D` ya no la recibe) y la capa `.recorrido-luz` (siempre en `display: none`). Comentarios al día.
+- **CSS.** Las reglas de `.recorrido-luz`. El corte recto del hero contra el gris ya no estaba (salió en la fase 3) y `.escenario` sigue: lo usan las vistas de respaldo de las paradas. Cada clase de `globals.css` se buscó en `components/`, `app/` y `content/`: las únicas sin uso son `.boton-relleno` (del sistema de botones, documentada) y `.tlink` (solo en un comentario).
+- **Parámetros de prototipo.** `?medir`, `?calidad`, `?hueso` y `?fondo` vivían en `components/hero-3d/` y se fueron con él; `?fibras` (en `hero-intro.tsx`) también, porque ningún script lo usa. `?cuerpo-unico` ya no existía.
+- **Modelos.** Fuera `public/modelos/cabeza.glb`, `3d/scripts/cabeza.py` y su línea en `modelos.sh`, y la exportación de `anatomia.glb` en `implantes.py` (solo la usaba `cabeza.py`). `npm run modelos` corre bien: `implantes.glb`, `cuerpo-cabeza.glb` y `cuerpo-resto.glb` salen idénticos byte por byte; `implantes-recorrido.glb` cambia unos bytes, como en la fase 2, y se dejó el del repo.
+- **Documentación**, en el orden pedido: `AJUSTES.md` (el hero reabierto, sin cambio visual), `DECISIONES.md` (entrada nueva "Un solo cuerpo del hero al recorrido", con las reglas; la provisional del recorrido, la carga de "Tomas, anclas y respaldos" y "Contextos WebGL de la home", marcadas como reemplazadas), `CLAUDE.md` (estructura, hero como primera toma, recorrido sin "provisional", intro, dos contextos, carga en dos tiempos, vidrio opaco, fps nuevos, estado y pendientes), `ARQUITECTURA_MODELO_3D.md` (sección "Cuerpo único" y respaldos) y `ESTADO.md` (índice final de la carpeta, veredicto, mediciones y pendientes).
+
+**Comprobado** (build de producción en el puerto 3400, Chrome sin interfaz con la GPU del M1, enchufada).
+- Build, lint y `tsc` sin errores.
+- **Paridad de la limpieza.** Capturas antes (`ec0d747`) y después, con los mismos scripts: con movimiento reducido, las 16 tomas del hero de `medir.mjs` dan 0,00 de diferencia, salvo `intro-0000` (0,8: el primer cuadro depende del momento de la captura, y contra la base da lo mismo antes y después). Seg 1 y seg 4 (`fase5/paridad.mjs`): la única zona que cambia es la miniatura de partículas, con el mismo tamaño de cambio que dos corridas del mismo build (0,1 a 0,9 de media).
+- **Hero contra la base:** escritorio 1,0 a 2,0 y celular 0,3 a 2,6 de media (antes de la limpieza, 0,9 a 2,0 y 0,3 a 2,4; la fase 4 había anotado 0,9 a 1,8 y 0,3 a 2,4). El 2,6 es `celular-movimiento-intro-2000`, que cambia solo entre corridas (fibras y vaivén: 2,1 entre antes y después de la limpieza); con movimiento reducido, las cifras son idénticas a las de antes.
+- Sin WebGL, iguales a las de la fase 4 (0 a 0,2). Sin JS, el celular igual; en escritorio, algunas fotos de las tarjetas salen vacías en la captura de página entera, como ya había anotado la fase 4: con JS apagado las 14 imágenes del recorrido cargan, así que es la carga diferida contra el momento de la captura, no la página.
+- Dos contextos WebGL en el hero y al pie, sin errores de consola. Una vuelta de fps de control: con tope, 60, 58, 59,2 y 60 en escritorio (hero, 0,3 pantallas, craneoplastía y recorrido) y 60, 60, 59,6 y 59,9 en el celular, como en la fase 4.
+
+**Decidido sin preguntar.**
+- **`implantes.glb` queda como está**, con la craneoplastía sola: es la pieza de la toma del hero, va en el primer pantallazo (73 KB) y es el archivo que verificó la paridad. Llevarla a `implantes-recorrido.glb` obligaba a bajar sus 313 KB antes de la intro o a partirlo, y a regenerar modelos que Blender no reproduce byte por byte. Explicado en `implantes.ts`.
+- **`cuerpo-unico.ts` → `aspecto-hero.ts`** y las piezas de `materials.tsx` → `materiales.tsx`: el nombre "cuerpo único" ya no distingue nada (es el único cuerpo) y lo que hace el archivo es dar el aspecto del hero.
+- **Fuera también `anatomia.glb`** (la exportación en `implantes.py`): era la entrada de `cabeza.py` y nada más.
+- **Fuera `?fibras`**, además de los parámetros que se fueron con `hero-3d/`: ni `medir.mjs` ni `ver.mjs` ni `partes.mjs` lo usan (`partes.mjs` apaga las fibras quitando su canvas). `medir.mjs` todavía pide `?calidad=media` en sus medidas sin tope: no hace nada y se dejó, para no tocar el método.
+- **`camaraPara` sin el parámetro `alto`**: solo lo usaba el encuadre de la entrada del celular, que salió con `ENTRADA`.
+- **Capturas a 1x** para la paridad de las paradas (como `fase4/recorrido.mjs`) y las del hero con `medir.mjs` (2x y 3x), sin sobrescribir las de la fase 4: los scripts de antes escriben en sus carpetas, así que las de esta fase se tomaron aparte y se guardaron en `fase5/`.
+
+**Pendiente: lista consolidada de las cinco fases.** Con su lugar y su contexto en `docs/landing/cuerpo-unico/ESTADO.md`, "Pendientes".
+1. Medir en un celular real la escena única; si no llega a 60, bajar `DPR_CELULAR` (`components/recorrido-3d/recorrido-3d.tsx`).
+2. El tramo corto del hero (0,3 pantallas) rinde menos que la base sin tope en escritorio (46 contra 67; 58 con tope): el vidrio es transparente mientras baja el corte (`escena.tsx`, `Cuerpo`; `fase4/MEDICIONES.md`).
+3. El hombro y su implante asoman bajo el corte desde seg 0,33 en escritorio y 0,55 en el celular (`escena.tsx`, `corteDe` y `bandaDe`; `fase4/correcciones/transicion/`).
+4. En el cierre (seg 7), el degradé se oscurece antes de fundirse al gris (`.recorrido-fundido`, `app/globals.css`).
+5. El contexto de las fibras queda vivo y pausado después del hero (`components/ghost-fibers.tsx`).
+6. La luz de las paradas gira con la cámara desde la fase 1: revisarla a ojo contra el recorrido de antes (`escena.tsx`; `verificacion-fase4/base-recorrido/`).
+7. El recorrido antes y después de la fase 2 se comparó solo a ojo (`fase2/capturas/parada-*`).
+8. La intro no se midió con red lenta (el primer pantallazo pesa 454 KB, menos que los 498 del busto).
+9. `public/img/cuerpo-entero.webp`, el respaldo del cierre, es de la antigua toma de entrada (`VistaCuerpo` en `components/home/tour.tsx`); faltan los respaldos por parada. `cuerpo-inicio*.webp` sigue coincidiendo con la toma 0: no hace falta recapturarlo.
+10. Diferencias menores del hero que solo se ven con zoom (oreja, nuca, vértebras bajas, reflejo bajo la craneoplastía, corte sin tapa): `verificacion/README.md`.
+11. `npm run modelos` regenera `implantes-recorrido.glb` con bytes distintos: se deja el del repo mientras no cambie un implante.
+12. Los colores del degradé siguen repetidos en `app/globals.css` y `components/recorrido-3d/aspecto-hero.ts`.
+13. `medir.mjs`: `--listo` por defecto del busto de antes (usar `--listo '.recorrido-escena[data-listo]'`) y el `?calidad=media` sin efecto.
+14. Integrar `cuerpo-unico` a `rediseno` y `main` cuando el usuario lo apruebe.
+15. De antes, siguen en `CLAUDE.md`: aviso de deslizar no centrado en escritorio, pantalla de carga, miniaturas (costura y marco), datos a confirmar con Innercare, logo, ficha de producto, envío del formulario y metadatos.
+
+**Capturas:** `docs/landing/cuerpo-unico/fase5/paridad/antes/` y `fase5/paridad/despues/` (hero, seg 1 y seg 4, con y sin movimiento reducido, 1440 y 390), `fase5/capturas/` (hero con los nombres de `base/capturas/`, después de la limpieza), `fase5/medidas/` (la vuelta de fps de control) y los scripts `fase5/paridad.mjs` y `fase5/dif.mjs`.
