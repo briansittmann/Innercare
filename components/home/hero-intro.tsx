@@ -16,15 +16,8 @@ export function IntroSection(props: ComponentProps<'section'>) {
 }
 
 // Resolución de las fibras: 2x en escritorio y 1x en el celular, donde la
-// placa rinde menos y en pantalla chica casi no se nota (precaución, sin medir
-// todavía: ver docs/ARQUITECTURA_MODELO_3D.md). ?fibras=no las apaga y
-// ?fibras=1x|2x fija la resolución, para medir su costo junto al 3D (?medir).
-// Esos parámetros son del prototipo: se quitan antes del lanzamiento.
+// placa rinde menos y en pantalla chica casi no se nota.
 function readFiberDpr() {
-  const param = new URLSearchParams(window.location.search).get('fibras')
-  if (param === 'no') return 0
-  if (param === '1x') return 1
-  if (param === '2x') return 2
   return window.matchMedia('(min-width: 48rem)').matches ? 2 : 1
 }
 
