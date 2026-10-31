@@ -1,0 +1,94 @@
+{
+  "recorrido": [
+    {
+      "tam": "escritorio",
+      "reducido": false,
+      "contextosHero": 2,
+      "contextosPie": 1,
+      "llegadaResto": 6.44,
+      "menu": {
+        "1": "ImplantesImplantes",
+        "3": "ImplantesImplantes",
+        "hero": "-",
+        "0.35": "-"
+      },
+      "segBoton": 1.002,
+      "errores": []
+    },
+    {
+      "tam": "escritorio",
+      "reducido": true,
+      "contextosHero": 2,
+      "contextosPie": 1,
+      "llegadaResto": 0,
+      "menu": {
+        "1": "ImplantesImplantes",
+        "3": "ImplantesImplantes",
+        "hero": "-",
+        "0.35": "-"
+      },
+      "segBoton": 1.002,
+      "errores": []
+    },
+    {
+      "tam": "celular",
+      "reducido": false,
+      "contextosHero": 2,
+      "contextosPie": 1,
+      "llegadaResto": 2.65,
+      "menu": {
+        "1": "ImplantesImplantes",
+        "3": "ImplantesImplantes",
+        "hero": "-",
+        "0.35": "-"
+      },
+      "segBoton": 1.002,
+      "errores": []
+    },
+    {
+      "tam": "celular",
+      "reducido": true,
+      "contextosHero": 2,
+      "contextosPie": 1,
+      "llegadaResto": 0,
+      "menu": {
+        "1": "ImplantesImplantes",
+        "3": "ImplantesImplantes",
+        "hero": "-",
+        "0.35": "-"
+      },
+      "segBoton": 1.002,
+      "errores": []
+    }
+  ],
+  "extras": {
+    "escritorio-sin-js": {
+      "ocultos": [
+        "Cráneo",
+        "Maxilar",
+        "Hombro",
+        "Acetábulo",
+        "Fémur proximal",
+        "Diáfisis femoral"
+      ]
+    },
+    "escritorio-sin-webgl": {
+      "contextos": 0,
+      "errores": []
+    },
+    "celular-sin-js": {
+      "ocultos": [
+        "Cráneo",
+        "Maxilar",
+        "Hombro",
+        "Acetábulo",
+        "Fémur proximal",
+        "Diáfisis femoral"
+      ]
+    },
+    "celular-sin-webgl": {
+      "contextos": 0,
+      "errores": []
+    }
+  }
+}
