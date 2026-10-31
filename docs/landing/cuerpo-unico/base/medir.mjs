@@ -16,6 +16,9 @@
 //                    en el celular (hoy: #inicio)
 //   --primera N      tramo (seg) de la primera parada (hoy: 1 de 7)
 //   --tramos N       tramos del recorrido (hoy: 7)
+//   --param P        parámetros que se suman a todas las URL (fase 1:
+//                    `--param cuerpo-unico`, el prototipo del cuerpo único;
+//                    `--param cuerpo-unico=entero`, sin recorte)
 //
 // patchright (fork de Playwright) sale de la extensión CodeGPT de VS Code;
 // otra ruta con PATCHRIGHT_DIR. Chrome del sistema con la GPU del M1.
@@ -48,6 +51,15 @@ const HERO = opt('hero', '#inicio')
 const PRIMERA = Number(opt('primera', '1'))
 const TRAMOS = Number(opt('tramos', '7'))
 const VUELTA = opt('vuelta', '1')
+const PARAM = opt('param', '')
+
+// URL de la home con el parámetro del prototipo (si hay) y el de la medición
+function urlCon(query) {
+  const u = new URL(URL_BASE)
+  for (const [k, v] of new URLSearchParams(PARAM)) u.searchParams.set(k, v)
+  for (const [k, v] of new URLSearchParams(query)) u.searchParams.set(k, v)
+  return u.toString().replace(/=(&|$)/g, '$1')
+}
 
 const TAMANOS = {
   escritorio: { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, isMobile: false, hasTouch: false },
@@ -131,7 +143,7 @@ async function abrir({ tam, reducido = false, args = [], query = '' }) {
       await route.fulfill({ response: resp, body })
     },
   )
-  await page.goto(URL_BASE + query, { waitUntil: 'commit' })
+  await page.goto(urlCon(query), { waitUntil: 'commit' })
   return { browser, page, errores }
 }
 
@@ -303,7 +315,7 @@ async function medidas() {
     const { browser, page, errores } = await abrir({ tam, args: sinTope ? SIN_TOPE : [] })
     // Carga de la máquina al empezar (la medición es ruidosa si hay otras
     // apps usando la GPU: comparar solo corridas con carga parecida)
-    const r = { tam, tope: !sinTope, vuelta: VUELTA, cargaMaquina: os.loadavg().map((v) => +v.toFixed(2)) }
+    const r = { tam, tope: !sinTope, vuelta: VUELTA, param: PARAM || null, cargaMaquina: os.loadavg().map((v) => +v.toFixed(2)) }
     r.running = await esperarAttr(page, 'running')
     r.done = await esperarAttr(page, 'done')
     r.listo = await attr(page, 'listo')

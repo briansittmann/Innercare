@@ -299,11 +299,13 @@ function Cuerpo({ calidad, fondo, modo, cuerpoUnico, hero }: {
   const borde = useMemo(() => materialBorde(), [])
   useEffect(() => () => borde.dispose(), [borde])
   const geometriaPiel = mallas.find((m) => m.name === 'piel')
-  // Cuerpo único: la piel ordenada por altura, para dibujar solo lo que
-  // queda arriba del corte
+  // Hero del cuerpo único: la piel ordenada por altura, para dibujar solo lo
+  // que queda arriba del corte. Solo en el hero: el orden por altura rompe la
+  // localidad de la malla, y con el cuerpo entero a la vista el recorrido
+  // bajaba de 60 a 47 cuadros (medido).
   const pielOrdenada = useMemo(
-    () => (cuerpoUnico && geometriaPiel ? ordenarPorAltura(geometriaPiel) : null),
-    [cuerpoUnico, geometriaPiel],
+    () => (modo === 'hero' && geometriaPiel ? ordenarPorAltura(geometriaPiel) : null),
+    [modo, geometriaPiel],
   )
 
   // Cuerpo único: el vidrio, el hueso, el borde y el corte pasan del aspecto

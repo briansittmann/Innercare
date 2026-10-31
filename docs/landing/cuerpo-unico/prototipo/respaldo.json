@@ -1,0 +1,36 @@
+[
+ {
+  "nombre": "escritorio-respaldo-sin-webgl",
+  "desde": "done",
+  "msDesde": [
+   1018,
+   1135
+  ],
+  "canvasVisible": false,
+  "respaldoOpacidad": 1
+ },
+ {
+  "tam": "escritorio",
+  "running": 256.5,
+  "done": 4230.1,
+  "contextos": [],
+  "errores": []
+ },
+ {
+  "nombre": "celular-respaldo-sin-webgl",
+  "desde": "done",
+  "msDesde": [
+   1022,
+   1098
+  ],
+  "canvasVisible": false,
+  "respaldoOpacidad": 1
+ },
+ {
+  "tam": "celular",
+  "running": 224.7,
+  "done": 4205.5,
+  "contextos": [],
+  "errores": []
+ }
+]
