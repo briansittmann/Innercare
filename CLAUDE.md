@@ -11,6 +11,7 @@ Web institucional de Innercare, fabricante argentino de implantes ortopédicos m
 - Ramas:
   - `main`: proyecto Next.js, donde se trabaja.
   - `rediseno`: la dirección visual elegida y la landing de una sola página; se integra a `main` cuando esté lista.
+  - `cuerpo-unico`: sale de `rediseno` y une el busto del hero y el cuerpo del recorrido en un solo modelo; se integra cuando el usuario lo apruebe.
   - `legacy`: web Vite + React Router anterior, solo como referencia. No se modifica.
   - `master`: igual que `legacy`. Se borra cuando Vercel y GitHub apunten a `main`.
 
@@ -29,18 +30,18 @@ Web institucional de Innercare, fabricante argentino de implantes ortopédicos m
 - `app/`: rutas, layout y `globals.css`. La home (`app/page.tsx`) es la única página navegable; siguen `/productos/[slug]` (fichas), `/contacto` (panel o página) y `/productos`, que compila pero no tiene ningún enlace.
 - `content/`: textos y datos tipados (`types.ts`, `company.ts`, `products.ts`, `customCases.ts`, `contact.ts`, `recorrido.ts`). **Es la única fuente de verdad del contenido.** Sale de la carpeta institucional y del brochure: no inventar cifras, indicaciones, resultados clínicos ni certificaciones; si falta un dato, va "[pendiente: …]" visible. La línea distribuida (AK Medical) queda fuera hasta resolver los permisos.
   - `recorrido.ts`: las seis paradas del recorrido (craneo, maxilar, hombro, acetabulo, femur, intercalar), con tipo (catálogo o a medida), textos, specs, miniatura, vista de la escena y ficha. Cuenta los casos con los datos de `customCases.ts` y `products.ts`.
-- `components/home/`: secciones de la home (`hero`, `tour` + `tour-scroll`, `process` + `process-scroll`, `manufacturing` + `animacion-fabricacion`, `credentials`, `locations`).
-- `components/hero-3d/`: el busto de vidrio del hero (no se toca sin pedido explícito).
-- `components/recorrido-3d/`: el cuerpo entero del recorrido.
-  - `camara.ts`: el guion del recorrido (tramos, pesos, tomas, opacidades, halo), sin three; lo comparten la escena y el HTML.
+- `components/home/`: secciones de la home (`tour` + `tour-scroll`, que llevan el hero y el recorrido; `process` + `process-scroll`, `manufacturing` + `animacion-fabricacion`, `credentials`, `locations`). `hero.tsx` y `hero-intro.tsx` son las piezas del hero (texto y fibras) que se montan dentro de `tour`.
+- `components/recorrido-3d/`: **el único 3D de la home**, el cuerpo entero de vidrio del hero al cierre del recorrido, en un solo canvas (cuerpo único).
+  - `camara.ts`: el guion (tramos, pesos, tomas, opacidades, halo; la toma 0 es `HERO`), sin three; lo comparten la escena y el HTML.
   - `estado.ts`: el progreso compartido entre `tour-scroll.tsx` y la escena, sin re-renderizar React.
-  - `escena.tsx`, `recorrido-3d.tsx` (carga diferida y respaldo) y `miniaturas.tsx` (vistas de drei en las tarjetas).
+  - `aspecto-hero.ts`: el aspecto del busto de antes en la toma del hero (vidrio, titanio, hueso, corte bajo el cuello, degradé) y `materiales.tsx` (buffer del vidrio y hueso).
+  - `escena.tsx`, `recorrido-3d.tsx` (montaje, arranque de la intro y respaldo) y `miniaturas.tsx` (vistas de drei en las tarjetas).
   - **`implantes.ts` es el único lugar que dice de dónde sale cada implante y dónde va.** Contrato: cada entrada tiene `parada`, `fuente` (`{ tipo: 'glb', url, malla }` o `{ tipo: 'primitiva', crear }`), `posicion`, `rotacion`, `escala` y `acabado` (`pulido` o `trabecular`). Para cambiar una pieza: exportarla como `implante_<parada>` en `implantes-recorrido.glb`, apuntar su `fuente` a esa malla y dejar la transformación en cero. La escena, la cámara y las tarjetas no dependen de la forma.
 - `components/animaciones/`: las piezas de partículas en canvas 2D (`proceso.ts`, `fabricacion.ts`, `lienzo.ts`).
 - `public/`: imágenes (`img/`), `logo.png`, `favicon.png` y el PDF de la ficha del fémur.
-  - `public/modelos/`: `cabeza.glb` e `implantes.glb` (hero; `implantes.glb` lleva solo la craneoplastía), `cuerpo-cabeza.glb` y `cuerpo-resto.glb` (piel y esqueleto con los recortes de los seis implantes, partidos en lo que entra en el hero y el resto; la piel en `piel_cabeza`, `piel_torso` y `piel_piernas`) e `implantes-recorrido.glb` (los otros cinco). Se generan con `npm run modelos` (`3d/scripts/modelos.sh`: Blender y `gltf-transform` con meshopt; `partir.mjs` parte el cuerpo y lo verifica). Detalle en `3d/README.md`.
-  - Respaldos sin WebGL: `img/cuerpo-inicio.webp` y `cuerpo-inicio-movil.webp` (busto) y `img/cuerpo-entero.webp` (recorrido). Si cambian el modelo, la cámara o el material, se recapturan (`docs/ARQUITECTURA_MODELO_3D.md`, sección 3, y la bitácora).
-- `3d/`: scripts de Blender (`implantes.py` genera los seis implantes y recorta los huesos; `preview.py` hace renders de control).
+  - `public/modelos/`: el cuerpo (piel y esqueleto con los recortes de los seis implantes, más el maxilar entero) partido en `cuerpo-cabeza.glb` (lo que se ve en el hero) y `cuerpo-resto.glb`, con la piel en `piel_cabeza`, `piel_torso` y `piel_piernas`; `implantes.glb` (la craneoplastía sola) e `implantes-recorrido.glb` (los otros cinco). Se generan con `npm run modelos` (`3d/scripts/modelos.sh`: Blender y `gltf-transform` con meshopt; `partir.mjs` parte el cuerpo y lo verifica). Detalle en `3d/README.md`.
+  - Respaldos sin WebGL: `img/cuerpo-inicio.webp` y `cuerpo-inicio-movil.webp` (la toma del hero) y `img/cuerpo-entero.webp` (el cierre). Si cambian el modelo, la cámara o el material, se recapturan (`docs/ARQUITECTURA_MODELO_3D.md`, sección 3, y la bitácora).
+- `3d/`: scripts de Blender (`implantes.py` genera los seis implantes y recorta los huesos; `preview.py` hace renders de control) y `partir.mjs` (gltf-transform).
 - `docs/`: material de referencia que **no se lee por defecto** (ver abajo).
 
 ## Comandos
@@ -74,22 +75,23 @@ Antes de dar algo por terminado: el build, el lint y `tsc` tienen que pasar sin 
 
 ### Hero (no se toca salvo pedido explícito)
 
+- **Es la primera toma de la escena única**, no una sección aparte: el texto (`HeroTexto`) y las fibras (`HeroFondo`) de `components/home/hero.tsx` van dentro de la escena fija de `tour-scroll.tsx`, encima y detrás del cuerpo. Con el scroll se funden (seg 0 a 0,35; en el celular, después del desliz) mientras la cámara sube hasta la craneoplastía, sin cambiar de modelo. Se reabrió una sola vez, por pedido del usuario, para unir el busto y el cuerpo sin cambio visual (`AJUSTES.md`); sigue intocable sin pedido explícito.
 - Titular en 500 que entra plegado letra por letra con `FoldText` (`components/fold-text.tsx`) y después queda quieto, sin hover.
-- 3D provisional: el prototipo de cabeza (`components/hero-3d/`), un busto de vidrio con una craneoplastía de titanio.
-- Degradé vertical de azules de la marca (`--color-stage-from` a `--color-stage-to`) de borde a borde y por detrás del header, con un corte recto contra el gris de la sección siguiente que coincide con el corte del busto. El canvas es transparente y el vidrio refracta el mismo degradé (la escena lo dibuja solo en el buffer del vidrio). Si cambian esos colores, cambialos también en `components/hero-3d/body-scene.tsx`.
-- Cinta de fibras en tinta azul por detrás del texto y del 3D, en diagonal hacia el cuello (`GhostFibers`, `components/ghost-fibers.tsx`): reflejos blancos, 2x en escritorio y 1x en el celular, reacciona al mouse y al clic con un pulso de luz. El degradé tiene que seguir leyéndose como fondo.
-- Botones: "Plantear un caso" (principal) y "Recorrer los implantes" (`BotonVidrio`, `components/boton-vidrio.tsx`, a `#recorrido`). Debajo, la línea de habilitaciones ANMAT con un sello y el aviso "Deslizá para recorrer el cuerpo" con su riel (`.aviso-deslizar`); en escritorio va abajo a la izquierda, no centrado, porque centrado pisa el busto.
-- Sin WebGL, o mientras carga, se ven capturas fijas del busto (`public/img/cuerpo-inicio.webp` y `cuerpo-inicio-movil.webp`).
+- 3D: el cuerpo de vidrio en la toma `HERO` (`camara.ts`) con el aspecto del busto de antes (`aspecto-hero.ts`): la cabeza de perfil con una craneoplastía de titanio dentro del vidrio, cortada recta bajo el cuello (`corteY`), con el maxilar entero, la entrada girando y el vaivén. En el celular, la cabeza arranca debajo de la primera pantalla y durante las primeras 0,4 pantallas el texto, las fibras, el degradé y el busto suben juntos (`deslizHero`), como subía el hero de antes.
+- Degradé vertical de azules de la marca (`--color-stage-from` a `--color-stage-to`) de borde a borde y por detrás del header: es el fondo de toda la escena fija (`.recorrido-escena`) y se funde en el gris de "Cómo trabajamos" al final del cierre (`.recorrido-fundido`). En el celular se mide contra el alto del hero de antes (140,2 %). El canvas es transparente y el vidrio refracta el mismo degradé (la escena lo dibuja solo en el buffer del vidrio). Si cambian esos colores, cambialos también en `components/recorrido-3d/aspecto-hero.ts`.
+- Cinta de fibras en tinta azul por detrás del texto y del 3D, en diagonal hacia el cuello (`GhostFibers`, `components/ghost-fibers.tsx`): reflejos blancos, 2x en escritorio y 1x en el celular, reacciona al mouse y al clic con un pulso de luz. El degradé tiene que seguir leyéndose como fondo. Se funde con el texto y, cuando terminó de irse, se pausa (`display: none`).
+- Botones: "Plantear un caso" (principal) y "Recorrer los implantes" (`BotonVidrio`, `components/boton-vidrio.tsx`, a `#recorrido`: baja a la craneoplastía). Debajo, la línea de habilitaciones ANMAT con un sello y el aviso "Deslizá para recorrer el cuerpo" con su riel (`.aviso-deslizar`); en escritorio va abajo a la izquierda, no centrado, porque centrado pisa el busto.
+- Sin WebGL, o mientras carga, se ven capturas fijas del busto (`public/img/cuerpo-inicio.webp` y `cuerpo-inicio-movil.webp`). Sin JS, el texto y la captura, en orden.
 
 ### Secciones de la home
 
-En el orden del borrador: hero, `#recorrido`, `#proceso`, `#fabricacion`, `#habilitaciones`, `#sedes` y `#contacto`. Los ids de las cuatro primeras secciones después del hero son las anclas del menú: no los cambies.
+En el orden del borrador: hero y recorrido (una sola sección, `#inicio`), `#proceso`, `#fabricacion`, `#habilitaciones`, `#sedes` y `#contacto`. `#recorrido`, `#proceso`, `#fabricacion` y `#habilitaciones` son las anclas del menú: no los cambies. `#recorrido` es un ancla dentro de la sección, de la craneoplastía al pie.
 
-- **Recorrido** (`#recorrido`): ocho pantallas de scroll con una escena fija y el cuerpo entero de vidrio con seis implantes; la cámara va de parada en parada (guion en `camara.ts`). Tarjeta por parada a la derecha (hoja inferior en el celular, por debajo de 820 px), con miniatura 3D que se arma con partículas, y cierre con "Plantear un caso". Los implantes van en su capa, encima del vidrio, como titanio (pulido en CNC, mate en impresión 3D), y el activo lleva halo y resplandor. Hoy es una sección propia con el busto en el hero: **provisional** mientras el hero no se toque.
+- **Recorrido** (`#recorrido`): ocho pantallas de scroll con una escena fija y el cuerpo entero de vidrio con seis implantes, el mismo del hero (cuerpo único, `docs/DECISIONES.md`); la cámara va del hero de parada en parada (guion en `camara.ts`). Tarjeta por parada a la derecha (hoja inferior en el celular, por debajo de 820 px), con miniatura 3D que se arma con partículas, y cierre con "Plantear un caso". Los implantes van en su capa, encima del vidrio, como titanio (pulido en CNC, mate en impresión 3D), y el activo lleva halo y resplandor. El maxilar se ve entero en el hero y en la craneoplastía, y se funde con el recortado y su implante al llegar a su parada.
 - **Cómo trabajamos** (`#proceso`): pieza de partículas atada al scroll (cortes de TC, hueso con zona a resecar, implante intercalar con clavo y guías).
 - **Fabricación** (`#fabricacion`): las dos animaciones del borrador (CNC e impresión 3D), una vez al entrar, con "Volver a ver". Sin JS, fotos de planta con `PlantPhoto`.
 - **Habilitaciones**, **Distribución** (eje norte-sur con las sedes en su latitud) y **Contacto** (bloque en el primario con el logo en blanco y, solo en la home, la cinta de fibras fija `img/cinta-contacto.webp` / `cinta-contacto-movil.webp` que deriva con el scroll por CSS, `.cta-cinta`).
-- El hero y el contacto son los únicos fondos de color; el recorrido lleva la luz azul del borrador (`.escenario`), que se funde en el gris abajo.
+- El hero (con el recorrido, que lleva su degradé) y el contacto son los únicos fondos de color. La luz azul del borrador (`.escenario`) queda solo en las vistas de respaldo de las paradas.
 
 ### Vidrio, formas y botones
 
@@ -117,18 +119,19 @@ En el orden del borrador: hero, `#recorrido`, `#proceso`, `#fabricacion`, `#habi
 
 ### Movimiento
 
-- **Entrada de la home orquestada** (`components/intro.ts`, tiempos en `components/intro-timeline.ts`): una sola línea de tiempo con fases `waiting` → `running` → `done` en `data-intro`. Header, busto (desenfoque y escala en CSS, `.intro-3d`; giro hasta su pose en `body-scene.tsx`) y fibras (`introStart`) a la vez; mientras terminan, el título letra por letra; después el subtítulo, los botones, la línea ANMAT (`INTRO_AT.credentials`) y el aviso de deslizar (`INTRO_AT.scrollCue`), con `.intro-in` y `--intro-at`. Hoy la arranca `Hero3D` cuando el 3D está listo (máximo 2,5 s). **Va a haber pantalla de carga**: cuando exista, la arranca ella al irse con `startIntro()`. Cualquier pieza nueva del primer pantallazo se suma a esta línea de tiempo.
-- El resto del movimiento tiene una idea: el recorrido y el proceso van atados al scroll (progreso propio, sin librería); fabricación se dispara una vez al entrar; la cinta del contacto deriva con `animation-timeline: view()`. Fuera del hero (fibras y aviso de deslizar), nada se mueve solo en bucle salvo el vaivén leve del cuerpo y las miniaturas con la escena fija.
+- **Entrada de la home orquestada** (`components/intro.ts`, tiempos en `components/intro-timeline.ts`): una sola línea de tiempo con fases `waiting` → `running` → `done` en `data-intro`. Header, cuerpo (desenfoque y escala en CSS, `.intro-3d`; giro hasta su pose en `escena.tsx`, con `estadoRecorrido.entrada`) y fibras (`introStart`) a la vez; mientras terminan, el título letra por letra; después el subtítulo, los botones, la línea ANMAT (`INTRO_AT.credentials`) y el aviso de deslizar (`INTRO_AT.scrollCue`), con `.intro-in` y `--intro-at`. Hoy la arranca la escena única (`Recorrido3D`, `components/recorrido-3d/recorrido-3d.tsx`) cuando el cuerpo está listo (máximo 2,5 s). **Va a haber pantalla de carga**: cuando exista, la arranca ella al irse con `startIntro()`. Cualquier pieza nueva del primer pantallazo se suma a esta línea de tiempo.
+- El resto del movimiento tiene una idea: el recorrido y el proceso van atados al scroll (progreso propio, sin librería); fabricación se dispara una vez al entrar; la cinta del contacto deriva con `animation-timeline: view()`. Fuera del hero (fibras, aviso de deslizar y el vaivén del busto), nada se mueve solo en bucle salvo el vaivén leve del cuerpo y las miniaturas con la escena fija.
 - Sin JS no se oculta contenido: lo que oculta el JS se oculta con CSS bajo `@media (scripting: enabled)`, nunca con opacidad 0 en el HTML del servidor. Sin JS, el recorrido y el proceso se leen en orden, sin escena fija.
 - Con `prefers-reduced-motion`: sin amortiguación, halo ni ensamble; cada pieza muestra su estado final o el del paso activo, quieta.
 - Fondos animados: se admiten donde sumen (AJUSTES), livianos (CSS o canvas 2D antes que WebGL), pausados fuera de pantalla y nunca más de uno a la vista junto con el 3D. Los de React Bits evaluados (salvo `Noise`) son WebGL2 y no entraron.
 
 ### Rendimiento
 
-- **Tres contextos WebGL en la home, y no más:** busto y fibras del hero, y el del recorrido. Las miniaturas son vistas (`View` de drei con `track`) del canvas del recorrido; el proceso y la fabricación son canvas 2D; la cinta del contacto es una imagen. Una pieza nueva no suma un contexto: reutilizá uno o usá canvas 2D o CSS.
-- **El recorrido se carga después de la intro:** `cuerpo.glb` y su contexto se piden cuando la entrada del hero terminó (`useIntroPhase() === 'done'`, en `tour-scroll.tsx`) y el recorrido asoma un 5 %, con `next/dynamic` sin SSR.
-- **Pausa fuera de pantalla:** el hero se detiene con su IntersectionObserver; el recorrido usa `frameloop="demand"` (dibuja solo cuando cambia el progreso) y pasa a `never` fuera de pantalla; las animaciones 2D no dibujan fuera de pantalla y se detienen al terminar.
-- Para medir, seguí la memoria del proyecto (Chrome con GPU, comparar alternando variantes). Referencia actual: recorrido a 60 fps con tope en escritorio y celular; el paso del hero al recorrido, unos 51 fps en escritorio por el costo del hero.
+- **Dos contextos WebGL en la home, y no más:** la escena única (el cuerpo, del hero al cierre) y las fibras del hero. Las miniaturas son vistas (`View` de drei con `track`) del canvas de la escena; el proceso y la fabricación son canvas 2D; la cinta del contacto es una imagen. Una pieza nueva no suma un contexto: reutilizá uno o usá canvas 2D o CSS.
+- **Carga en dos tiempos:** la escena se monta apenas el navegador queda libre (como mucho, 1,5 s; `next/dynamic` sin SSR) con `cuerpo-cabeza.glb` e `implantes.glb` (454 KB, menos que el busto de antes); `cuerpo-resto.glb`, `implantes-recorrido.glb` y las miniaturas se piden cuando la intro terminó (`useIntroPhase() === 'done'`, en `escena.tsx`). Mientras tanto queda el cuerpo del hero: lo que falta está debajo del corte.
+- **Pausa fuera de pantalla:** la escena usa `frameloop="demand"` (dibuja cuando cambia el progreso; en la toma del hero, a cada cuadro por la entrada y el vaivén, y en las paradas el vaivén a 30 cuadros) y pasa a `never` fuera de pantalla; las fibras se pausan al irse con el texto del hero y fuera de pantalla; las animaciones 2D no dibujan fuera de pantalla y se detienen al terminar.
+- **Vidrio opaco fuera del hero:** el vidrio del cuerpo es transparente solo mientras el corte bajo el cuello baja (peso del hero entre 0 y 1); en la toma del hero y desde la craneoplastía es opaco (transparente, el recorrido de escritorio caía a 52 fps). Con la toma del hero entera, la escena dibuja solo la caja que ocupaba el busto (`recorteHero`).
+- Para medir, seguí la memoria del proyecto (Chrome con GPU, comparar alternando variantes) y los scripts de `docs/landing/cuerpo-unico/`. Referencia actual: recorrido y paso a la craneoplastía a 60 fps con tope en escritorio y celular; hero quieto en escritorio a 109 a 119 fps sin tope (el busto de antes, 71); el tramo corto del hero (0,3 pantallas), 58 con tope y 46 sin tope (antes, 67).
 
 ### Otras reglas
 
@@ -160,7 +163,8 @@ En el orden del borrador: hero, `#recorrido`, `#proceso`, `#fabricacion`, `#habi
 - `docs/DECISIONES.md`: registro de decisiones con su motivo y lo descartado. Al tomar una decisión de diseño o de arquitectura, añadí una entrada; las reglas resultantes van además en este archivo.
 - `docs/INFORME_PROYECTO.md`: diagnóstico de la web anterior (`legacy`). Es largo: consultalo solo cuando haga falta un dato concreto.
 - `docs/referencias/`: dos capturas de referencia visual para el rediseño ("más moderna", "translucido").
-- `docs/ARQUITECTURA_MODELO_3D.md`: el cuerpo translúcido con seis implantes. Qué se ve, cómo se generan los modelos (Blender por script y atlas anatómicos abiertos), nombres de malla y cómo se recapturan los respaldos. Leelo antes de tocar `components/hero-3d/`, `components/recorrido-3d/` o `3d/`.
+- `docs/ARQUITECTURA_MODELO_3D.md`: el cuerpo translúcido con seis implantes. Qué se ve, cómo se generan los modelos (Blender por script y atlas anatómicos abiertos), nombres de malla y cómo se recapturan los respaldos. Leelo antes de tocar `components/recorrido-3d/` o `3d/`.
+- `docs/landing/cuerpo-unico/`: el material del cuerpo único. `ESTADO.md` es el índice: qué hay en cada carpeta, el veredicto de la compuerta, las mediciones finales y los pendientes. Los scripts de capturas y fps (`base/medir.mjs`, `comparar.mjs`, `fase4/recorrido.mjs`, `fase5/paridad.mjs`) sirven para medir cualquier cambio del 3D.
 
 ## Estado
 
@@ -181,6 +185,15 @@ En el orden del borrador: hero, `#recorrido`, `#proceso`, `#fabricacion`, `#habi
 - [x] 5 · Miniaturas de partículas, pieza del proceso y animaciones de fabricación.
 - [x] 6 · Pase visual: bordes entre secciones, foco de teclado, bandas de datos y cinta fija en el contacto.
 
+### Cuerpo único (rama `cuerpo-unico`, fases 0 a 5 hechas)
+
+- [x] 0 · Línea de base del hero (capturas y fps).
+- [x] 1 · Prototipo de paridad: keyframe `hero`, aspecto del busto, `corteY` y degradé. Compuerta: pasa (segunda pasada del verificador).
+- [x] 2 · Blender: maxilar entero, piel por zonas y cuerpo en dos archivos.
+- [x] 3 · El hero dentro de la escena fija del recorrido; un canvas, dos contextos.
+- [x] 4 · Fundido del maxilar, fibras pausadas, desliz del hero en el celular y vidrio opaco fuera del hero (recorrido otra vez a 60 fps).
+- [x] 5 · Limpieza (sin `components/hero-3d/`, `cabeza.glb` ni los parámetros de prototipo) y documentación.
+
 ### Pendiente
 
 - **Medir en un celular real** el hero, el recorrido con las miniaturas y el contacto (si no llega a 60, bajar `DPR_CELULAR`, hoy 1,5, en `components/recorrido-3d/recorrido-3d.tsx`).
@@ -188,15 +201,17 @@ En el orden del borrador: hero, `#recorrido`, `#proceso`, `#fabricacion`, `#habi
 - **Fotos de baja resolución:** varias de casos tienen menos de 650 px (`caso-craneo-3d`, `caso-acetabular-segmentacion`, `caso-intercalar-guias`) y se ven blandas.
 - **Ficha de producto** con el diseño viejo: falta pasarla al estilo de la landing.
 - **Logo:** no hay versión clara ni sin lema; el contacto usa el PNG invertido y el footer repite el lema.
-- **Contextos WebGL del hero:** nunca se liberan, y el paso del hero al recorrido queda en unos 51 fps en escritorio (llevarlo a 60 es tocar el hero).
+- **Contexto de las fibras:** queda vivo (pausado, sin dibujar) después del hero; no se libera.
+- **Tramo corto del hero** (las primeras 0,3 pantallas, con el vidrio transparente mientras baja el corte): 46 fps sin tope contra 67 del busto de antes en escritorio (58 con tope). Ver `docs/landing/cuerpo-unico/ESTADO.md`.
+- **Detalles del cuerpo único:** en escritorio, el hombro y su implante asoman bajo el corte desde seg 0,33; en el cierre, el degradé se oscurece antes de fundirse al gris; la luz de las paradas gira con la cámara (cambió respecto del recorrido original), falta revisarla a ojo.
 - **Miniaturas del recorrido:** costura de 1 px posible a algunos zooms y un marco visible durante los fundidos de la tarjeta (arreglarlo pide que el canvas no pinte fondo).
 - **Aviso de deslizar** no centrado en escritorio (centrado pisa el busto): confirmar con el usuario o mover el busto.
-- **Recorrido como sección propia** con el busto en el hero: provisional; se revisa si el hero se reabre. Después, el cuerpo entero en el hero (`docs/ARQUITECTURA_MODELO_3D.md`).
+- **Integrar `cuerpo-unico`** a `rediseno` y `main` cuando el usuario lo apruebe.
 - Detalles del 3D: ala acetabular algo separada del hueso de frente; unos 222 000 triángulos en el recorrido (11 % arriba del objetivo); respaldos por parada (`cuerpo-<parada>.webp`) sin hacer.
 - Envío real del formulario: `sendContact` (`app/contacto/actions.ts`) valida pero no manda nada. Envío de casos con estudios adjuntos: antes, definir con Innercare cómo recibir datos de salud.
 - `metadataBase` con el dominio definitivo (el build avisa), metadatos por página, `sitemap` y `robots`.
 - Pantalla de carga que arranque la intro con `startIntro()`.
-- Los parámetros `?medir`, `?calidad`, `?hueso`, `?fondo` y `?fibras` de la home son del prototipo: se quitan antes del lanzamiento.
+- `npm run modelos` regenera `implantes-recorrido.glb` con unos bytes distintos (Blender no es determinista en los booleanos): se deja el del repo mientras no cambie un implante.
 
 ## Convenciones
 
