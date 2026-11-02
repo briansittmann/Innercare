@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ajustar, clamp } from '@/components/animaciones/lienzo'
+import { ajustar, clamp, lerp } from '@/components/animaciones/lienzo'
 import {
   N_PROCESO_CELULAR,
   N_PROCESO_ESCRITORIO,
   PiezaProceso,
   pasoActivo,
+  type Puntero,
 } from '@/components/animaciones/proceso'
 
 // Cómo trabajamos cada caso, con la estructura y el comportamiento del
@@ -45,12 +46,19 @@ export function ProcessScroll({
     const g = cv?.getContext('2d')
     if (!root || !cv || !g) return
     const movimiento = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const fino = window.matchMedia('(pointer: fine)')
     const pieza = new PiezaProceso(window.innerWidth < 820 ? N_PROCESO_CELULAR : N_PROCESO_ESCRITORIO)
     let medida = ajustar(cv)
     let visible = false
     let cuadro = 0
+    let anterior = 0
     let q = 0
     let ultimoPaso = -1
+    // Puntero sobre la pieza (solo mouse o trackpad), en coordenadas de la
+    // ventana, con su velocidad suavizada entre eventos. Se pasa al lienzo en
+    // cada cuadro: al entrar a la sección con el scroll, el canvas se mueve
+    // bajo el mouse quieto sin que llegue ningún pointermove.
+    let puntero: (Puntero & { t: number }) | null = null
 
     const leer = () => {
       const r = root.getBoundingClientRect()
@@ -66,7 +74,23 @@ export function ProcessScroll({
     const pintar = (ahora: number) => {
       cuadro = 0
       const reducido = movimiento.matches
-      pieza.dibujar(g, medida.w, medida.h, medida.dpr, q, ahora / 1000, reducido)
+      const dt = anterior ? Math.min(1 / 30, (ahora - anterior) / 1000) : 0
+      anterior = ahora
+      // Con el puntero quieto, su velocidad se apaga
+      if (puntero) {
+        const f = Math.exp(-dt * 10)
+        puntero.vx *= f
+        puntero.vy *= f
+      }
+      let enLienzo: Puntero | null = null
+      if (puntero) {
+        const r = cv.getBoundingClientRect()
+        const x = puntero.x - r.left
+        const y = puntero.y - r.top
+        if (x >= 0 && y >= 0 && x <= r.width && y <= r.height)
+          enLienzo = { x, y, vx: puntero.vx, vy: puntero.vy }
+      }
+      pieza.dibujar(g, medida.w, medida.h, medida.dpr, q, ahora / 1000, reducido, dt, enLienzo)
       // El vaivén sigue mientras la sección se ve
       if (visible && !reducido) cuadro = requestAnimationFrame(pintar)
     }
@@ -76,6 +100,24 @@ export function ProcessScroll({
     const alMover = () => {
       leer()
       if (visible) pedir()
+    }
+    // Hover: las partículas cerca del puntero se apartan y vuelven a armarse
+    // (components/animaciones/proceso.ts). Sin hover con pantalla táctil ni
+    // con movimiento reducido.
+    const alPuntero = (e: PointerEvent) => {
+      if (!visible || !fino.matches || movimiento.matches) return
+      const x = e.clientX
+      const y = e.clientY
+      if (puntero) {
+        const dt = Math.max(8, e.timeStamp - puntero.t) / 1000
+        puntero.vx = lerp(puntero.vx, (x - puntero.x) / dt, 0.5)
+        puntero.vy = lerp(puntero.vy, (y - puntero.y) / dt, 0.5)
+        Object.assign(puntero, { x, y, t: e.timeStamp })
+      } else puntero = { x, y, vx: 0, vy: 0, t: e.timeStamp }
+    }
+    // El mouse salió de la ventana
+    const alSalir = (e: PointerEvent) => {
+      if (!e.relatedTarget) puntero = null
     }
 
     const observador = new IntersectionObserver(([e]) => {
@@ -92,11 +134,15 @@ export function ProcessScroll({
     leer()
     window.addEventListener('scroll', alMover, { passive: true })
     movimiento.addEventListener('change', alMover)
+    window.addEventListener('pointermove', alPuntero, { passive: true })
+    document.addEventListener('pointerout', alSalir)
     return () => {
       observador.disconnect()
       tamano.disconnect()
       window.removeEventListener('scroll', alMover)
       movimiento.removeEventListener('change', alMover)
+      window.removeEventListener('pointermove', alPuntero)
+      document.removeEventListener('pointerout', alSalir)
       cancelAnimationFrame(cuadro)
     }
   }, [])

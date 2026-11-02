@@ -1,4 +1,5 @@
 import { ContactCta } from '@/components/contact-cta'
+import { FondoMalla } from '@/components/fondo-malla'
 import { Credentials } from '@/components/home/credentials'
 import { Locations } from '@/components/home/locations'
 import { Manufacturing } from '@/components/home/manufacturing'
@@ -15,8 +16,12 @@ export default function Home() {
       <Process />
       <Manufacturing />
       <Credentials />
-      <Locations />
-      <ContactCta id="contacto" cinta />
+      {/* De Distribución al contacto, la malla hexagonal de fondo, como al
+          cierre de las fichas */}
+      <FondoMalla>
+        <Locations />
+        <ContactCta id="contacto" />
+      </FondoMalla>
     </>
   )
 }

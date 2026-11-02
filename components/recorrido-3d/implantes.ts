@@ -60,8 +60,8 @@ export const IMPLANTES_RECORRIDO_GLB = '/modelos/implantes-recorrido.glb'
 // La piel va partida por altura en tres mallas (CUERPO.piel), con los mismos
 // triángulos, vértices, normales y nodo que la piel entera: la escena las
 // trata como una sola y oculta las que quedan enteras debajo del corte. La
-// columna va en dos: hueso_columna_alta (las vértebras del busto, arriba de
-// 1,35 m) y hueso_columna_baja.
+// columna va en dos: hueso_columna_alta (las vértebras del hero, arriba de
+// 1,22 m) y hueso_columna_baja.
 export const CUERPO = {
   hero: '/modelos/cuerpo-cabeza.glb',
   resto: '/modelos/cuerpo-resto.glb',

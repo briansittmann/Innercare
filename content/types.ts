@@ -44,15 +44,19 @@ export type Manufactura = {
 
 export type Sede = {
   id: string
-  // Latitud de la localidad (dato geográfico público, no de la carpeta):
-  // ubica la sede en el eje norte-sur de "Distribución a todo el país".
+  // Latitud y longitud de la localidad (dato geográfico público, no de la
+  // carpeta): ubican la sede en el mapa de "Distribución a todo el país".
   latitud: number
+  longitud: number
   tipo: string
   calle: string
   localidad: string
   provincia: string
   phones: readonly string[]
   principal?: boolean
+  // Miniatura de la sede en el mapa (fotos de instalaciones: van con
+  // PlantPhoto). Si todavía no hay foto real, apunta a un placeholder.
+  foto: { src: string; alt: string }
 }
 
 export type Product = {
@@ -97,4 +101,13 @@ export type CustomCase = {
   description: string
   image: string
   imageAlt: string
+}
+
+// Foto de la tira de Fabricación (content/planta.ts): la planta y piezas
+// fabricadas, en color. `titulo` y `subtitulo` son las captions del carrusel.
+export type FotoPlanta = {
+  src: string
+  alt: string
+  titulo: string
+  subtitulo: string
 }

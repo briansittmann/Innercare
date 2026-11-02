@@ -35,6 +35,8 @@ Fuentes, licencias, versiones y comandos de los modelos del cuerpo translúcido.
 | `scripts/implantes.py` | Genera los seis implantes sobre el esqueleto y recorta los huesos que reemplazan. Exporta `salida/implantes.glb` (la craneoplastía, la pieza de la toma del hero), `salida/implantes-recorrido.glb` (los otros cinco) y `salida/cuerpo.glb` (piel y esqueleto con todos los recortes, más `hueso_maxilar_entero`). |
 | `scripts/modelos.sh` | `npm run modelos`: corre `implantes.py` y optimiza con `gltf-transform` (meshopt, con `npx`) a `public/modelos/`: `implantes.glb`, `implantes-recorrido.glb`, y el cuerpo partido en `cuerpo-cabeza.glb` y `cuerpo-resto.glb`. |
 | `scripts/partir.mjs` | Comandos de la CLI de gltf-transform (`--config`): `partir` comprime el cuerpo y lo parte (piel en tres por altura, columna en dos, hero y resto en dos archivos) copiando los valores cuantizados; `verificar` comprueba que es el cuerpo entero, valor por valor. |
+| `scripts/render-fabricacion.py` | Piezas finales de las animaciones de Fabricación de la home: la endoprótesis (`implante_femur`, titanio pulido) y la copa acetabular (`implante_acetabulo`, sin los tornillos del caso, titanio mate) de `salida/implantes-recorrido.glb`, en Cycles con luz de estudio y sombra de contacto, sobre fondo transparente, en 4:3 (1600 × 1200). Pose, encuadre y material por pieza en `PIEZAS`; `--rapido` para ajustar, `--set clave=valor` y `--sufijo` para comparar variantes. |
+| `scripts/fabricacion.sh` | `npm run fabricacion`: corre `render-fabricacion.py` y pasa los PNG a WebP (`scripts/fabricacion-imagenes.mjs`, con sharp) en `public/img/fabricacion/`. |
 | `scripts/preview.py` | Renders de control en PNG. Con una piel como tercer argumento, la compone translúcida encima del modelo. Con `--extra <glb>` suma otro modelo y con `--zona <nombre> <x> <y> <z> <tamaño>` hace primeros planos de una zona, con los implantes en azul, tapados por el hueso y encima (`-encima`, como los dibuja el recorrido). |
 
 ## Comandos
@@ -46,6 +48,10 @@ $B -b -P 3d/scripts/anatomia.py -- 3d/fuentes/bodyparts3d 3d/salida/piel.glb 3d/
 $B -b -P 3d/scripts/preview.py -- 3d/salida/esqueleto.glb 3d/salida/preview/esqueleto
 $B -b -P 3d/scripts/preview.py -- 3d/salida/esqueleto.glb 3d/salida/preview/esqueleto-piel 3d/salida/piel.glb
 npm run modelos   # implantes.py, la optimización y la partición del cuerpo a public/modelos/
+npm run fabricacion   # renders de las piezas de Fabricación (Cycles) y WebP a public/img/fabricacion/
+# Probar una pose de la copa a baja resolución, sin pasar a WebP
+$B -b -P 3d/scripts/render-fabricacion.py -- 3d/salida/implantes-recorrido.glb 3d/salida/fabricacion \
+  --rapido --pieza acetabulo --set giro=150 --sufijo g150
 # Control de los implantes del recorrido (coordenadas de Blender: -X es el lado derecho de la figura)
 $B -b -P 3d/scripts/preview.py -- 3d/salida/cuerpo.glb 3d/salida/preview/implantes \
   --extra 3d/salida/implantes-recorrido.glb --zona hombro -0.15 0.02 1.30 0.2

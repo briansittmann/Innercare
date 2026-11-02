@@ -1,14 +1,19 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import { AnchorLink } from './anchor-link'
+import { ContactLink } from './contact-link'
 import { DesktopNav } from './desktop-nav'
 import { MobileNav } from './mobile-nav'
 import { NavIntro } from './nav-intro'
 import { NavGlass } from './nav-glass'
 import { contactHref, contactLabel } from './nav-links'
 
+// El logo lleva al hero: en la home sube con el scroll suave (aunque #inicio
+// ya esté en la URL); desde las fichas, vuelve a la home arriba de todo.
+// #inicio arranca 72 px por encima (pasa por detrás del header), así que el
+// scroll-padding-top lo deja en el borde de la página.
 function Logo({ className }: { className: string }) {
   return (
-    <Link href="/" aria-label="Innercare, inicio" className="shrink-0">
+    <AnchorLink href="/#inicio" aria-label="Innercare, inicio" className="shrink-0">
       <Image
         src="/logo.png"
         alt="Innercare"
@@ -17,19 +22,18 @@ function Logo({ className }: { className: string }) {
         sizes="96px"
         className={className}
       />
-    </Link>
+    </AnchorLink>
   )
 }
 
 // Capas: el header es la única capa fija (z-40); el menú móvil vive dentro.
 // En la home, el hero sube por detrás del header (components/home/hero.tsx).
-// En el celular, la barra es transparente arriba de todo y se vuelve
-// esmerilada al hacer scroll, o al abrir el menú (.barra-movil).
-// En escritorio, el header es transparente y deja pasar los clics fuera de la
-// barra: lo único visible es la barra de vidrio flotante, con el contenido
-// pasando por detrás al hacer scroll. Alto total: 8 px de margen + 64 px de
-// barra = 72 px, lo que descuenta el hero. Con los 8 px de relleno del vidrio
-// quedan 48 px para "Plantear un caso", el mínimo táctil del sistema de botones.
+// El header es transparente y deja pasar los clics fuera de la barra: lo único
+// visible es la barra de vidrio flotante, con el contenido pasando por detrás
+// al hacer scroll. En el celular, 8 px de margen + 56 px de píldora = 64 px,
+// lo que descuenta el hero (components/mobile-nav.tsx). En escritorio, 8 px de
+// margen + 64 px de barra = 72 px. Con los 8 px de relleno del vidrio quedan
+// 48 px para "Plantear un caso", el mínimo táctil del sistema de botones.
 //
 // Entrada (.nav-intro-* en globals.css), solo al cargar el sitio por la home
 // (NavIntro) y a la vez que el busto del hero (components/intro.ts). En el
@@ -39,16 +43,9 @@ function Logo({ className }: { className: string }) {
 // mientras crece.
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 md:pointer-events-none md:pt-2">
-      <NavIntro className="md:hidden">
-        {/* La entrada va en el contenido: la barra ya tiene su propia
-            animación, la del esmerilado con el scroll. */}
-        <div className="barra-movil">
-          <div className="nav-intro-movil page-container flex h-16 items-center justify-between gap-lg">
-            <Logo className="h-8 w-auto" />
-            <MobileNav />
-          </div>
-        </div>
+    <header className="pointer-events-none sticky top-0 z-40 pt-2">
+      <NavIntro className="px-3 md:hidden">
+        <MobileNav logo={<Logo className="h-8 w-auto" />} />
       </NavIntro>
 
       <div className="page-container hidden md:block">
@@ -67,9 +64,9 @@ export function SiteHeader() {
                   <Logo className="h-8 w-auto" />
                 </span>
                 <DesktopNav className="nav-intro-links" />
-                <Link href={contactHref} className="nav-intro-cta boton boton-primario justify-self-end">
+                <ContactLink href={contactHref} className="nav-intro-cta boton boton-primario justify-self-end">
                   {contactLabel}
-                </Link>
+                </ContactLink>
               </div>
             </div>
           </NavGlass>

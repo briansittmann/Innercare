@@ -6,6 +6,8 @@ import {
   ANCHO_CELULAR,
   TRAMOS,
   clamp,
+  DESLIZ_HERO,
+  anclaHeroCelular,
   deslizHero,
   indiceVisible,
   opacidadCierre,
@@ -14,6 +16,7 @@ import {
 } from '@/components/recorrido-3d/camara'
 import { estadoRecorrido } from '@/components/recorrido-3d/estado'
 import { Recorrido3D } from '@/components/recorrido-3d/recorrido-3d'
+import { useProximidad } from './use-proximidad'
 
 // Armazón del hero y del recorrido por el cuerpo (#recorrido), con el
 // comportamiento del borrador (docs/landing/landing-borrador.html,
@@ -65,6 +68,8 @@ export function TourScroll({
   const capaCierre = useRef<HTMLDivElement>(null)
   const indice = useRef<HTMLElement>(null)
   const riel = useRef<HTMLOListElement>(null)
+  // Hover del índice: los enlaces cerca del cursor se corren (LineSidebar)
+  useProximidad(riel, '.indice-enlace')
   // Parada marcada en el índice (-1: ninguna) y vista del lugar reservado
   const [actual, setActual] = useState(-1)
   const vistaInicio = vistas.length > paradas.length + 1 ? paradas.length + 1 : paradas.length
@@ -97,6 +102,31 @@ export function TourScroll({
       visible.disconnect()
       // Cache Components conserva la ruta oculta: el canvas deja de dibujar
       setEnVista(false)
+    }
+  }, [])
+
+  // Celular: dónde termina el texto del hero decide cuánto baja la cabeza en
+  // las pantallas bajas (anclaHeroCelular). Se mide al cambiar el alto de la
+  // escena o del texto (también cuando cargan las fuentes); --ancla-hero lo
+  // pasa al aviso de deslizar y a la captura del busto.
+  useEffect(() => {
+    const fijo = escena.current
+    const pie = capaEntrada.current?.querySelector<HTMLElement>('[data-pie-hero]')
+    if (!fijo || !pie) return
+    const medir = () => {
+      const alto = fijo.clientHeight
+      const ancla = anclaHeroCelular(pie.offsetTop + pie.offsetHeight, alto)
+      if (ancla === estadoRecorrido.anclaHero) return
+      estadoRecorrido.anclaHero = ancla
+      fijo.style.setProperty('--ancla-hero', `${(ancla * alto).toFixed(1)}px`)
+      estadoRecorrido.invalidar?.()
+    }
+    const observador = new ResizeObserver(medir)
+    observador.observe(fijo)
+    observador.observe(pie)
+    return () => {
+      observador.disconnect()
+      estadoRecorrido.anclaHero = null
     }
   }, [])
 
@@ -153,11 +183,14 @@ export function TourScroll({
       mostrar(capaFondo.current, entrada)
       // Celular: el texto y las fibras suben con el busto (la cámara usa el
       // mismo desliz), como subía el hero de antes con el scroll
-      const desliz = deslizHero(s, celular) * (escena.current?.clientHeight ?? window.innerHeight)
+      const pantallas = deslizHero(s, celular)
+      const desliz = pantallas * (escena.current?.clientHeight ?? window.innerHeight)
       const subir = desliz ? `translate3d(0, ${(-desliz).toFixed(1)}px, 0)` : ''
       if (capaEntrada.current) capaEntrada.current.style.transform = subir
       if (capaFondo.current) capaFondo.current.style.transform = subir
       escena.current?.style.setProperty('--desliz', `${desliz.toFixed(1)}px`)
+      // De 0 a 1 en el desliz: con esto se apaga el aviso de deslizar
+      escena.current?.style.setProperty('--desliz-t', (pantallas / DESLIZ_HERO).toFixed(3))
       // Las fibras dejan de dibujar cuando terminan de irse: sin caja, su
       // IntersectionObserver las pausa; vuelven al subir
       if (capaFondo.current) capaFondo.current.style.display = entrada < 0.02 ? 'none' : ''
@@ -291,7 +324,10 @@ export function TourScroll({
           </div>
         </div>
 
-        <div aria-hidden className="recorrido-halo" />
+        <div aria-hidden className="recorrido-reticula">
+          <div className="reticula-marco" />
+          <div className="reticula-barrido" />
+        </div>
 
         <div ref={capaEntrada} className="recorrido-texto recorrido-entrada recorrido-hero">
           {entrada}
@@ -304,9 +340,9 @@ export function TourScroll({
                 <AnchorLink
                   href={`#${parada.ancla}`}
                   aria-current={i === actual ? 'location' : undefined}
-                  className="indice-enlace relative block px-[0.875rem] py-[0.375rem] text-body-sm text-on-surface-variant transition-colors duration-200 hover:text-primary aria-[current]:font-semibold aria-[current]:text-on-surface"
+                  className="indice-enlace relative block px-[0.875rem] py-[0.375rem] text-body-sm aria-[current]:font-semibold"
                 >
-                  {parada.zona}
+                  <span className="indice-texto">{parada.zona}</span>
                 </AnchorLink>
               </li>
             ))}

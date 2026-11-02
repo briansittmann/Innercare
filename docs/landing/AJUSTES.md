@@ -46,6 +46,7 @@ Tres intenciones nada más: recorrer, ver ficha y contactar.
   - Credibilidad de fabricante médico: datos reales, sin copy de marketing hueco, tipografía y tokens de marca (`globals.css`), primario `#003c6f`.
   - El procedimiento de React Bits de `CLAUDE.md`: código con `shadcn view` (nunca `shadcn add`), dependencias justificadas, colores y fuentes propios reemplazados por los tokens y `prefers-reduced-motion`.
   - Nada de fade-up genérico en cada sección: el movimiento tiene que tener una idea.
+- **Habilitaciones con movimiento (2026-11-01).** El usuario pidió que la sección se vea moderna: los números con un efecto de código que se genera (cifrado que termina en el número real) y entradas para cada pieza, incluido el fondo; dejó el criterio al agente. Manda sobre el "Normal, sin animación" de `LANDING_SPEC.md`. Lo hecho: la lectura del registro (`docs/DECISIONES.md`).
 - Rendimiento: el hero ya tiene WebGL y fibras. Los fondos nuevos van livianos (CSS o canvas 2D antes que otro contexto WebGL), se pausan fuera de pantalla y nunca hay más de uno visible a la vez con el 3D.
 
 ## Navegación

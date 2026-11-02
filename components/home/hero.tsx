@@ -1,9 +1,10 @@
-import Link from 'next/link'
 import { SealCheckIcon } from '@phosphor-icons/react/ssr'
 import type { CSSProperties } from 'react'
 import { BotonVidrio } from '@/components/boton-vidrio'
+import { ContactLink } from '@/components/contact-link'
 import { INTRO_AT } from '@/components/intro-timeline'
 import { contactHref, contactLabel } from '@/components/nav-links'
+import { CUELLO_BAJO_ANCLA } from '@/components/recorrido-3d/camara'
 import { habilitacionesResumen, tagline } from '@/content/company'
 import { HeroFibers, HeroTitle } from './hero-intro'
 
@@ -51,9 +52,9 @@ export function HeroFondo() {
         threads={96}
         layers={1}
         placements={FIBER_PLACEMENTS}
-        depthOfField={0.45}
+        depthOfField={0.3}
         brightness={0.75}
-        particles={0}
+        particles={0.3}
         sparkle={0.6}
         grain={0}
         vignette={0}
@@ -67,7 +68,7 @@ export function HeroFondo() {
 export function HeroTexto() {
   return (
     <div className="page-container grid h-full md:grid-cols-12">
-      <div className="flex flex-col pb-lg pt-xl md:relative md:col-span-6 md:justify-center md:py-section">
+      <div className="flex flex-col pb-lg pt-lg md:relative md:col-span-6 md:justify-center md:py-section">
         <h1
           id="inicio-titulo"
           className="text-balance font-display-xl text-display-xl text-on-surface"
@@ -75,29 +76,29 @@ export function HeroTexto() {
           <HeroTitle text={tagline} />
         </h1>
         <p
-          className="intro-in mt-lg max-w-[36ch] text-body-lg text-on-surface-variant"
+          className="intro-in mt-md max-w-[36ch] text-body-lg text-on-surface-variant md:mt-lg"
           style={introAt(INTRO_AT.subtitle)}
         >
           Implantes ortopédicos modulares y a medida del paciente, fabricados en
           titanio en planta propia.
         </p>
-        <div className="mt-xl flex flex-wrap items-center gap-md">
+        <div className="mt-lg flex flex-wrap items-center gap-sm md:mt-xl md:gap-md">
           {/* Más grandes que los botones del resto del sitio, para acompañar
               al titular, y del mismo tamaño entre sí: el relleno marca cuál
               es el principal. Crece un poco con el puntero encima
               (.boton-crece) */}
-          <Link
+          <ContactLink
             href={contactHref}
-            className="intro-in boton boton-primario boton-crece min-h-[3.5rem] px-[1.75rem] text-body-lg font-semibold"
+            className="intro-in boton boton-primario boton-crece px-4 text-[15px] font-semibold md:min-h-[3.5rem] md:px-[1.75rem] md:text-body-lg"
             style={introAt(INTRO_AT.actions)}
           >
             {contactLabel}
-          </Link>
+          </ContactLink>
           {/* Vidrio, como "Ver la demo" de Mango (pedido del usuario) */}
           <BotonVidrio
             href="#recorrido"
             style={introAt(INTRO_AT.actions + 100)}
-            className="intro-in min-h-[3.5rem] px-[1.75rem] text-body-lg font-semibold"
+            className="intro-in px-4 text-[15px] font-semibold md:min-h-[3.5rem] md:px-[1.75rem] md:text-body-lg"
           >
             Recorrer los implantes
           </BotonVidrio>
@@ -105,7 +106,8 @@ export function HeroTexto() {
         {/* Credencial, no eslogan: chica y con el sello en el primario, para
             que se lea como dato y no compita con los botones */}
         <p
-          className="intro-in mt-lg flex max-w-[46ch] items-start gap-sm text-body-sm text-on-surface-variant md:mt-xl"
+          data-pie-hero
+          className="intro-in mt-md flex max-w-[46ch] items-start gap-sm text-body-sm text-on-surface-variant md:mt-xl"
           style={introAt(INTRO_AT.credentials)}
         >
           <SealCheckIcon size={20} weight="light" aria-hidden className="shrink-0 text-primary" />
@@ -125,15 +127,18 @@ export function HeroTexto() {
 // Dónde va: centrado abajo no entra sin pisar el busto (en escritorio, la
 // espalda del busto pasa por el centro de la pantalla hasta pantallas de
 // proporción ≈ 1,8:1). Así que en escritorio va abajo de todo, alineado con
-// el texto; en el celular, centrado entre la línea de habilitaciones y el
-// busto, que es donde termina la primera pantalla. En los dos, el riel a la
-// izquierda del texto, en una sola línea, para no empujar más el busto.
+// el texto, en una sola línea. En el celular, a la izquierda del cuerpo y
+// centrado en la altura del cuello (el ancla de la toma, --ancla-hero de
+// tour-scroll.tsx, más CUELLO_BAJO_ANCLA de camara.ts), en dos líneas: es el
+// hueco que deja la cabeza corrida a la derecha. Sin JS, con el ancla de las
+// pantallas altas (74 % del alto, en dvh como la escena fija). Al empezar a
+// deslizar se apaga (--desliz-t). En los dos, el riel a la izquierda.
 function ScrollCue() {
   return (
     <p
       aria-hidden
-      className="intro-in aviso-deslizar mt-lg flex flex-row-reverse items-center gap-md self-center text-body-sm text-on-surface-variant md:absolute md:bottom-lg md:left-0 md:mt-0"
-      style={introAt(INTRO_AT.scrollCue)}
+      className="intro-in aviso-deslizar absolute top-[calc(var(--ancla-hero,74dvh)+var(--cuello)-1.25rem)] left-[clamp(1rem,4vw,1.5rem)] flex max-w-[10rem] flex-row-reverse items-center gap-md text-balance text-body-sm text-on-surface-variant md:top-auto md:bottom-lg md:left-0 md:max-w-none"
+      style={{ ...introAt(INTRO_AT.scrollCue), '--cuello': `${(CUELLO_BAJO_ANCLA * 100).toFixed(2)}dvh` } as CSSProperties}
     >
       Deslizá para recorrer el cuerpo
     </p>

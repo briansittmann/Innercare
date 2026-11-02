@@ -1,5 +1,6 @@
 import Image, { getImageProps } from 'next/image'
 import Link from 'next/link'
+import { ContactLink } from '@/components/contact-link'
 import { contactHref, contactLabel } from '@/components/nav-links'
 import { cierreRecorrido, paradas, type Parada } from '@/content/recorrido'
 import { HeroFondo, HeroTexto } from './hero'
@@ -47,9 +48,9 @@ export function Tour() {
               {cierreRecorrido.texto}
             </p>
             <div className="mt-lg flex flex-wrap gap-sm min-[820px]:mt-xl">
-              <Link href={contactHref} className="boton boton-primario">
+              <ContactLink href={contactHref} className="boton boton-primario">
                 {contactLabel}
-              </Link>
+              </ContactLink>
             </div>
           </>
         }
@@ -132,9 +133,9 @@ function TarjetaParada({ parada, indice }: { parada: Parada; indice: number }) {
             Ver ficha del producto
           </Link>
         ) : (
-          <Link href={contactHref} className="enlace-marca">
+          <ContactLink href={contactHref} className="enlace-marca">
             {contactLabel}
-          </Link>
+          </ContactLink>
         )}
         {parada.datasheetUrl && (
           <a href={parada.datasheetUrl} download className="enlace-marca">
@@ -193,8 +194,9 @@ function VistaCuerpo() {
 // Vista de la toma del hero (k = 0) sin WebGL o mientras carga: las capturas
 // fijas del busto (public/img/cuerpo-inicio*.webp), en la caja que tenía el
 // 3D del hero. En escritorio, abajo a la derecha, a todo el alto y en 14:15,
-// con la figura al 55,5 %; en el celular, a todo el ancho y 62 % del alto,
-// con la cabeza al 109,2 % del alto (camara.ts, HERO): asoma la coronilla.
+// con la figura al 55,5 %; en el celular, 62 % del alto con la cabeza al
+// 80 % del alto y al 58 % del ancho (camara.ts, HERO). La captura se toma con
+// el desliz entero, donde la cabeza va centrada: acá solo se corre.
 const posterComun = { alt: '', sizes: '(min-width: 768px) 107vh, 86vh' }
 const posterEscritorio = getImageProps({
   ...posterComun,
@@ -213,7 +215,7 @@ const posterCelular = getImageProps({
 // como el póster del hero de antes: si no, se veía nítida en el primer cuadro
 function VistaHero() {
   return (
-    <div className="intro-3d absolute top-[78.2dvh] right-0 h-[62vh] w-full overflow-hidden [--foco:0.5] min-[820px]:top-auto min-[820px]:bottom-0 min-[820px]:aspect-[14/15] min-[820px]:h-[min(100%,80vw)] min-[820px]:w-auto min-[820px]:[--foco:0.555]">
+    <div className="intro-3d absolute top-[calc(var(--ancla-hero,74dvh)-31vh)] right-0 h-[62vh] w-full overflow-hidden [--foco:0.62] min-[820px]:top-auto min-[820px]:bottom-0 min-[820px]:aspect-[14/15] min-[820px]:h-[min(100%,80vw)] min-[820px]:w-auto min-[820px]:[--foco:0.555]">
       <picture>
         <source media="(min-width: 768px)" srcSet={posterEscritorio.srcSet} sizes={posterEscritorio.sizes} />
         <img

@@ -13,13 +13,10 @@ import {
   AdditiveBlending,
   BackSide,
   Box3,
-  CanvasTexture,
   Color,
   DoubleSide,
   FrontSide,
   ShaderMaterial,
-  Sprite,
-  SpriteMaterial,
   Euler,
   MathUtils,
   Matrix4,
@@ -27,6 +24,7 @@ import {
   Quaternion,
   Vector3,
   type BufferGeometry,
+  type Camera,
   type Group,
   type Mesh,
   type MeshPhysicalMaterial,
@@ -43,7 +41,6 @@ import {
   ORDEN_PARADAS,
   SEGUNDOS_ENTRADA,
   SUBIDA_ENTRADA,
-  TOMAS_PARADA,
   camaraPara,
   deslizHero,
   giroVaiven,
@@ -102,8 +99,8 @@ function pesoHeroActual() {
   return pesoHero(segCuerpo(seg, celular && !reducido), reducido)
 }
 
-// Corte por altura: en la toma del hero, la piel a 1,33 m y el hueso a
-// 1,35 m, rectos; con el scroll bajan hasta debajo de los pies, con una
+// Corte por altura: en la toma del hero, la piel y el hueso a 1,22 m,
+// rectos y debajo de la pantalla; con el scroll bajan hasta debajo de los pies, con una
 // banda cada vez más ancha.
 const corteDe = (corte: number, h: number) => MathUtils.lerp(-0.4, corte, h)
 const bandaDe = (h: number) => MathUtils.lerp(0.4, 0.004, h)
@@ -118,13 +115,31 @@ const TRAMO_DEGRADE_CELULAR = [0, 1 / 1.402] as const
 const OPACIDAD_HUESO = 0.34
 
 // Brillo del implante activo: un azul de la marca, claro, sumado al metal,
-// bajo para que la pieza se siga leyendo como titanio. El halo azul fuerte
-// del borrador (shadowBlur) lo da el resplandor de detrás (Resplandor).
+// bajo para que la pieza se siga leyendo como titanio.
 const BRILLO = new Color('#a9cdf5')
 const INTENSIDAD_BRILLO = 0.2
-const COLOR_RESPLANDOR = '#3d6fe0'
 
-// Capas: los implantes y su resplandor (1) y el borde de luz del vidrio (2)
+// Barrido del implante activo (reemplaza al anillo y al resplandor del
+// borrador): al llegar a su parada, un plano de luz horizontal baja por la
+// pieza una sola vez, como un corte de tomografía, y la retícula de HTML
+// (.recorrido-reticula) se cierra sobre ella con la misma línea. Después
+// queda quieto un borde de luz suave en el contorno del titanio.
+// La línea y el borde van mezclados sobre el color final y no sumados como
+// emisión: el titanio pulido ya está casi blanco y la luz sumada no se veía.
+// Lo que el corte todavía no pasó queda atenuado hacia el azul del hueso.
+const LUZ_BARRIDO = new Color('#5fa2ff')
+const TINTA_PENDIENTE = new Color('#2260a1')
+const DURACION_BARRIDO = 1500 // ms
+const ANCHO_BARRIDO = 0.004 // m: medio ancho de la línea de luz
+const MEZCLA_LINEA = 0.9
+const MEZCLA_PENDIENTE = 0.55
+const MEZCLA_BORDE = 0.4
+const MARGEN_RETICULA = 16 // px alrededor de la caja del implante en pantalla
+const CIERRE_RETICULA = 560 // ms
+const BORDE_RETICULA = 8 // px: distancia mínima a los bordes de la pantalla
+const TECHO_RETICULA = 76 // px: debajo del header
+
+// Capas: los implantes (1) y el borde de luz del vidrio (2)
 // se dibujan en pasadas propias, después de la escena (ver Pasadas).
 const CAPA_IMPLANTES = 1
 const CAPA_BORDE = 2
@@ -440,6 +455,8 @@ type PiezaLista = {
   matriz: Matrix4
   centro: Vector3
   radio: number
+  // Caja en el cuerpo: la que encierra la retícula y la altura del barrido
+  caja: Box3
 }
 
 function matrizDe(implante: Implante) {
@@ -469,13 +486,15 @@ function usePiezas(): PiezaLista[] {
         geometria = malla.geometry
         propia = false
       }
-      // Centro y radio en el cuerpo: dónde va el resplandor y cuánto se
-      // apagan los implantes vecinos al activo
+      // Centro y radio en el cuerpo: cuánto se apagan los implantes vecinos
+      // al activo
       if (!geometria.boundingSphere) geometria.computeBoundingSphere()
+      if (!geometria.boundingBox) geometria.computeBoundingBox()
       const esfera = geometria.boundingSphere
       const centro = (esfera?.center.clone() ?? new Vector3()).applyMatrix4(matriz)
       const radio = (esfera?.radius ?? 0.02) * matriz.getMaxScaleOnAxis()
-      return { implante, geometria, matriz, propia, centro, radio }
+      const caja = (geometria.boundingBox?.clone() ?? new Box3()).applyMatrix4(matriz)
+      return { implante, geometria, matriz, propia, centro, radio, caja }
     })
   }, [archivos])
   // Las primitivas se crean acá: se liberan al desmontar
@@ -488,92 +507,173 @@ function usePiezas(): PiezaLista[] {
   return piezas
 }
 
-// Resplandor azul detrás del implante activo, el halo del borrador
-// (shadowBlur azul): un degradé radial que mira siempre a la cámara, en la
-// capa de los implantes y dibujado antes que ellos.
-let texturaResplandor: CanvasTexture | null = null
-function resplandorTextura() {
-  if (texturaResplandor) return texturaResplandor
-  const canvas = document.createElement('canvas')
-  canvas.width = 128
-  canvas.height = 128
-  const ctx = canvas.getContext('2d')
-  if (ctx) {
-    const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64)
-    g.addColorStop(0, 'rgba(255,255,255,1)')
-    g.addColorStop(0.35, 'rgba(255,255,255,0.55)')
-    g.addColorStop(1, 'rgba(255,255,255,0)')
-    ctx.fillStyle = g
-    ctx.fillRect(0, 0, 128, 128)
-  }
-  texturaResplandor = new CanvasTexture(canvas)
-  return texturaResplandor
+// Luz propia del titanio: la línea del barrido (a la altura uBarridoY del
+// cuerpo, con fuerza uBarrido, de 0 a 1), la parte de la pieza que todavía
+// no pasó y el borde de luz del contorno (uBorde), mezclados sobre el color
+// que sale de la iluminación del material estándar.
+type UniformesLuz = {
+  uBarridoY: { value: number }
+  uBarrido: { value: number }
+  uBorde: { value: number }
+  uLuz: { value: Color }
+  uPendiente: { value: Color }
 }
 
-function Resplandor({ ref, centro, tamano }: {
-  ref: (sprite: Sprite | null) => void
-  centro: Vector3
-  tamano: number
-}) {
-  const material = useMemo(
-    () =>
-      new SpriteMaterial({
-        map: resplandorTextura(),
-        color: COLOR_RESPLANDOR,
-        transparent: true,
-        opacity: 0,
-        depthTest: false,
-        depthWrite: false,
-      }),
-    [],
+function conLuz(material: MeshStandardMaterial): UniformesLuz {
+  const uniformes = {
+    uBarridoY: { value: 0 },
+    uBarrido: { value: 0 },
+    uBorde: { value: 0 },
+    uLuz: { value: LUZ_BARRIDO },
+    uPendiente: { value: TINTA_PENDIENTE },
+  }
+  material.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, uniformes)
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying float vAltura;')
+      .replace(
+        '#include <begin_vertex>',
+        '#include <begin_vertex>\nvAltura = (modelMatrix * vec4(transformed, 1.0)).y;',
+      )
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        /* glsl */ `#include <common>
+        varying float vAltura;
+        uniform float uBarridoY;
+        uniform float uBarrido;
+        uniform float uBorde;
+        uniform vec3 uLuz;
+        uniform vec3 uPendiente;`,
+      )
+      .replace(
+        '#include <opaque_fragment>',
+        /* glsl */ `{
+          float d = (vAltura - uBarridoY) / ${ANCHO_BARRIDO.toFixed(4)};
+          float linea = exp(-d * d) * uBarrido;
+          float pendiente = (1.0 - smoothstep(-1.5, 0.0, d)) * uBarrido;
+          float canto = 1.0 - abs(dot(normal, normalize(vViewPosition)));
+          outgoingLight = mix(outgoingLight, uPendiente * 0.6, pendiente * ${MEZCLA_PENDIENTE.toFixed(2)});
+          outgoingLight = mix(outgoingLight, uLuz, pow(canto, 3.0) * uBorde * ${MEZCLA_BORDE.toFixed(2)});
+          outgoingLight = mix(outgoingLight, uLuz * 1.6, linea * ${MEZCLA_LINEA.toFixed(2)});
+        }
+        #include <opaque_fragment>`,
+      )
+  }
+  return uniformes
+}
+
+const esquina = new Vector3()
+
+// Retícula (HTML encima del canvas): la caja del implante activo en
+// pantalla, más un margen, con la línea del barrido a la altura de la
+// banda de luz
+function escribirReticula(
+  el: HTMLElement,
+  pieza: PiezaLista | undefined,
+  luz: UniformesLuz | undefined,
+  peso: number,
+  llegada: boolean,
+  camara: Camera,
+  { width: W, height: H }: { width: number; height: number },
+) {
+  if (!pieza || !luz) {
+    el.style.setProperty('--ret-o', '0')
+    return
+  }
+  const { min, max } = pieza.caja
+  let x0 = Infinity
+  let y0 = Infinity
+  let x1 = -Infinity
+  let y1 = -Infinity
+  for (let k = 0; k < 8; k++) {
+    esquina
+      .set(k & 1 ? max.x : min.x, k & 2 ? max.y : min.y, k & 4 ? max.z : min.z)
+      .project(camara)
+    const x = ((esquina.x + 1) / 2) * W
+    const y = ((1 - esquina.y) / 2) * H
+    x0 = Math.min(x0, x)
+    x1 = Math.max(x1, x)
+    y0 = Math.min(y0, y)
+    y1 = Math.max(y1, y)
+  }
+  // Con el margen y dentro de lo visible (debajo del header): en el celular
+  // el clavo del intercalar sale por arriba y quedaban dos esquinas afuera
+  x0 = Math.max(x0 - MARGEN_RETICULA, BORDE_RETICULA)
+  y0 = Math.max(y0 - MARGEN_RETICULA, TECHO_RETICULA)
+  x1 = Math.min(x1 + MARGEN_RETICULA, W - BORDE_RETICULA)
+  y1 = Math.min(y1 + MARGEN_RETICULA, H - BORDE_RETICULA)
+  esquina.set(pieza.centro.x, luz.uBarridoY.value, pieza.centro.z).project(camara)
+  const yBarrido = ((1 - esquina.y) / 2) * H
+  const s = el.style
+  s.setProperty('--ret-x', `${x0.toFixed(1)}px`)
+  s.setProperty('--ret-y', `${y0.toFixed(1)}px`)
+  s.setProperty('--ret-w', `${(x1 - x0).toFixed(1)}px`)
+  s.setProperty('--ret-h', `${(y1 - y0).toFixed(1)}px`)
+  s.setProperty('--ret-o', peso.toFixed(3))
+  s.setProperty('--ret-barrido', `${(yBarrido - y0).toFixed(1)}px`)
+  s.setProperty(
+    '--ret-barrido-o',
+    (luz.uBarrido.value / Math.max(peso, 0.001)).toFixed(3),
   )
-  useEffect(() => () => material.dispose(), [material])
-  return (
-    <sprite
-      ref={ref}
-      material={material}
-      position={centro}
-      scale={[tamano, tamano, 1]}
-      layers={CAPA_IMPLANTES}
-      renderOrder={-1}
-      visible={false}
-    />
-  )
+  // Al llegar a la parada, las esquinas se cierran sobre la pieza (una vez)
+  const marco = el.firstElementChild
+  if (llegada && !estadoRecorrido.reducido && marco) {
+    marco.animate(
+      [
+        { transform: 'scale(1.22)', opacity: 0 },
+        { transform: 'scale(1)', opacity: 1 },
+      ],
+      { duration: CIERRE_RETICULA, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
+    )
+  }
 }
 
 function Implantes() {
   const piezas = usePiezas()
+  const invalidate = useThree((s) => s.invalidate)
   // Un material por pieza: la opacidad y el brillo cambian con el recorrido.
   // Titanio de impresión 3D gris y mate (el del busto) y de CNC, pulido.
-  const materiales = useMemo(
+  // Cada material nace con sus uniformes de luz (en el mismo useMemo: si no,
+  // el doble llamado del modo estricto deja el shader con otros uniformes).
+  const materialesYLuces = useMemo(
     () =>
-      piezas.map(
-        ({ implante }) =>
-          new MeshStandardMaterial({
-            color: implante.acabado === 'pulido' ? '#e6e9ee' : '#c4cad2',
-            // Un poco menos que metal puro: así toma también la luz propia de
-            // los implantes (LuzImplantes) y no queda gris oscuro donde el
-            // estudio no le da reflejo
-            metalness: implante.acabado === 'pulido' ? 0.94 : 0.88,
-            roughness: implante.acabado === 'pulido' ? 0.12 : 0.3,
-            // Más reflejo del estudio que en el busto: chicos y sobre el
-            // vidrio, con el reflejo del busto se veían gris oscuro y planos.
-            envMapIntensity: 3.2,
-            emissive: BRILLO,
-            emissiveIntensity: 0,
-            transparent: true,
-            side: DoubleSide,
-          }),
-      ),
+      piezas.map(({ implante }) => {
+        const material = new MeshStandardMaterial({
+          color: implante.acabado === 'pulido' ? '#e6e9ee' : '#c4cad2',
+          // Un poco menos que metal puro: así toma también la luz propia de
+          // los implantes (LuzImplantes) y no queda gris oscuro donde el
+          // estudio no le da reflejo
+          metalness: implante.acabado === 'pulido' ? 0.94 : 0.88,
+          roughness: implante.acabado === 'pulido' ? 0.12 : 0.3,
+          // Más reflejo del estudio que en el busto: chicos y sobre el
+          // vidrio, con el reflejo del busto se veían gris oscuro y planos.
+          envMapIntensity: 3.2,
+          emissive: BRILLO,
+          emissiveIntensity: 0,
+          transparent: true,
+          side: DoubleSide,
+        })
+        return { material, luz: conLuz(material) }
+      }),
     [piezas],
   )
-  useEffect(() => () => materiales.forEach((m) => m.dispose()), [materiales])
+  const materiales = materialesYLuces.map((m) => m.material)
+  const luces = materialesYLuces.map((m) => m.luz)
+  useEffect(
+    () => () => materialesYLuces.forEach(({ material }) => material.dispose()),
+    [materialesYLuces],
+  )
 
-  const resplandores = useRef<(Sprite | null)[]>([])
   const mallas = useRef<(Mesh | null)[]>([])
+  // Barrido de cada pieza: arranca cuando su tarjeta pasa de 0,8 (casi
+  // llegando a la parada) y se rearma cuando la tarjeta se va
+  const barridos = useRef(piezas.map(() => ({ armado: true, inicio: -Infinity })))
+  const reticula = useRef<HTMLElement | null>(null)
 
-  useFrame(() => {
+  useFrame(({ camera, size }) => {
     const { seg, reducido } = estadoRecorrido
+    const ahora = performance.now()
     const base = opacidadBase(seg, reducido)
     // En la toma del hero no hay implantes encima del vidrio
     const h = pesoHeroActual()
@@ -582,12 +682,18 @@ function Implantes() {
     const pesos = piezas.map(({ implante }) =>
       pesoTarjeta(seg, ORDEN_PARADAS.indexOf(implante.parada), reducido),
     )
+    // La pieza activa: la de la tarjeta con más peso
+    let activa = -1
+    let pesoActiva = 0.05
+    let llegada = false
+    let barriendo = false
     piezas.forEach((pieza, i) => {
       const material = materiales[i]
+      const luz = luces[i]
       const w = pesos[i] ?? 0
-      if (!material) return
-      // Los inactivos cercanos al activo se apagan más, para que no crucen
-      // su halo (en el acetábulo, el clavo del intercalar y la endoprótesis)
+      if (!material || !luz) return
+      // Los inactivos cercanos al activo se apagan más, para que no lo
+      // tapen (en el acetábulo, el clavo del intercalar y la endoprótesis)
       let apagado = 1
       piezas.forEach((otra, j) => {
         const wj = pesos[j] ?? 0
@@ -599,31 +705,54 @@ function Implantes() {
       // El implante maxilar entra con el hueso recortado
       const maxilar = pieza.implante.parada === 'maxilar' ? pesoMaxilar(seg, reducido) : 1
       const enVista = pieza.implante.parada === 'craneo' ? visibleCraneo : visibles
+      const presente = w * enVista * maxilar
       material.opacity = Math.max(base * apagado, w) * enVista * maxilar
       material.emissiveIntensity = INTENSIDAD_BRILLO * w * maxilar
       material.depthWrite = material.opacity > 0.9
       const malla = mallas.current[i]
       if (malla) malla.visible = material.opacity > 0.002
-      const resplandor = resplandores.current[i]
-      if (resplandor) {
-        resplandor.material.opacity = 0.85 * w * enVista * maxilar
-        resplandor.visible = w * enVista * maxilar > 0.01
+
+      const barrido = barridos.current[i]
+      if (barrido) {
+        if (w > 0.8 && barrido.armado) {
+          barrido.armado = false
+          barrido.inicio = ahora
+          llegada = true
+        } else if (w < 0.1) {
+          barrido.armado = true
+        }
+        // Avance (0 a 1) con entrada y salida suaves; la fuerza sube y baja
+        // en los extremos para que la banda no aparezca ni corte de golpe
+        // (acotado: una pieza que nunca barrió tiene inicio -Infinity, y un
+        // infinito en el shader da NaN y la pinta de negro)
+        const t = reducido ? 1 : MathUtils.clamp((ahora - barrido.inicio) / DURACION_BARRIDO, 0, 1)
+        const corriendo = t < 1
+        if (corriendo) barriendo = true
+        const avance = t * t * (3 - 2 * t)
+        const margen = ANCHO_BARRIDO * 2
+        luz.uBarridoY.value = MathUtils.lerp(pieza.caja.max.y + margen, pieza.caja.min.y - margen, avance)
+        luz.uBarrido.value = corriendo
+          ? Math.min(1, t / 0.12, (1 - t) / 0.12) * presente
+          : 0
+      }
+      luz.uBorde.value = presente
+      if (presente > pesoActiva) {
+        pesoActiva = presente
+        activa = i
       }
     })
+    if (barriendo) invalidate()
+    const escena = estadoRecorrido.escena
+    if (!escena) return
+    if (!reticula.current || !escena.contains(reticula.current)) {
+      reticula.current = escena.querySelector<HTMLElement>('.recorrido-reticula')
+    }
+    if (!reticula.current) return
+    escribirReticula(reticula.current, piezas[activa], luces[activa], pesoActiva, llegada, camera, size)
   })
 
   return (
     <group>
-      {piezas.map(({ implante, centro, radio }, i) => (
-        <Resplandor
-          key={`resplandor-${implante.parada}`}
-          ref={(sprite) => {
-            resplandores.current[i] = sprite
-          }}
-          centro={centro}
-          tamano={radio * 3.8}
-        />
-      ))}
       {piezas.map(({ implante, geometria, matriz }, i) => (
         <mesh
           key={implante.parada}
@@ -696,13 +825,10 @@ function LuzImplantes() {
   )
 }
 
-const proyectado = new Vector3()
-
 // Cámara del guion: mira al objetivo desde su azimut y elevación, a la
 // distancia que hace entrar `alto` metros en la pantalla, y con
 // setViewOffset deja el objetivo en el ancla (la pantalla es un recorte de
-// una vista más grande centrada en él: la perspectiva no cambia). Escribe
-// además en la escena HTML dónde queda el halo del implante activo.
+// una vista más grande centrada en él: la perspectiva no cambia).
 function CamaraRecorrido() {
   const invalidate = useThree((s) => s.invalidate)
   const scene = useThree((s) => s.scene)
@@ -749,6 +875,7 @@ function CamaraRecorrido() {
     const celular = W < ANCHO_CELULAR
     const c = camaraPara(segCuerpo(seg, celular && !reducido), W, reducido, {
       desliz: deslizHero(seg, celular),
+      anclaHero: estadoRecorrido.anclaHero,
     })
     if (!reducido) {
       // Entrada del hero (hold, play, skip) y después su vaivén en la toma 0,
@@ -825,34 +952,6 @@ function CamaraRecorrido() {
       recorteHero.current = x1 > x0 && y1 > y0 ? [x0, H - y1, x1 - x0, y1 - y0] : null
     } else {
       recorteHero.current = null
-    }
-
-    const escena = estadoRecorrido.escena
-    if (!escena) return
-    // Píxeles por metro a la distancia del objetivo
-    const ppm = H / c.alto
-
-    // Halo alrededor del implante activo (borrador: radio de 0,16 a 0,38 del
-    // tramo visible de la parada, opacidad según el peso de la tarjeta)
-    let mejor = -1
-    let peso = 0
-    ORDEN_PARADAS.forEach((_, i) => {
-      const w = pesoTarjeta(seg, i, reducido)
-      if (w > peso) {
-        peso = w
-        mejor = i
-      }
-    })
-    const id = ORDEN_PARADAS[mejor]
-    if (id && peso > 0.05) {
-      const toma = TOMAS_PARADA[id]
-      proyectado.set(...toma.objetivo).project(cam)
-      escena.style.setProperty('--halo-x', `${((proyectado.x + 1) / 2) * W}px`)
-      escena.style.setProperty('--halo-y', `${((1 - proyectado.y) / 2) * H}px`)
-      escena.style.setProperty('--halo-r', `${toma.vis * 0.38 * ppm}px`)
-      escena.style.setProperty('--halo-o', peso.toFixed(3))
-    } else {
-      escena.style.setProperty('--halo-o', '0')
     }
   }, -1)
 

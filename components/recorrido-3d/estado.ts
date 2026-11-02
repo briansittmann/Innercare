@@ -19,10 +19,13 @@ export const estadoRecorrido = {
   // La escena se registra al montarse para que el scroll le pida un cuadro
   // (frameloop "demand": sin scroll no se dibuja nada).
   invalidar: null as (() => void) | null,
-  // Nodo de la escena fija: la escena 3D escribe ahí la posición del halo y
-  // de la luz (variables CSS), que son HTML encima y debajo del canvas.
+  // Nodo de la escena fija: la escena 3D escribe ahí la caja de la retícula
+  // del implante activo (variables CSS), HTML encima del canvas.
   escena: null as HTMLElement | null,
   // Entrada del hero (components/intro.ts): 'hold' quieto en la pose de
   // partida, 'play' gira hasta su pose, 'skip' sin entrada
   entrada: 'hold' as 'hold' | 'play' | 'skip',
+  // Celular: alto del ancla de la toma del hero según dónde termina su texto
+  // (anclaHeroCelular en camara.ts; lo mide tour-scroll.tsx)
+  anclaHero: null as number | null,
 }

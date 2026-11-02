@@ -40,7 +40,7 @@ export function Process() {
           )
         }
         leyenda={
-          <ul className="proceso-leyenda absolute bottom-0 left-0 flex flex-wrap gap-x-[1.125rem] gap-y-xs text-[0.84375rem] text-on-surface-variant">
+          <ul className="proceso-leyenda absolute inset-x-0 bottom-0 flex flex-wrap justify-center gap-x-[1.125rem] gap-y-xs text-[0.84375rem] text-on-surface-variant">
             {LEYENDA.map((item) => (
               <li key={item.label} className="inline-flex items-center gap-[0.4375rem]">
                 <span aria-hidden className={`size-[9px] rounded-full ${item.color}`} />

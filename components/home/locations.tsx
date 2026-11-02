@@ -1,148 +1,202 @@
+import AnimatedContent from '@/components/animated-content'
 import { sedes, textosHome } from '@/content/company'
+import { MAPA, provincias } from '@/content/mapa-argentina'
 import type { Sede } from '@/content/types'
+import { proyectar } from './mapa-proyeccion'
+import { MapaArgentina } from './mapa-argentina'
+import type { SedeEnMapa, Tramo } from './mapa-layout'
+import { MapaSedes } from './mapa-sedes'
 
-// Eje del país de norte a sur, en grados de latitud sur (La Quiaca ≈ 22°,
-// Ushuaia ≈ 55°), como el del borrador. Cada grupo de sedes tiene su punto
-// en su latitud (la media del grupo) y cada etiqueta, la latitud exacta.
-const NORTE = 22
-const SUR = 55
-// Alto del eje (460 px del borrador)
-const ALTO = 28.75
-// Separación mínima entre etiquetas (ciudad y rol: dos o tres líneas)
-const PASO_ETIQUETA = 4
-// Ancho de la guía que une el punto con cada etiqueta (16 px del borrador más
-// el tramo de la guía)
-const GUIA = 2.5
+// Distribución a todo el país (#sedes), con la disposición del borrador de
+// la landing: a la izquierda el título y la bajada, que entran palabra por
+// palabra con un desenfoque que se aclara (AnimatedContent); a la derecha
+// (desde 1024 px: en una tablet a dos columnas las etiquetas no entran), un
+// mapa de Argentina con las cuatro sedes, la línea que las une de norte a
+// sur y una card con la miniatura de cada una (docs/DECISIONES.md). Acá se
+// proyectan las sedes, se reparten las etiquetas y se arman los tramos con
+// los tiempos de la entrada; el dibujo es de MapaArgentina (estático) y
+// MapaSedes (interactivo). Sin fondo propio: va dentro de FondoMalla
+// (app/page.tsx), que pinta el de la página y la malla hexagonal.
 
-const yDe = (latitud: number) => ((Math.abs(latitud) - NORTE) / (SUR - NORTE)) * ALTO
-const grados = (latitud: number) => `${Math.abs(latitud).toFixed(1).replace('.', ',')}° S`
+// Dos sedes a menos de esta fracción del alto comparten grupo: sus etiquetas
+// se reparten a --paso (CSS) de la media del grupo
+const CERCANIA = 0.08
+// Entrada (ms): el mapa se dibuja primero (globals.css, .mapa-contorno);
+// después cada pin aparece de a uno, de norte a sur, y recién entonces los
+// tramos se dibujan uno tras otro, cada uno en proporción a su largo.
+const INICIO_PINES = 1000
+const PASO_PINES = 220
+const DURACION_TRAMOS = 1300
+const TRAMO_MINIMO = 260
+// La luz que recorre la línea arranca cuando el último tramo terminó
+const PAUSA_LUZ = 250
 
 const ciudad = (sede: Sede) => sede.localidad.replace(/^[A-Z]\d{4}[A-Z]{3}\s+/, '')
 const provincia = (sede: Sede) => sede.provincia.replace(/^Provincia de\s+/, '')
-const rol = (sede: Sede) => (sede.tipo.startsWith('Sucursal') ? 'Sucursal' : sede.tipo)
+// Rol corto para la etiqueta; el globo lleva el tipo, sin repetir la ciudad
+// ("Sucursal Comodoro Rivadavia" ya la dice la dirección)
+const rol = (sede: Sede) => {
+  if (sede.tipo.startsWith('Sucursal')) return 'Sucursal'
+  if (sede.tipo.startsWith('Laboratorio')) return 'Laboratorio'
+  return sede.tipo
+}
+const tipo = (sede: Sede) => (sede.tipo.startsWith('Sucursal') ? 'Sucursal' : sede.tipo)
 
-// Etiquetas: cada una va a la altura de su punto, salvo que choque con la
+// La provincia de la sede en el mapa, por nombre (Natural Earth los trae en
+// castellano, sin "Provincia de")
+const provinciaDe = (sede: Sede) => provincias.find((p) => p.nombre === provincia(sede))?.id ?? ''
+
+// De norte a sur: el orden de los pines y de la línea
+const deNorteASur = (lista: readonly Sede[]) => [...lista].sort((a, b) => b.latitud - a.latitud)
+
+// Pin de cada sede: x en fracción del ancho del lienzo, y en fracción de
+// su alto (que es el alto de la columna)
+const pinDe = (sede: Sede) => {
+  const { x, y } = proyectar(sede.latitud, sede.longitud, MAPA)
+  return { x: x / MAPA.ancho, y: y / MAPA.alto }
+}
+
+// Etiquetas: cada una a la altura de su pin, salvo que choque con la
 // anterior (Caseros y Alberti están a 0,4° entre sí; Comodoro Rivadavia y
 // Caleta Olivia, a 0,6°). Las que chocan se reparten, parejas, alrededor de
-// la altura media del grupo, donde va su único punto, y una guía une el
-// punto con cada etiqueta.
-function ubicar(lista: readonly Sede[]) {
-  const ordenadas = [...lista].sort((a, b) => b.latitud - a.latitud)
-  const grupos: Sede[][] = []
+// la altura media del grupo (k = -0,5 y 0,5 pasos), y la guía une cada pin
+// con su etiqueta.
+function ubicar(ordenadas: readonly Sede[]) {
+  const grupos: { sede: Sede; y: number }[][] = []
   for (const sede of ordenadas) {
+    const { y } = pinDe(sede)
     const ultimo = grupos.at(-1)
     const previa = ultimo?.at(-1)
-    if (ultimo && previa && yDe(sede.latitud) - yDe(previa.latitud) < PASO_ETIQUETA) ultimo.push(sede)
-    else grupos.push([sede])
+    if (ultimo && previa && y - previa.y < CERCANIA) ultimo.push({ sede, y })
+    else grupos.push([{ sede, y }])
   }
   return grupos.flatMap((grupo) => {
-    const media = grupo.reduce((sum, sede) => sum + yDe(sede.latitud), 0) / grupo.length
-    return grupo.map((sede, i) => ({
-      sede,
-      media,
-      etiqueta: media + (i - (grupo.length - 1) / 2) * PASO_ETIQUETA,
-    }))
+    const yGrupo = grupo.reduce((suma, { y }) => suma + y, 0) / grupo.length
+    const extremo = (grupo.length - 1) / 2
+    return grupo.map(({ sede }, i) => ({ sede, yGrupo, k: i - extremo }))
   })
 }
 
-// Distribución a todo el país (#sedes), con la disposición del borrador de
-// la landing: a la izquierda el título y la bajada; a la derecha, el eje
-// norte-sur con las cuatro sedes.
+// La línea une las sedes de norte a sur, tramo por tramo. Cada tramo es una
+// curva suave que se arquea hacia el oeste (el interior del país), en
+// proporción a su largo. Devuelve los tramos con sus tiempos y el trazado
+// entero, por donde corre la luz.
+function linea(ordenadas: readonly Sede[]) {
+  const puntos = ordenadas.map((s) => proyectar(s.latitud, s.longitud, MAPA))
+  const n = (v: number) => v.toFixed(1)
+  const curvas = puntos.slice(1).map((b, i) => {
+    const a = puntos[i]!
+    const dx = b.x - a.x
+    const dy = b.y - a.y
+    const largo = Math.hypot(dx, dy)
+    // Normal hacia el oeste (x negativa)
+    let nx = -dy / largo
+    let ny = dx / largo
+    if (nx > 0) {
+      nx = -nx
+      ny = -ny
+    }
+    const control = { x: (a.x + b.x) / 2 + nx * largo * 0.14, y: (a.y + b.y) / 2 + ny * largo * 0.14 }
+    return { a, b, control, largo }
+  })
+  const total = curvas.reduce((suma, c) => suma + c.largo, 0)
+  const inicio = INICIO_PINES + PASO_PINES * ordenadas.length + 150
+  let t = inicio
+  const tramos: Tramo[] = curvas.map(({ a, b, control, largo }) => {
+    const duracion = Math.round(Math.max(TRAMO_MINIMO, (largo / total) * DURACION_TRAMOS))
+    const tramo = {
+      d: `M${n(a.x)} ${n(a.y)}Q${n(control.x)} ${n(control.y)} ${n(b.x)} ${n(b.y)}`,
+      retraso: t,
+      duracion,
+    }
+    t += duracion
+    return tramo
+  })
+  const primero = puntos[0]!
+  const entera =
+    `M${n(primero.x)} ${n(primero.y)}` +
+    curvas.map(({ b, control }) => `Q${n(control.x)} ${n(control.y)} ${n(b.x)} ${n(b.y)}`).join('')
+  return { tramos, entera, inicioLuz: t + PAUSA_LUZ }
+}
+
+// Palabras sueltas para la entrada escalonada del título y la bajada: cada
+// una es un hijo directo de AnimatedContent (inline-block, para que el
+// desplazamiento se aplique) y los espacios quedan como texto entre ellas.
+const palabras = (texto: string) =>
+  texto.split(' ').flatMap((palabra, i) => [
+    i > 0 ? ' ' : null,
+    <span key={i} className="inline-block">
+      {palabra}
+    </span>,
+  ])
+
 export function Locations() {
   const { titulo, texto } = textosHome.distribucion
-  const ubicadas = ubicar(sedes)
+  const ordenadas = deNorteASur(sedes)
+  const { tramos, entera, inicioLuz } = linea(ordenadas)
+  const enMapa: SedeEnMapa[] = ubicar(ordenadas).map(({ sede, ...etiqueta }, i) => ({
+    id: sede.id,
+    ciudad: ciudad(sede),
+    provincia: provincia(sede),
+    rol: rol(sede),
+    tipo: tipo(sede),
+    calle: sede.calle,
+    provinciaId: provinciaDe(sede),
+    foto: sede.foto,
+    ...pinDe(sede),
+    ...etiqueta,
+    retraso: INICIO_PINES + i * PASO_PINES,
+  }))
+  const conSede = new Set(enMapa.map((s) => s.provinciaId))
+  const provinciasConSede = provincias.filter((p) => conSede.has(p.id)).map(({ id, d }) => ({ id, d }))
 
   return (
     <section
       id="sedes"
       aria-labelledby="sedes-titulo"
-      className="bg-surface py-[clamp(5.5rem,13vh,9.375rem)]"
+      className="py-[clamp(5.5rem,13vh,9.375rem)]"
     >
-      <div className="page-container grid items-center gap-[clamp(1.75rem,5vw,5rem)] md:grid-cols-2">
-        <div>
-          <h2
+      <div className="page-container grid items-center gap-[clamp(1.75rem,5vw,5rem)] lg:grid-cols-2">
+        {/* En dos columnas, el texto baja para quedar centrado con las
+            sedes (etiquetas y pines), que están 2 rem por debajo del centro
+            de la caja del mapa: el norte del país es más alto que el sur */}
+        <div className="lg:pt-16">
+          <AnimatedContent
+            as="h2"
             id="sedes-titulo"
             className="max-w-[16ch] text-balance font-display-lg text-display-lg text-on-surface"
+            distance={22}
+            blur={10}
+            duration={0.9}
+            stagger={0.07}
+            threshold={0.2}
           >
-            {titulo}
-          </h2>
-          <p className="mt-[1.25rem] max-w-[56ch] text-body-lg text-on-surface-variant">{texto}</p>
+            {palabras(titulo)}
+          </AnimatedContent>
+          <AnimatedContent
+            as="p"
+            className="mt-[1.25rem] max-w-[56ch] text-body-lg text-on-surface-variant"
+            distance={10}
+            blur={6}
+            duration={0.7}
+            delay={0.35}
+            stagger={0.022}
+            threshold={0.2}
+          >
+            {palabras(texto)}
+          </AnimatedContent>
         </div>
 
-        <div
-          role="group"
-          aria-label="Sedes ordenadas de norte a sur"
-          className="relative ml-[1.25rem]"
-          style={{ height: `${ALTO}rem` }}
+        <MapaSedes
+          sedes={enMapa}
+          provinciasConSede={provinciasConSede}
+          tramos={tramos}
+          linea={entera}
+          inicioLuz={inicioLuz}
+          viewBox={{ ancho: MAPA.ancho, alto: MAPA.alto }}
         >
-          {/* Línea del eje: se intensifica en el medio, como en el borrador */}
-          <div
-            aria-hidden
-            className="absolute inset-y-0 left-0 w-[2px] -translate-x-1/2 bg-linear-to-b from-primary/15 via-primary/70 to-primary/15"
-          />
-          <span
-            aria-hidden
-            className="absolute -top-sm left-[1.125rem] text-[0.8125rem] font-medium text-on-surface-variant"
-          >
-            Norte
-          </span>
-          <span
-            aria-hidden
-            className="absolute -bottom-sm left-[1.125rem] text-[0.8125rem] font-medium text-on-surface-variant"
-          >
-            Sur
-          </span>
-
-          {/* Guías del punto de cada grupo a sus etiquetas (en px: 1 rem =
-              16 px). Con una sola sede, la guía es recta. */}
-          <svg
-            aria-hidden
-            className="absolute top-0 left-0 overflow-visible"
-            width={GUIA * 16}
-            height={ALTO * 16}
-            viewBox={`0 0 ${GUIA * 16} ${ALTO * 16}`}
-          >
-            {ubicadas.map(({ sede, media, etiqueta }) => (
-              <path
-                key={sede.id}
-                d={`M 10 ${media * 16} H 14 L ${GUIA * 16 - 10} ${etiqueta * 16} H ${GUIA * 16 - 4}`}
-                fill="none"
-                stroke="var(--color-primary)"
-                strokeOpacity="0.5"
-                strokeWidth="1"
-              />
-            ))}
-          </svg>
-
-          {/* Un punto por grupo, con el halo del borrador: las sedes que
-              están casi a la misma latitud (Caseros y Alberti, a 0,4°;
-              Comodoro y Caleta, a 0,6°) comparten punto y se abren en dos
-              etiquetas con guías, cada una con su latitud exacta. */}
-          {[...new Set(ubicadas.map(({ media }) => media))].map((media) => (
-            <span
-              key={media}
-              aria-hidden
-              className="absolute left-0 size-[11px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary shadow-[0_0_0_6px_rgb(0_60_111/0.14)]"
-              style={{ top: `${media}rem` }}
-            />
-          ))}
-
-          <ul>
-            {ubicadas.map(({ sede, etiqueta }) => (
-              <li
-                key={sede.id}
-                className="absolute right-0 -translate-y-1/2 text-[1.0625rem] leading-[1.3] font-medium text-on-surface"
-                style={{ top: `${etiqueta}rem`, left: `${GUIA}rem` }}
-              >
-                {ciudad(sede)}, {provincia(sede)}
-                <span className="mt-[2px] block text-body-sm font-normal text-on-surface-variant">
-                  {rol(sede)}
-                  <span className="ml-sm font-data-mono tabular-nums">{grados(sede.latitud)}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+          <MapaArgentina />
+        </MapaSedes>
       </div>
     </section>
   )

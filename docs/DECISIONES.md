@@ -629,6 +629,176 @@ Rama `cuerpo-unico`. Pedido del usuario, que reabrió el hero con una condición
 
 **Pendiente.** Detalle y rutas en `docs/landing/cuerpo-unico/ESTADO.md`: medir en un celular real; el tramo corto del hero (0,3 pantallas) rinde menos que la base sin tope; el hombro asoma bajo el corte desde seg 0,33 en escritorio; el degradé del cierre se oscurece antes de fundirse; el contexto de las fibras queda vivo, pausado.
 
+## 2026-11-01 · Hover por proximidad en el índice anatómico
+
+**Decisión.** El índice lateral del recorrido (desde 1100 px) toma el hover de `LineSidebar` de React Bits, sin su diseño (ni números ni marcas): los enlaces cercanos al cursor se corren a la derecha (hasta 14 px) y pasan al primario, con caída suave en un radio de 80 px y amortiguación de 100 ms (`components/home/use-proximidad.ts`, CSS en `.indice-enlace` y `.indice-texto`). Solo con mouse; con movimiento reducido, solo el color. La barra de la parada activa queda sobre el riel.
+
+**Motivo.** Pedido del usuario: le gusta el diseño actual del índice y quería el efecto de que los nombres se desplacen uno tras otro al pasar el cursor.
+
+**Descartado.** Copiar el componente entero: trae su lista, sus colores y sus marcas; solo hacía falta la lógica del efecto. Sin dependencias nuevas.
+
+## 2026-11-01 · El cuerpo del hero no se ve cortado nunca
+
+**Decisión.** El corte por altura de la toma del hero baja de 1,33 m (piel) y 1,35 m (hueso) a 1,22 m, debajo de la pantalla en todas las poses: el cuerpo sigue más allá del borde de abajo y se lee como un cuerpo gigante, no como un busto. `3d/scripts/partir.mjs` parte la piel (`piel_cabeza`) y la columna (`hueso_columna_alta`) a la misma altura, así el hero carga lo que llega hasta ahí (`cuerpo-cabeza.glb`, de 381 a 436 KB; mismos triángulos en total, verificado). Se recapturaron los respaldos `cuerpo-inicio*.webp` (`docs/landing/cuerpo-unico/respaldos.mjs`).
+
+**Motivo.** Pedido del usuario: en el giro (la entrada desde 117° y el vaivén hasta 22°) asomaba cortado el hombro del lado lejano, a la altura del pecho. Medido sobre la malla con la cámara del guion: en la toma del hero llega a verse piel desde 1,286 m (vaivén de frente; en reposo, 1,302 m), en escritorio y celular, con cualquier ancho (el alto visible en metros es fijo). El corte a 1,22 m deja 6 cm de margen. La caja del recorte del hero (`recorteHero`) no corta: el cuerpo entra entero en ella en todas las poses.
+
+**Descartado.** Sin corte en el hero (el cuerpo entero): obliga a bajar `cuerpo-resto.glb` antes de la intro y a dibujar las piernas debajo de la pantalla. Sumar al hero clavículas, costillas y húmeros: cambia el aspecto del busto aprobado; el hueso del hero sigue siendo el del busto, con la columna más larga para que no termine a la vista.
+
+## 2026-11-01 · Retícula y corte de luz en el implante activo
+
+**Decisión.** Fuera el anillo que latía alrededor del implante activo (`.recorrido-halo`) y el resplandor azul de detrás (un sprite con degradé). En su lugar:
+- **Retícula.** Cuatro esquinas finas del primario sobre la caja del implante en pantalla, con 16 px de margen y acotada a lo visible debajo del header (`.recorrido-reticula`; la escena escribe `--ret-*`). Al llegar a la parada se cierran una vez (escala de 1,22 a 1 en 560 ms, con la Web Animations API) y quedan quietas siguiendo la pieza. La idea es la de `TargetCursor` de React Bits, sin el componente ni gsap.
+- **Corte de luz.** Cuando la tarjeta pasa de 0,8, un plano horizontal baja por la pieza en 1,5 s, como un corte de tomografía: una línea azul clara sobre el titanio, con lo que todavía no pasó atenuado hacia el azul del hueso, y la misma línea en la retícula. Después queda un borde de luz suave en el contorno (Fresnel). Va en el shader del implante (`conLuz` en `escena.tsx`, `onBeforeCompile` del `MeshStandardMaterial`), mezclado sobre el color final: sumado como emisión no se veía, porque el titanio pulido ya está casi blanco.
+- Con movimiento reducido, la retícula quieta, sin cierre ni corte.
+
+**Motivo.** Pedido del usuario: las "partículas" alrededor del implante no le gustaban y, quietas, no quedaban bien; quería algo más moderno. Eran los puntos de colores que Safari (WebKit) dibujaba dentro del resplandor: ruido de color donde el degradé de su textura casi no tiene opacidad. En Chrome no se veían. La retícula y el corte cuentan lo que hace Innercare (implantes diseñados desde la tomografía del paciente) y no se mueven en bucle. No suman contexto WebGL ni dependencias.
+
+**Descartado.** Solo la retícula (más sobria, pero el implante quedaba sin ningún gesto propio) y solo el corte de luz (sin nada en la interfaz, la parada activa se distinguía menos). Los fondos y anillos animados de React Bits (`MagicRings`, `Radar`, `Scanner`, `GridScan`) dibujan con WebGL propio y son en bucle.
+
+## 2026-11-01 · Cómo trabajamos: el fémur entero y hover en la pieza
+
+**Decisión.** La pieza de partículas de "Cómo trabajamos" (`components/animaciones/proceso.ts`) pasa del tramo de diáfisis del borrador al fémur entero: cabeza, cuello, trocánteres, diáfisis y cóndilos, armados con primitivas (un tubo de radio variable, elipsoides y un cilindro) y muestreados sobre la superficie de su unión. La zona a resecar, los planos de corte, el implante intercalar, el clavo y las guías siguen en la diáfisis, con las mismas tres formas, los mismos tiempos y el mismo vaivén. Al pasar el mouse (puntero fino), las partículas cerca del cursor se apartan y vuelven a armarse con un resorte en menos de un segundo. Con movimiento reducido, no hay hover.
+
+**Motivo.** Pedido del usuario: el efecto le gustaba, pero no se entendía qué se estaba viendo (un tubo con los extremos abiertos y unas cajas). La silueta del fémur se reconoce enseguida. El hover también fue pedido suyo.
+
+**Descartado (por ahora).** Rótulos con líneas guía, guías de resección con forma real (apoyadas en el hueso) y una leyenda según el paso: se ofrecieron y el usuario eligió solo el fémur entero.
+
+## 2026-11-01 · Ancho ajustable del panel de contacto
+
+**Decisión.** En escritorio (desde 64rem), el panel de contacto lleva un tirador en el borde izquierdo (`DotsSixVertical` de Phosphor en una pill, `role="separator"`) que cambia su ancho entre el de siempre (36rem) y el 60 % de la pantalla. Se arrastra, se mueve con las flechas (Inicio y Fin van a los extremos) y con doble clic salta del mínimo al máximo y vuelta. El ancho se guarda como fracción entre los dos extremos (`--panel-ancho`, `.contact-panel` en `globals.css`), así acompaña a la ventana si cambia de tamaño. Dura mientras el panel vive en la sesión; no se guarda entre recargas.
+
+**Motivo.** Pedido del usuario: una marca visible que indique que el panel se puede ensanchar, hasta el 60 % en escritorio. Por debajo de 64rem el 60 % no llega a 36rem, así que ahí no hay tirador.
+
+## 2026-11-01 · Fotos reales en Fabricación: Flex Carousel con velo
+
+**Decisión.** Al cierre de `#fabricacion`, a sangre, una tira de fotos reales de la planta y de piezas fabricadas con el Flex Carousel de React Bits (`components/flex-carousel.tsx`, copiado a mano; envoltorio `components/home/carrusel-planta.tsx`; fotos en `content/planta.ts`, WebP generadas por `npm run fotos`). Las fotos van **en color**, todas bajo un velo azul monocromo (`--color-on-primary-fixed`) salvo la que se señala con el puntero o, sin puntero, la del centro; el velo es un cambio propio al shader del componente. Sin autoplay, con `captureWheel` apagado (la rueda vertical sigue scrolleando la página), lente `liquid` con la dispersión cromática bajada a 0,15, sin el contador "01 / 08" de las captions. Es el **tercer contexto WebGL** de la home: se monta al acercarse la sección y se desmonta un segundo después de alejarse (la escena y las fibras ya están pausadas ahí). Sin JS o sin WebGL2, la misma tira con scroll horizontal.
+
+**Motivo.** Pedido del usuario: la home es toda 3D y partículas y le faltaba lo humano, lo real. Eligió el Flex Carousel y decidió el lugar (Fabricación, porque las fotos que hay son de la planta y de piezas; `#proceso` es sticky y no tiene un "debajo"), el tercer contexto (antes que rehacer el carrusel en canvas 2D sin la lente) y el color con velo (en vez del blanco y negro con tinte de `PlantPhoto`: lo real se ve a color, y el velo baja la tira a la paleta hasta que se señala una foto).
+
+**Descartado.** Una banda propia entre Proceso y Fabricación (apagaba el punto del menú); generar imágenes con IA como placeholders (un fabricante regulado no muestra una planta que no es la suya; se usan solo fotos reales y se le piden más a Innercare); `hombro-radiografia.jpg` (datos de una paciente a la vista), los renders de planificación (no son fotos) y el molde del espaciador (un bulto blanco sobre blanco).
+
+## 2026-11-01 · Ficha de producto: hero en una pantalla y entradas con AnimatedContent
+
+**Decisión.** La ficha (`app/productos/[slug]/page.tsx`) deja el diseño viejo (visor 4/5 a pantalla entera, `dl` con rayas, cuatro miniaturas, "Otros productos" con una tarjeta huérfana) y pasa al estilo de la landing. Primera pantalla entera en escritorio (`min-h` de 100dvh menos el header, con tope): a la izquierda el eyebrow, el título, la bajada, Material y Técnica como fichas de dato, Indicaciones y Compatibilidad en línea, y los botones; a la derecha la primera foto, más chica (62 % del alto como máximo), sobre un escenario con la luz azul de la marca (`.ficha-escenario`), fundida con `mix-blend-multiply` y máscara radial (`.mini-imagen`, más la desaturación y la máscara más ancha de `.ficha-imagen-hero`). Las demás imágenes van en "Del estudio del paciente al implante", cada una con su `alt` como pie debajo y la frase de `proceso[1]` de `content/customCases.ts`. "Más implantes" son tarjetas enlace (`.tarjeta-enlace`, la sección 6 de `docs/BOTONES.md`): los otros productos y "Volver al recorrido" con `cuerpo-entero.webp`. Las entradas van con `AnimatedContent` de React Bits (`components/animated-content.tsx`, copiado a mano): al montar en el hero (texto escalonado con desenfoque, la foto con escala y desenfoque) y al llegar con el scroll en el resto. Es el primer uso de `gsap` fuera del hero de la home; no suma dependencias.
+
+**Motivo.** Pedido del usuario: la ficha parecía una página de carrito vieja de WordPress, con la imagen demasiado grande y todo lo demás bajo el pliegue; quería algo moderno con entradas animadas y eligió `AnimatedContent`. Las entradas de la ficha son decisión suya, no un "fade-up genérico" (`AJUSTES.md`). El usuario eligió la foto real antes que el implante 3D del recorrido (un contexto WebGL más y un modelo con medidas sin confirmar) y la sección narrativa antes que una galería con miniaturas; la radiografía del hombro se queda hasta que llegue una versión sin datos de paciente.
+
+**Cambios al componente.** Sin ScrollTrigger (el disparo `scroll` es un IntersectionObserver que corre una vez, como en FoldText), sin `scrub`, `wipe`, `tilt`, `rotate` ni desaparición; sin la clase `invisible` (sin JS el contenido se ve; con JS, `.contenido-animado` lo oculta hasta `data-contenido-listo`, que se pone después del `fromTo`); prop `as` porque `stagger` anima los hijos directos; una sola reproducción por montaje (`<Activity>` repite los efectos) y nada con movimiento reducido.
+
+**Descartado.** `ScrollTrigger` y `@gsap/react` (dependencia y plugin nuevos para algo que resuelve un observer); el `::after` con opacidad para la sombra de la tarjeta enlace (tiene borde y en Chrome se pisaba: la sombra se transiciona directa); `ProductGallery` (borrado; `ProductTile` queda para `/productos`).
+
+## 2026-11-01 · Habilitaciones: lectura del registro
+
+**Decisión.** La tabla de `#habilitaciones` se lee una sola vez al llegar con el scroll (`components/home/lectura-habilitaciones.tsx`): una línea de luz baja por la tabla en 1,4 s (la misma idea del corte de luz que recorre el implante activo en el recorrido) y, a su paso, cada fila aparece, su divisoria se dibuja de izquierda a derecha y los dígitos de la referencia se resuelven de izquierda a derecha desde cifras al azar (`components/cifra-generada.tsx`, 40 ms por dígito, en el primario atenuado mientras se cifran). Solo cambian los dígitos: las palabras y las letras quedan quietas y el contenedor va en cifras tabulares, así nada salta de ancho. El título y la bajada entran con `AnimatedContent` (desenfoque que se aclara y 14 px de subida, como los textos del hero); detrás de la tabla, la luz de la marca de `.proceso-luz` se enciende con el scroll (`animation-timeline: view()`, sin JS). Composición del borrador intacta.
+- El HTML del servidor trae los números reales; con JS las filas se ocultan hasta que el componente toma el control (`data-lectura`: `espera`, `leyendo`, `quieta`) y, si el JS no llega, aparecen solas a los 2,5 s. Sin JS, todo visible y quieto.
+- Con movimiento reducido, `quieta`: todo visible, sin barrido ni cifrado. Al volver a la home desde una ficha (`<Activity>` repite los efectos), también `quieta`: no se repite la lectura.
+- Sin dependencias nuevas ni contextos WebGL: un rAF de unos 2 s por lectura y animaciones CSS de `transform` y `opacity`.
+
+**Motivo.** Pedido del usuario: la sección era la única de la home sin una idea de movimiento y se leía como web institucional genérica; quería los números "generándose, como encriptados" y entradas modernas para cada pieza, con el fondo. La lectura del registro cuenta lo que es la sección (un registro que se verifica) y usa el mismo gesto de luz que el recorrido.
+
+**Descartado.** `DecryptedText` de React Bits entero: pide `motion` (12.x) y trae hover, loop y 600 líneas para un efecto que acá son 90; se tomó la idea, como con `TargetCursor` y `LineSidebar`. Cifrar también las letras: Source Sans 3 no es monoespaciada y el texto saltaba de ancho. Un sello por fila al resolverse: se leía como checklist. Fondos animados de React Bits: WebGL2 en una tabla de datos.
+
+## 2026-11-01 · Ficha de producto: malla hexagonal de fondo al cierre
+
+**Decisión.** Desde "Más implantes" hasta el bloque de contacto, la ficha lleva de fondo `ShapeGrid` de React Bits (`components/shape-grid.tsx`, copiado a mano) con celdas hexagonales de 64 px, línea de 1 px en el primario al 10 %, deriva lenta hacia arriba (0,12) y bordes desvanecidos. Bajo el cursor (solo puntero fino) las celdas se encienden con el `primary-container` y un relleno del primario al 6 %, y se apagan en casi un segundo. Sin resplandor ni arcoíris, sin cascada al hacer clic. La entrada de fábrica (la malla se abre desde el centro) se queda: se ve al llegar a la sección, porque fuera de pantalla no corre. Con movimiento reducido, quieta y sin brillo.
+
+**Motivo.** Pedido del usuario: el cierre de la ficha se veía monótono y quería una textura de React Bits que fuera con el tema. La malla hexagonal es la estructura porosa de los implantes impresos en titanio (la base de la glenoesfera del hombro, en la foto de la ficha, es eso), no un adorno genérico. Es el único fondo de React Bits evaluado que dibuja en canvas 2D: no suma contexto WebGL (la ficha no tiene ninguno) y ya se pausaba fuera de pantalla.
+
+**Cambios al componente.** Colores con tokens (resueltos con una sonda sin transición), brillo solo con puntero fino y sin movimiento reducido, cascada apagada por defecto, opciones al motor en un efecto (no durante el render), `aria-hidden`, aserciones para `noUncheckedIndexedAccess` y `idleFps`: mientras solo deriva dibuja a 30 cuadros. Medido en Chrome sin cabeza a 2x y sin tope de cuadros, el tiempo de script con la malla a la vista bajó de 93 % a 11 %; fuera de pantalla, 0,2 %.
+
+**Descartado.** Waves, Threads y FloatingLines (líneas que repetirían las fibras del hero, y son WebGL2), DotGrid, MagnetLines y RippleGrid (WebGL2), `Noise` (grano: no le saca la monotonía), la malla en perspectiva (`tiltX`: más llamativa, pero compite con las tarjetas).
+
+## 2026-11-01 · La malla hexagonal también al cierre de la home
+
+**Decisión.** La home lleva la misma malla de fondo que las fichas, desde Distribución (`#sedes`) hasta el bloque de contacto inclusive. El ajuste pasa a un solo componente, `FondoMalla` (`components/fondo-malla.tsx`), que usan la home y las fichas: pinta el `surface` de la página, aísla el apilamiento y pone la malla entre ese fondo y el contenido. `Locations` deja su `bg-surface` (lo pinta el envoltorio). Es la primera cosa fuera del hero de la home que deriva sola en bucle: la regla de `CLAUDE.md` lo anota como excepción.
+
+**Motivo.** Pedido del usuario, después de verla en la ficha: el cierre de la home también se veía plano. La malla es canvas 2D (no suma a los tres contextos WebGL), se pausa fuera de pantalla y dibuja a 30 cuadros mientras solo deriva; cuando está a la vista, la escena del recorrido y las fibras ya están pausadas y la tira de Fabricación desmontada.
+
+## 2026-11-01 · Distribución: mapa de Argentina en lugar del eje norte-sur
+
+**Decisión.** La pieza de sedes de `#sedes` pasa del eje abstracto del borrador a un mapa de Argentina clásico: contorno con las provincias (relleno `surface-container-lowest`, límites interiores en `outline-variant`, costa en el primario), las cuatro sedes en su latitud y longitud, una ruta que sale de la planta de Alberti (al laboratorio de Caseros y, en curva por el interior, a Comodoro Rivadavia y Caleta Olivia) y, al pasar el mouse, tocar o enfocar una sede, un globo con su miniatura (`PlantPhoto`), su tipo y su dirección, mientras su provincia se tiñe. Composición de la sección intacta (título y bajada a la izquierda, la pieza a la derecha).
+- **Datos.** Natural Earth 10m admin-1 (dominio público), bajado una vez por `scripts/mapa-argentina.mjs` a una caché fuera del repo y convertido a `content/mapa-argentina.ts` (generado, se commitea): topología con `topojson`, simplificación que conserva los límites compartidos, costa y límites interiores como mallas (cada límite una sola vez), 2 600 puntos, 51 KB. El IGN no respondía desde la máquina. Las Malvinas (que Natural Earth trae aparte) se suman a Tierra del Fuego; el sector antártico queda afuera porque el mapa bicontinental no entra en la sección. Proyección transversa de Mercator esférica con meridiano central 64° O (`components/home/mapa-proyeccion.ts`), la familia de los mapas oficiales; la comparten el script y los pines.
+- **Dibujo.** SVG puro, sin canvas ni WebGL: `MapaArgentina` (servidor, los trazados en el HTML y no en el bundle) y `MapaSedes` (cliente: pines, etiquetas, guías medidas con `ResizeObserver`, ruta, provincias teñidas y globos). Las medidas responsive son variables de `.mapa` (`--ancho-lienzo`, `--x-etiquetas`, `--paso`) y una container query para columnas angostas; la sección pasa a dos columnas recién a 1024 px (a 768 las etiquetas no entraban).
+- **Globo.** Cuelga de la etiqueta extrema de su grupo (arriba del par del norte, abajo del par del sur), así nunca tapa una etiqueta ni el mapa; en una columna es una tarjeta horizontal bajo el mapa (arriba está la bajada). Opaco, `rounded-xl`, `--shadow-escena`.
+- **Entrada.** `data-mapa` (`espera`, `dibujando`, `quieto`): la costa se dibuja en 1,4 s, los límites interiores desde los 300 ms, la ruta sale de la planta a los 900 ms y cada pin aparece cuando la ruta lo alcanza (retraso proporcional al largo recorrido). La idea es la de la sección: la distribución sale de la planta. Sin JS, todo visible; con movimiento reducido, `quieto`; al volver a la home, no se repite.
+- **Contenido.** `Sede` suma `longitud` (dato geográfico público, como `latitud`) y `foto`. Sale la latitud en texto de las etiquetas: con el mapa es redundante. Placeholders "Foto pendiente" en `public/img/sedes/` para el laboratorio y las sucursales (no hay fotos); la planta usa `fabricacion-cnc-planta.jpg`.
+
+**Motivo.** Pedido del usuario: quería "el típico contorno con provincias" con los puntos de las sucursales, un conector entre ellas y una miniatura flotante al pasar el mouse, con buen efecto de entrada. La malla hexagonal de fondo se queda (`.mapa-fondo` la atenúa bajo la silueta); el usuario autorizó quitarla si molestaba y no hizo falta.
+
+**Descartado.** Trama de puntos (silueta de puntos, como las partículas del recorrido): el usuario prefirió el contorno. Globo anclado al pin: con dos pares de sedes a 6 y 9 px se pisaban. Tooltip con posicionamiento por anclas CSS: todavía no está en Firefox. Equirectangular: ensanchaba Tierra del Fuego un tercio. Mapa bicontinental: demasiado alto para la sección.
+
+## 2026-11-01 · Malla hexagonal: el desvanecido de abajo, hasta el footer
+
+**Decisión.** `ShapeGrid` suma `fadeBottom` (un largo de CSS) que reemplaza el desvanecido del borde de abajo; `FondoMalla` lo pone en 3 rem. Los costados y el borde de arriba siguen en proporción a la caja (`fade` 0,6, unos 210 px de alto).
+
+**Motivo.** Pedido del usuario: abajo del bloque "¿Tenés un caso para resolver?" la malla casi no se veía, porque el desvanecido de abajo medía unos 210 px y entre el bloque y el footer hay 117. Los costados quedan como estaban porque mantienen los márgenes. Vale para la home y las fichas.
+
+## 2026-11-01 · Distribución: entrada por pasos, radar, luz y card junto al pin
+
+**Decisión.** Segunda pasada sobre el mapa de Distribución, pedida por el usuario.
+- **Título y bajada** entran palabra por palabra con un desenfoque que se aclara y una subida corta (`AnimatedContent`, que ahora admite `as="h2"` y `as="p"`; cada palabra es un hijo `inline-block`). La bajada arranca 350 ms después.
+- **Sin difuminado alrededor del mapa:** sale `.mapa-fondo` (el halo en `surface` que atenuaba la malla). Para que la línea se lea sobre la malla, una **luz recorre la línea** de norte a sur: un guion corto en `surface-tint` con un halo ancho y tenue (sin `filter`, que Safari no aplica a trazos de SVG), en bucle de 5 s: baja de Caseros a Caleta Olivia, se detiene un instante y sube de nuevo antes de reiniciar (pedido del usuario: ida y vuelta da más sensación de conexión que bajar siempre).
+- **Orden de la entrada:** primero el mapa (costa, límites y provincias), después los pines de a uno de norte a sur (cada 220 ms desde 1 s), después la **línea tramo por tramo**: Caseros, Alberti, Comodoro Rivadavia y Caleta Olivia, cada tramo en proporción a su largo y arqueado hacia el oeste. La línea deja de salir de la planta: ahora es una cadena 1, 2, 3, 4.
+- **Radar en los pines:** dos ondas que se abren a 4,2 veces y se apagan, desfasadas 1,2 s. Radar y luz son bucles: se pausan fuera de pantalla y no corren con movimiento reducido.
+- **Card a la derecha del pin**, centrada en su altura y con una punta hacia él, en escritorio y en el celular. Puede tapar etiquetas: lo que importa es que se vea siempre junto al punto.
+- **Trazos sin `vector-effect: non-scaling-stroke`:** con él, Chrome medía los guiones en píxeles y el dibujo con `pathLength` no se veía (la línea aparecía entera de entrada). El grosor en pantalla se mantiene con `--trazo`, la escala del viewBox, que mide el componente.
+- **Malla de fondo:** sigue hasta la línea del footer (2,5 rem más allá del envoltorio) y se desvanece en 3 rem, para que el bloque de contacto quede centrado en ella.
+
+**Descartado.** El globo colgado de la etiqueta extrema de cada par (versión anterior): el usuario lo quiere junto al punto. Un `drop-shadow` para el brillo de la luz: no anda en Safari.
+
+## 2026-11-01 · Celular: barra flotante y menú desplegable animado
+
+**Decisión.** La barra del celular pasa a ser una píldora de vidrio flotante como la de escritorio (`NavGlass`, 56 px de alto a 12 px de los bordes, 8 px del techo; el header sigue midiendo 64 px), algo más transparente (`backgroundOpacity` 0,25 contra 0,4 de escritorio). Sale `.barra-movil` (transparente arriba y esmerilada con el scroll). El menú es un panel flotante debajo de la píldora: se despliega hacia abajo con un recorte (480 ms), los enlaces entran de a uno (55 ms entre cada uno) y "Plantear un caso" llega al final con `--spring-bouncy` (un rebote chico: se pasa unos 2 px y un 2 % de escala). Al cerrar, todo sale en orden inverso, primero el botón, y el panel se pliega hacia arriba en 620 ms, más despacio que al abrir. Tocar fuera del panel también lo cierra.
+
+**Motivo.** Pedido del usuario: la barra móvil no era la convencional y el menú aparecía de golpe.
+
+**Descartado.** El panel con `NavGlass`: en Chrome el vidrio refractivo dejaba leer el titular del hero a través de los enlaces y lo espejaba en el borde de arriba. Queda esmerilado al 90 % de `surface`, opaco con `prefers-reduced-transparency`. Animar un envoltorio del panel: la opacidad o el recorte de un ancestro le quitan al `backdrop-filter` lo que hay detrás; se anima el panel mismo.
+
+## 2026-11-01 · Celular: la cabeza del hero, más alta y a la vista
+
+**Decisión.** En la toma del hero del celular la cabeza pasa del ancla [0,5, 1,092] (debajo de la primera pantalla: solo asomaba la coronilla) a [0,58, 0,8]: en 390 × 844 se ven la cara y el cuello debajo del texto. Para hacerle lugar, el texto del hero se compacta por debajo de 768 px: 24 px arriba del título en vez de 48, márgenes de 16 y 24 px, y los dos botones en una sola fila, de 48 px de alto y texto de 15 px (en pantallas más angostas pasan a dos filas). Durante el desliz (0,4 pantallas) el texto sigue subiendo entero y la cabeza va hasta el encuadre de antes al final del desliz, [0,5, 0,692]: desde ahí el recorrido no cambia y el respaldo sin WebGL (capturado en ese encuadre) sirve igual, corrido a 49dvh y al 58 % del ancho.
+
+**Motivo.** Pedido del usuario: en el celular solo se veía la punta de la cabeza; quería la cara y algo del cuello, con libertad para subir o achicar los botones y correr la cabeza a la derecha (la cara mira a la derecha, así que no se corta).
+
+**Descartado.** Que la cabeza suba lo mismo que el texto: al final del desliz quedaba al 40 % del alto y asomaba el corte plano bajo los hombros (`corteY`, 1,22 m). Achicar la cabeza: cambiaba el busto que le gusta al usuario.
+
+**Pendiente.** En pantallas bajas (375 × 667) la coronilla queda detrás de la línea ANMAT y del aviso de deslizar; se leen, pero conviene mirarlo en un celular real.
+
+## 2026-11-01 · Fabricación: la pieza final es un render de los modelos del recorrido
+
+**Decisión.** Las dos animaciones de `#fabricacion` (la fresa que talla el bloque, la pieza que se imprime capa por capa) se quedan como están, pero rematan en **la pieza real**: un render en Cycles de la misma malla del recorrido 3D (`implante_femur` para el CNC, `implante_acetabulo` sin los tornillos del caso para la impresión), con titanio (pulido con cepillado radial para el CNC; gris mate para la impresión), luz de estudio (HDRI de Blender más tres áreas) y sombra de contacto, sobre fondo transparente, en 4:3 como la escena de la tarjeta (`3d/scripts/render-fabricacion.py`, `npm run fabricacion`, `public/img/fabricacion/`). La animación (`components/animaciones/fabricacion.ts`) ya no dibuja la pieza: saca del alfa de la imagen la silueta (alfa casi pleno y no negro, así la sombra queda fuera), el bloque del CNC y las filas del láser, y al final funde la imagen con el reflejo que la cruza. Sobre la pieza terminada las partículas bajan casi a cero (antes, 17 %). La endoprótesis flota (de pie sobre la punta del vástago, la sombra se leía como un apoyo imposible); la copa apoya en el reborde con su sombra. Reemplaza la decisión de la fase 5 de dibujar las formas en 2D "porque las capturas del 3D no permitían muestrear la silueta": el alfa de una imagen se muestrea igual que una máscara dibujada. Las tarjetas van al 90 % del contenedor, alineadas a la izquierda con el título (empezó en 95 % y el usuario pidió más).
+
+**Motivo.** Pedido del usuario: la animación le gusta mucho, pero lo que aparecía al final (formas planas con degradés, hechas en el canvas) se veía "de juguete". Con la misma malla del recorrido, la pieza es la que el visitante ya vio en el cuerpo. El contrato queda abierto: para cambiar la pieza alcanza con reemplazar el WebP (una foto de producto recortada sirve igual).
+
+**Descartado.** Video (no hay filmación de la planta; uno de stock o generado por IA no sería su máquina ni su producto, y pisaría la animación). Foto real hoy (las que hay son de componentes en caja o de 495 px; se pueden pedir a Innercare). 3D en vivo en la tarjeta (un cuarto contexto WebGL, o una `View` del canvas del recorrido, que en esa sección está pausado y fuera de pantalla). El dibujo 2D con más detalle: por más que se afine, no tiene volumen ni reflejos de estudio.
+
+## 2026-11-01 · Fabricación: tarjetas que suben con el puntero y bajada animada
+
+**Decisión.** Las dos tarjetas de Fabricación suben 6 px y ganan una sombra azul de la marca con el puntero encima (400 ms al entrar, 300 ms al salir, como las tarjetas de enlace; sombra en `::after` por opacidad). Con movimiento reducido no suben, solo aparece la sombra. La bajada de la sección entra con `AnimatedContent` con los valores de las fichas (24 px, desenfoque de 6 px), una vez, al llegar con el scroll.
+
+**Motivo.** Pedido del usuario. `docs/BOTONES.md` (sección 6) dice que una tarjeta que no es link no sube; acá el usuario lo pidió explícitamente, y la regla sigue valiendo para el resto.
+
+**Descartado.** Subir 3 px como las tarjetas de enlace: en tarjetas de este tamaño casi no se nota.
+
+## 2026-11-02 · Cierre de contacto: liso, con entrada escalonada y sombra
+
+**Decisión.** La tarjeta del cierre de contacto (home y fichas) pierde la cinta de fibras fija que llevaba en la home y queda lisa, en el primario con su luz. Al llegar con el scroll entra la tarjeta y detrás, de a una, sus cuatro piezas en orden: título, bajada, logo y botón (`AnimatedContent`, sube 24 px y se aclara de un desenfoque de 6 px, 0,15 s entre cada una). Con el puntero encima gana una sombra azul de la marca, sin subir (`.tarjeta-contacto`, en `::after` del envoltorio, porque la tarjeta recorta lo que sale de su borde). `AnimatedContent` suma `targets`, un selector de las piezas que entran, porque el título y el botón van en columnas distintas y no son hijos directos de un mismo bloque.
+
+**Motivo.** Pedido del usuario. Liso "de momento": las imágenes de la cinta (`public/img/cinta-contacto*.webp`) quedan en el repo por si vuelve.
+
+**Descartado.** Un `AnimatedContent` por pieza con demoras: cada uno dispara al cruzar su propio borde, así que el orden dependería de la velocidad del scroll. El desenfoque directo en el logo: el `filter` en línea pisaba el que lo pasa a blanco y se veía azul durante la entrada; anima un envoltorio.
+
+## 2026-11-02 · Celular: el aviso de deslizar junto al cuello y la cabeza a la derecha
+
+**Decisión.** En la toma del hero del celular la cabeza pasa del ancla [0,58, 0,8] a [0,62, 0,74]: más arriba y más a la derecha, con la cara, el cuello y el arranque de los hombros a la vista (en 390 × 844 cae a 625 px). El aviso "Deslizá para recorrer el cuerpo" sale del flujo del texto: va a la izquierda del cuerpo, en dos líneas, centrado en la altura del cuello (1,45 m, unos 3 cm bajo el mentón; `CUELLO_BAJO_ANCLA` en `camara.ts`). Como sube con el texto y la cabeza sube menos, se apaga en el primer tercio del desliz (`--desliz-t`, de `tour-scroll.tsx`). En las pantallas bajas la cabeza baja lo justo para que la coronilla quede debajo del texto, hasta 0,8 (`anclaHeroCelular`): `tour-scroll.tsx` mide el pie de la línea de habilitaciones (`data-pie-hero`) con un ResizeObserver y lo deja en `estadoRecorrido.anclaHero` (la cámara) y en `--ancla-hero` (el aviso y la captura sin WebGL). Sin JS, el ancla de las pantallas altas (74dvh). El final del desliz no cambia ([0,5, 0,692]), así que el recorrido y la captura de respaldo siguen igual.
+
+**Motivo.** Pedido del usuario, con capturas marcadas: el aviso en el hueco a la izquierda del cuello y la cara más arriba y a la derecha, para que se vea más cuerpo y el texto tenga lugar.
+
+**Descartado.** Ubicar el aviso con un valor fijo en dvh: en las pantallas bajas la cabeza va más abajo y el aviso quedaba sobre la cara. Dejar la cabeza en 0,74 en todas las pantallas: en 375 × 667 quedaba detrás de los botones y de la línea ANMAT.
+
+**Pendiente.** En 375 × 667 la cabeza queda en 0,8, como antes, y la coronilla sigue detrás de la línea ANMAT. Entre 768 y 819 px el aviso queda abajo a la izquierda, como en escritorio.
+
 ## Pendientes abiertos
 
 - ~~**Respaldo del 3D sin WebGL.**~~ Resuelto el 2026-10-29 con el prototipo de cabeza: se comprueba el contexto antes de montar el canvas, que va dentro de un límite de errores, y sin WebGL queda la imagen fija (`public/img/cuerpo-inicio.webp`).

@@ -124,9 +124,12 @@ export const sedePrincipal: Sede = {
   calle: 'Aráoz de Lamadrid 2741',
   localidad: 'B1678EEC Caseros',
   latitud: -34.61,
+  longitud: -58.56,
   provincia: 'Provincia de Buenos Aires',
   phones: telefonosLaboratorio,
   principal: true,
+  // [pendiente: foto real del laboratorio; reemplazar el archivo]
+  foto: { src: '/img/sedes/laboratorio.webp', alt: 'Laboratorio de Innercare en Caseros' },
 }
 
 export const sedes: readonly Sede[] = [
@@ -137,8 +140,13 @@ export const sedes: readonly Sede[] = [
     calle: 'Av. Arquímedes Hernández 192, Parque Industrial N° 1',
     localidad: 'Alberti',
     latitud: -35.03,
+    longitud: -60.28,
     provincia: 'Provincia de Buenos Aires',
     phones: [],
+    foto: {
+      src: '/img/fabricacion-cnc-planta.jpg',
+      alt: 'Centros de mecanizado CNC en la planta industrial de Alberti',
+    },
   },
   {
     id: 'caleta-olivia',
@@ -146,8 +154,11 @@ export const sedes: readonly Sede[] = [
     calle: 'Av. Eva Perón 665',
     localidad: 'Caleta Olivia',
     latitud: -46.44,
+    longitud: -67.52,
     provincia: 'Provincia de Santa Cruz',
     phones: [],
+    // [pendiente: foto real de la sucursal; reemplazar el archivo]
+    foto: { src: '/img/sedes/caleta-olivia.webp', alt: 'Sucursal de Innercare en Caleta Olivia' },
   },
   {
     id: 'comodoro',
@@ -155,8 +166,11 @@ export const sedes: readonly Sede[] = [
     calle: 'Viamonte 275',
     localidad: 'Comodoro Rivadavia',
     latitud: -45.86,
+    longitud: -67.48,
     provincia: 'Provincia de Chubut',
     phones: [],
+    // [pendiente: foto real de la sucursal; reemplazar el archivo]
+    foto: { src: '/img/sedes/comodoro.webp', alt: 'Sucursal de Innercare en Comodoro Rivadavia' },
   },
 ]
 

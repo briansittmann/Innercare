@@ -109,14 +109,19 @@ export const HUESOS_BUSTO = new Set([
 // Titanio de la craneoplastía en el busto: dentro del vidrio, refractado
 export const TITANIO_HERO = { color: '#9aa1aa', metalness: 1, roughness: 0.5 }
 
-// Corte del busto de antes: la piel a 1,33 m y las vértebras con el
-// centro por debajo de 1,35 m. En el cuerpo entero se hace con un
-// desvanecido por altura: debajo de `corte` todo es transparente y en los
-// `banda` metros de arriba vuelve a ser opaco. En la toma del hero la banda
-// es casi nula (el corte del busto es recto); con el scroll, el corte baja y
-// la banda se ensancha para revelar el cuerpo.
-export const CORTE_PIEL = 1.33
-export const CORTE_HUESO = 1.35
+// Corte del hero: el cuerpo no se ve cortado nunca, sigue más allá del borde
+// de abajo de la pantalla (un cuerpo gigante, no un busto). El busto de antes
+// se cortaba a 1,33 m, y en el giro (la entrada desde 117° y el vaivén hasta
+// 22°) asomaba el hombro del lado lejano: en la toma del hero llega a verse
+// piel desde 1,286 m (vaivén de frente, escritorio y celular, medido sobre la
+// malla). El corte va a 1,22 m, con 6 cm de margen; 3d/scripts/partir.mjs
+// parte la piel y la columna a la misma altura, así el hero carga lo que
+// llega hasta ahí. Se hace con un desvanecido por altura: debajo de `corte`
+// todo es transparente y en los `banda` metros de arriba vuelve a ser opaco.
+// En la toma del hero la banda es casi nula; con el scroll, el corte baja y la
+// banda se ensancha para revelar el cuerpo.
+export const CORTE_PIEL = 1.22
+export const CORTE_HUESO = 1.22
 
 export type UniformesCorte = {
   corteY: { value: number }

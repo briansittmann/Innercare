@@ -102,9 +102,14 @@ export const giroVaiven = (t: number) =>
 // arriba de todo, medido sobre el hero de antes:
 // - Escritorio (1440 × 900): la caja del 3D del hero ocupaba todo el alto y
 //   la cabeza caía a 1066 px (ancla 0,740).
-// - Celular (390 × 844): la caja del 3D empezaba a 660 px y la cabeza caía a
-//   922 px, debajo de la primera pantalla (ancla 1,092): con scroll 0 se ve
-//   la coronilla, y con el desliz (deslizHero) sube hasta el busto entero.
+// - Celular (390 × 844): la cabeza cae a 625 px y hacia la derecha (ancla
+//   [0,62, 0,74]), debajo del texto, con la cara, el cuello y el arranque de
+//   los hombros a la vista (en las pantallas bajas, algo más abajo:
+//   anclaHeroCelular); a su izquierda, a la altura del cuello, el aviso de
+//   deslizar (CUELLO_BAJO_ANCLA). Con el desliz (deslizHero) va al busto
+//   entero (ANCLA_FIN_DESLIZ). En el hero de antes caía a 922 px (ancla
+//   1,092) y solo asomaba la coronilla; subió a pedido del usuario, con el
+//   texto del hero más compacto en el celular.
 // - Estiramiento: la cámara del busto tomaba el aspecto del canvas antes de
 //   correr la figura con setViewOffset (R3F lo fija al crearla y después
 //   `manual` lo congela), así que la imagen salía estirada a lo ancho en
@@ -115,8 +120,29 @@ export const HERO: Clave = {
   azimut: -GIRO_PERFIL,
   elevacion: Math.atan2(HERO_ALTURA_CAMARA, HERO_DISTANCIA),
   escritorio: { ancla: [0.7404, 0.5], alto: ALTO_HERO, estiramiento: 1.11, distancia: DISTANCIA_HERO },
-  celular: { ancla: [0.5, 1.092], alto: (ALTO_HERO * 844) / 523, estiramiento: 1, distancia: DISTANCIA_HERO },
+  celular: { ancla: [0.62, 0.74], alto: (ALTO_HERO * 844) / 523, estiramiento: 1, distancia: DISTANCIA_HERO },
 }
+
+// Celular: en las pantallas bajas, la cabeza baja lo justo para que la
+// coronilla (0,14 m sobre el objetivo) quede debajo del texto del hero, hasta
+// el ancla 0,8; en las altas queda en 0,74. `pieTexto` es el pie del texto
+// (la línea de habilitaciones) en px desde arriba de la escena, y `alto`, el
+// de la escena; los mide tour-scroll.tsx. `HERO.celular.alto` son los metros
+// que entran en la pantalla.
+const CORONILLA = 0.14
+const ANCLA_HERO_BAJA = 0.8
+export function anclaHeroCelular(pieTexto: number, alto: number) {
+  const y = HERO.celular.ancla[1]
+  if (pieTexto <= 0 || alto <= 0) return y
+  return clamp(pieTexto / alto + CORONILLA / HERO.celular.alto, y, ANCLA_HERO_BAJA)
+}
+
+// Celular: cuánto más abajo que el objetivo queda el cuello (1,45 m, unos
+// 3 cm bajo el mentón) en la toma del hero, en fracción del alto de la
+// pantalla. El aviso de deslizar va a esa altura, a la izquierda del cuerpo
+// (components/home/hero.tsx).
+const ALTURA_CUELLO = 1.45
+export const CUELLO_BAJO_ANCLA = (HERO.objetivo[1] - ALTURA_CUELLO) / HERO.celular.alto
 
 // Paradas: el implante anclado al 34 % del ancho y la tarjeta a la derecha;
 // en el celular, arriba (25 % del alto) y la tarjeta como hoja inferior.
@@ -189,15 +215,19 @@ function distanciaDe(enc: Encuadre) {
 export type OpcionesCamara = {
   // Celular: cuánto se deslizó la toma del hero (deslizHero), en pantallas
   desliz?: number
+  // Celular: alto del ancla de la toma del hero (anclaHeroCelular)
+  anclaHero?: number | null
 }
 
 // Celular: la toma del hero se desliza como se deslizaba la
 // página del hero de antes. Durante las primeras 0,4 pantallas de scroll el
-// texto, las fibras y el busto suben juntos (a 0,4 se ve el busto entero,
-// ancla 0,692, como en la base con unos 340 px de scroll); recién después la
-// cámara va a la craneoplastía, entre seg 0,4 y 0,9.
+// texto, las fibras y el degradé suben juntos, y el busto sube menos, hasta
+// el busto entero centrado (ANCLA_FIN_DESLIZ, como en la base con unos 340 px
+// de scroll): si subiera con el texto, asomaría el corte bajo los hombros.
+// Recién después la cámara va a la craneoplastía, entre seg 0,4 y 0,9.
 export const DESLIZ_HERO = 0.4
 const FIN_DESLIZ = 0.9
+const ANCLA_FIN_DESLIZ = [0.5, 0.692] as const
 
 export const deslizHero = (seg: number, celular: boolean) =>
   celular ? clamp(seg, 0, DESLIZ_HERO) : 0
@@ -212,11 +242,14 @@ export function segCuerpo(seg: number, celular: boolean) {
 
 function encuadreDe(clave: Clave, ancho: number, opciones?: OpcionesCamara): Encuadre {
   if (ancho >= ANCHO_CELULAR) return clave.escritorio
-  if (clave === HERO && opciones?.desliz) {
-    const [x, y] = clave.celular.ancla
-    return { ...clave.celular, ancla: [x, y - opciones.desliz] }
+  if (clave !== HERO) return clave.celular
+  const [x, y0] = clave.celular.ancla
+  const y = opciones?.anclaHero ?? y0
+  const t = (opciones?.desliz ?? 0) / DESLIZ_HERO
+  return {
+    ...clave.celular,
+    ancla: [lerp(x, ANCLA_FIN_DESLIZ[0], t), lerp(y, ANCLA_FIN_DESLIZ[1], t)],
   }
-  return clave.celular
 }
 
 // Cámara para un punto del recorrido. Entre la toma k y la k + 1 se

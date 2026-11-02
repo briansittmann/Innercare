@@ -183,6 +183,5 @@ Contraste del primario: texto blanco sobre el tono más claro del degradado (`#0
 
 ### Pendiente
 
-- Tarjetas de la sección 6: las de producto (`components/product-tile.tsx`) y las de casos son links enteros y todavía usan su efecto propio (zoom de la foto y flecha que se desplaza).
-- Miniaturas de la galería de producto (`components/product-gallery.tsx`): son botones de imagen con anillo, fuera del sistema por ahora.
+- Tarjetas de la sección 6: implementadas como `.tarjeta-enlace` (`globals.css`) en "Más implantes" de la ficha de producto, con la sombra transicionada en `box-shadow` directo (la tarjeta tiene borde, y el `::after` lo pisaba en Chrome, sección 5). `ProductTile` (`components/product-tile.tsx`, solo en `/productos`, sin enlaces que lleguen) sigue con su efecto propio (zoom de la foto y flecha que se desplaza).
 - PillNav y GlassSurface son de React Bits y tienen sus propios estilos: si se adaptan al sistema, que quede anotado en `docs/DECISIONES.md`.
