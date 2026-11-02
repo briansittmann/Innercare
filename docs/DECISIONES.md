@@ -785,7 +785,7 @@ Rama `cuerpo-unico`. Pedido del usuario, que reabrió el hero con una condición
 
 **Decisión.** La tarjeta del cierre de contacto (home y fichas) pierde la cinta de fibras fija que llevaba en la home y queda lisa, en el primario con su luz. Al llegar con el scroll entra la tarjeta y detrás, de a una, sus cuatro piezas en orden: título, bajada, logo y botón (`AnimatedContent`, sube 24 px y se aclara de un desenfoque de 6 px, 0,15 s entre cada una). Con el puntero encima gana una sombra azul de la marca, sin subir (`.tarjeta-contacto`, en `::after` del envoltorio, porque la tarjeta recorta lo que sale de su borde). `AnimatedContent` suma `targets`, un selector de las piezas que entran, porque el título y el botón van en columnas distintas y no son hijos directos de un mismo bloque.
 
-**Motivo.** Pedido del usuario. Liso "de momento": las imágenes de la cinta (`public/img/cinta-contacto*.webp`) quedan en el repo por si vuelve.
+**Motivo.** Pedido del usuario. Liso "de momento": las imágenes de la cinta (`public/img/cinta-contacto*.webp`) quedan en el repo por si vuelve (se borraron el 2026-11-02; siguen en el historial).
 
 **Descartado.** Un `AnimatedContent` por pieza con demoras: cada uno dispara al cruzar su propio borde, así que el orden dependería de la velocidad del scroll. El desenfoque directo en el logo: el `filter` en línea pisaba el que lo pasa a blanco y se veía azul durante la entrada; anima un envoltorio.
 
@@ -911,3 +911,11 @@ Pedido del usuario: al irse la pantalla de carga, cuando la barra del header se 
 **Ajuste (mismo día, pedido del usuario).** La barra quieta como píldora desde el principio parecía rota. Ahora no aparece hasta que el título terminó de entrar (`INTRO_AT.nav` 2800): la píldora con el logo, a los 350 ms el estirón y los enlaces, a los 1000 ms "Plantear un caso"; en el celular, el fundido de la barra también a los 2800. Fin a los 4500.
 
 **Ajuste (mismo día, pedido del usuario).** Esperar al final del título se hacía largo: la barra entra junto con el título (`INTRO_AT.nav` 1100), en paralelo con el giro del cuerpo pero ya no desde el primer cuadro. Fin a los 4000, como al principio.
+
+## 2026-11-02 · Repositorio más liviano: capturas fuera de git
+
+**Decisión.** Las capturas de verificación y medición del cuerpo único (`docs/landing/cuerpo-unico/**/*.webp` y `*.png`, 905 archivos, unos 60 MB, el 80 % del árbol) dejan de versionarse: `.gitignore` y `git rm --cached`, con las copias locales intactas. Se borran cuatro imágenes de `public/img/` que nada usa (`cinta-contacto.webp`, `cinta-contacto-movil.webp`, `sistema-gestion-casos.jpg`, `caso-espaciador-molde.jpg`). El original de las manos del contacto pasa a `imagenes/` (material fuente local, ya ignorado) y no llegó a subirse: en git va solo `manos.webp`.
+
+**Motivo.** Pedido del usuario: el repositorio pesaba por resultados descartables, no por código. No cambia la velocidad de la página (el visitante descarga solo lo que la página pide, y las imágenes pasan por `next/image`); sí aliviana los clones y los builds. El original de las manos tiene los derechos sin confirmar y el repositorio es público.
+
+**Descartado.** Reescribir el historial para sacar también las capturas viejas (`git filter-repo`): obliga a hacer force push en `main`, `rediseno` y `cuerpo-unico`, que comparten historia, y no cambia nada para el visitante.

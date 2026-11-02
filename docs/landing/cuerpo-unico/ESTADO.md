@@ -2,6 +2,8 @@
 
 Un solo cuerpo de vidrio, del hero al cierre del recorrido, en un solo canvas (rama `cuerpo-unico`, 2026-10-31). Esta carpeta guarda la línea de base, las capturas y las mediciones de las cinco fases y de las dos verificaciones. El plan, las decisiones y el detalle de cada fase están en `docs/landing/BITACORA.md` (entradas "Cuerpo único"), `docs/DECISIONES.md` ("Un solo cuerpo del hero al recorrido") y `docs/ARQUITECTURA_MODELO_3D.md` (sección 3, "Cuerpo único").
 
+**Capturas, solo en local.** Desde el 2026-11-02 las imágenes de esta carpeta (`.webp` y `.png`, unos 60 MB) no se versionan (`.gitignore`): siguen en el disco de quien las generó y en el historial de git hasta el commit `58d29a5`. En git quedan los scripts, las mediciones (`.json`), los textos y las páginas de comparación, que en un clon nuevo se ven sin imágenes hasta regenerarlas con los scripts.
+
 **Cómo verlo:** `git switch cuerpo-unico`, `npm run dev`, http://localhost:3000. Para volver: `git switch rediseno`. Qué mirar primero: la toma hero contra la base (`comparacion.html`), la transición hero → craneoplastía (`fase4/correcciones/transicion/`) y el hero en el celular con su desliz.
 
 ## Veredicto

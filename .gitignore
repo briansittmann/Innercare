@@ -51,3 +51,10 @@ imagenes
 # 3D: modelos de origen pesados e intermedios (ver docs/ARQUITECTURA_MODELO_3D.md)
 /3d/fuentes/
 /3d/salida/
+
+# Capturas de verificación y medición del 3D (docs/landing/cuerpo-unico/):
+# son resultados de los scripts de esa carpeta, se regeneran y pesaban 60 MB.
+# Quedan en local (y en el historial hasta el 2026-11-02); en git van los
+# scripts, las mediciones (.json) y los textos.
+/docs/landing/cuerpo-unico/**/*.webp
+/docs/landing/cuerpo-unico/**/*.png
