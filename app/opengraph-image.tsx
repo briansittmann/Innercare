@@ -58,14 +58,14 @@ export default function Image() {
           fontFamily: 'Source Sans 3',
         }}
       >
-        {/* La cabeza ocupa de x 680 a 1156, con la coronilla a 50 px del
+        {/* La cabeza ocupa de x 600 a 1076, con la coronilla a 50 px del
             borde; el corte de la captura queda fuera, debajo del borde */}
         {/* eslint-disable-next-line jsx-a11y/alt-text */}
         <img
           src={dataUrl(busto)}
           width={BUSTO.ancho}
           height={BUSTO.alto}
-          style={{ position: 'absolute', left: 521, top: -129 }}
+          style={{ position: 'absolute', left: 441, top: -129 }}
         />
         <div
           style={{
