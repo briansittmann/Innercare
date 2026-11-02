@@ -855,6 +855,14 @@ Rama `cuerpo-unico`.
 
 **Descartado.** Dejar la tira montada para siempre: es el tercer contexto WebGL y la regla de rendimiento pide liberarlo.
 
+## 2026-11-02 · La tira de Fabricación, clásica en el celular
+
+**Decisión.** En el celular y las pantallas táctiles (menos de 640 px o puntero grueso) la tira de fotos no monta el Flex Carousel: va la tira clásica que ya era el respaldo, con scroll horizontal nativo y snap. El velo azul pasa a CSS (`mix-blend-mode: color` sobre cada foto) y se aparta de la del centro con `animation-timeline: view(inline)`. En escritorio sigue el Flex Carousel.
+
+**Motivo.** Pedido del usuario: aun después de arreglar el salto del `dvh` (entrada anterior), al pasar por el carrusel el scroll de la página se trababa y subía o bajaba solo. El arrastre del carrusel lo maneja JS con `touch-action: pan-y` y captura del puntero, y en un gesto con algo de horizontal le saca el scroll al navegador. El scroll nativo lo resuelve el navegador, que separa solo el gesto horizontal del vertical. De paso, el celular deja de crear el tercer contexto WebGL.
+
+**Descartado.** Achicar la zona táctil a la franja de las fotos (la otra idea del usuario): la franja ocupa casi toda la caja en el celular, y el conflicto del gesto seguía dentro de ella.
+
 ## Pendientes abiertos
 
 - ~~**Respaldo del 3D sin WebGL.**~~ Resuelto el 2026-10-29 con el prototipo de cabeza: se comprueba el contexto antes de montar el canvas, que va dentro de un límite de errores, y sin WebGL queda la imagen fija (`public/img/cuerpo-inicio.webp`).

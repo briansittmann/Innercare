@@ -2227,12 +2227,51 @@ body {
   }
 }
 
-/* Tira de fotos de la planta (components/home/carrusel-planta.tsx): con JS y
-   WebGL2, el Flex Carousel; si no, el respaldo con scroll horizontal. Los
-   @keyframes son los del componente de React Bits (captions). */
-@media (scripting: enabled) {
+/* Tira de fotos de la planta (components/home/carrusel-planta.tsx): con JS,
+   WebGL2, puntero fino y 640 px o más, el Flex Carousel; si no, la tira
+   clásica con scroll horizontal nativo (el celular y las pantallas táctiles:
+   el arrastre del Flex Carousel peleaba con el scroll de la página). La
+   misma consulta está en TIRA_WEBGL. Los @keyframes flex-carousel-* son los
+   del componente de React Bits (captions). */
+@media (scripting: enabled) and (min-width: 640px) and (pointer: fine) {
   .carrusel-planta:not([data-respaldo]) .carrusel-respaldo {
     display: none;
+  }
+}
+
+/* El velo del Flex Carousel en la tira clásica: cada foto va bajo el azul de
+   la marca (en `color`, que conserva la luz de la foto, como el duotono del
+   shader) salvo la que pasa por el centro, con una línea de tiempo de vista
+   horizontal. Sin soporte, todas en color. */
+.carrusel-foto::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-on-primary-fixed);
+  mix-blend-mode: color;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@supports (animation-timeline: view()) {
+  .carrusel-respaldo > li {
+    view-timeline: --carrusel-foto inline;
+  }
+
+  .carrusel-foto::after {
+    animation: carrusel-velo linear both;
+    animation-timeline: --carrusel-foto;
+  }
+
+  @keyframes carrusel-velo {
+    0%,
+    100% {
+      opacity: 0.92;
+    }
+    40%,
+    60% {
+      opacity: 0;
+    }
   }
 }
 

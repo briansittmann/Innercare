@@ -16,25 +16,26 @@ import type { FotoPlanta } from '@/content/types'
 // con `next/dynamic` sin SSR: `ogl` y el carrusel no entran en el bundle
 // inicial.
 //
-// El HTML trae siempre el respaldo (la misma tira con scroll horizontal):
-// se ve sin JS (CSS, .carrusel-respaldo) y sin WebGL2 (`data-respaldo`).
+// El HTML trae siempre la tira clásica, con scroll horizontal nativo: se ve
+// sin JS, sin WebGL2 (`data-respaldo`) y en el celular y las pantallas
+// táctiles (CSS, .carrusel-respaldo). Ahí el Flex Carousel ni se monta: su
+// arrastre peleaba con el scroll de la página y lo trababa (pedido del
+// usuario).
 const FlexCarousel = dynamic(() => import('@/components/flex-carousel'), { ssr: false })
 
 // El velo: --color-on-primary-fixed (#001c39) en RGB 0..1
 const VELO: [number, number, number] = [0, 0.11, 0.224]
 const GRACIA_DESMONTE = 1000
 
-// En pantallas angostas la lente curva las tarjetas de los costados hacia
-// abajo de la del centro, justo donde va su caption. Ahí la curva lleva tope,
-// la caption baja lo que la curva alcanza y la fila sube para que nada se
-// corte contra los bordes de la caja (components/flex-carousel.tsx).
-const ANGOSTA = '(max-width: 639px)'
-const suscribirAngosta = (avisar: () => void) => {
-  const mq = window.matchMedia(ANGOSTA)
+// Dónde va el Flex Carousel: la misma consulta que oculta la tira clásica
+// en globals.css (.carrusel-respaldo)
+const TIRA_WEBGL = '(min-width: 640px) and (pointer: fine)'
+const suscribirTira = (avisar: () => void) => {
+  const mq = window.matchMedia(TIRA_WEBGL)
   mq.addEventListener('change', avisar)
   return () => mq.removeEventListener('change', avisar)
 }
-const esAngosta = () => window.matchMedia(ANGOSTA).matches
+const conTiraWebgl = () => window.matchMedia(TIRA_WEBGL).matches
 
 // WebGL2 se comprueba una sola vez y el contexto de prueba se libera: antes
 // se creaba uno nuevo cada vez que la tira se acercaba y quedaba vivo, y en
@@ -79,7 +80,7 @@ export function CarruselPlanta({ fotos }: { fotos: readonly FotoPlanta[] }) {
   const nodo = useRef<HTMLDivElement>(null)
   const [cerca, setCerca] = useState(false)
   const [respaldo, setRespaldo] = useState(false)
-  const angosta = useSyncExternalStore(suscribirAngosta, esAngosta, () => false)
+  const tiraWebgl = useSyncExternalStore(suscribirTira, conTiraWebgl, () => false)
   const [estiramiento, setEstiramiento] = useState<Estiramiento | null>(null)
 
   useEffect(() => {
@@ -103,6 +104,7 @@ export function CarruselPlanta({ fotos }: { fotos: readonly FotoPlanta[] }) {
           temporizador = window.setTimeout(() => setCerca(false), GRACIA_DESMONTE)
           return
         }
+        if (!conTiraWebgl()) return
         // Recién al acercarse se comprueba WebGL2: sin soporte, queda el
         // respaldo y no se vuelve a montar nada
         if (!hayWebgl2()) {
@@ -121,9 +123,8 @@ export function CarruselPlanta({ fotos }: { fotos: readonly FotoPlanta[] }) {
     }
   }, [])
 
-  // Escritorio: el canvas estirado, con la fila y el tope de la curva
-  // calculados para que la franja de las tarjetas quede igual que sin estirar
-  const estirar = !angosta && estiramiento
+  // El canvas estirado, con la fila y el tope de la curva calculados para que
+  // la franja de las tarjetas quede igual que sin estirar
   let escritorio: {
     estilo: CSSProperties
     cardHeight: number
@@ -131,7 +132,7 @@ export function CarruselPlanta({ fotos }: { fotos: readonly FotoPlanta[] }) {
     maxCurl: number
     hitArea: { top: number; bottom: number }
   } | null = null
-  if (estirar) {
+  if (estiramiento) {
     const { arriba, abajo, alto } = estiramiento
     const total = alto + arriba + abajo
     const tarjeta = alto * ALTO_TARJETA
@@ -158,16 +159,15 @@ export function CarruselPlanta({ fotos }: { fotos: readonly FotoPlanta[] }) {
       data-respaldo={respaldo ? '' : undefined}
       className="carrusel-planta relative h-[26rem] sm:h-[clamp(22rem,44vh,28rem)]"
     >
-      {cerca && !respaldo && (
+      {cerca && tiraWebgl && !respaldo && (
         <FlexCarousel
           items={items}
           preset="liquid"
           dispersion={0.15}
           intro="rise"
-          cardHeight={escritorio ? escritorio.cardHeight : angosta ? 0.54 : ALTO_TARJETA}
-          maxCurl={escritorio ? escritorio.maxCurl : angosta ? 36 : undefined}
-          align={escritorio ? escritorio.align : angosta ? 0.42 : 0.5}
-          captionBelowCurl={angosta}
+          cardHeight={escritorio ? escritorio.cardHeight : ALTO_TARJETA}
+          maxCurl={escritorio?.maxCurl}
+          align={escritorio ? escritorio.align : 0.5}
           hitArea={escritorio?.hitArea}
           style={escritorio?.estilo}
           gap={14}
@@ -183,7 +183,7 @@ export function CarruselPlanta({ fotos }: { fotos: readonly FotoPlanta[] }) {
       <ul className="carrusel-respaldo page-container flex h-full snap-x snap-mandatory gap-[14px] overflow-x-auto overscroll-x-contain pb-[0.5rem]">
         {fotos.map((foto) => (
           <li key={foto.src} className="flex h-full w-[min(78vw,26rem)] shrink-0 snap-center flex-col gap-[0.625rem]">
-            <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl bg-surface-container ring-1 ring-outline-variant/50">
+            <div className="carrusel-foto relative isolate min-h-0 flex-1 overflow-hidden rounded-xl bg-surface-container ring-1 ring-outline-variant/50">
               <Image src={foto.src} alt={foto.alt} fill sizes="(min-width: 640px) 26rem, 78vw" className="object-cover" />
             </div>
             <p className="text-body-sm text-on-surface">
