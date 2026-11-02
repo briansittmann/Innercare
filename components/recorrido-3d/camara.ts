@@ -180,10 +180,11 @@ export const ORDEN_PARADAS: readonly ParadaId[] = [
 
 export const TRAMOS = ORDEN_PARADAS.length + 1
 
-// Cierre: una pantalla más de scroll con el cuerpo entero quieto (seg se
-// queda en TRAMOS), para que el final no se pase de largo. El contenedor
-// mide TRAMOS + PAUSA_CIERRE + 1 pantallas (tour-scroll.tsx).
-export const PAUSA_CIERRE = 1
+// Cierre: 0,7 pantallas más de scroll con el cuerpo entero quieto (seg se
+// queda en TRAMOS), para que el final no se pase de largo. Con una pantalla
+// entera frenaba de más (pedido del usuario). El contenedor mide
+// TRAMOS + PAUSA_CIERRE + 1 pantallas (tour-scroll.tsx).
+export const PAUSA_CIERRE = 0.7
 
 // Progreso p (0 a 1) del contenedor a seg
 export const segDe = (p: number) => Math.min(TRAMOS, clamp(p) * (TRAMOS + PAUSA_CIERRE))
