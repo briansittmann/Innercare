@@ -6,17 +6,8 @@ import { INTRO_AT } from '@/components/intro-timeline'
 import { contactHref, contactLabel } from '@/components/nav-links'
 import { CUELLO_BAJO_ANCLA } from '@/components/recorrido-3d/camara'
 import { habilitacionesResumen, tagline } from '@/content/company'
-import { HeroFibers, HeroTitle } from './hero-intro'
-
-// Ubicación de cada cinta de fibras: [desplazamiento, profundidad, pendiente,
-// fase]. La principal es la de fábrica. La segunda, más atrás (misma
-// profundidad que la de fábrica), entra por arriba a la altura de la barra,
-// pasa por encima de la cabeza y sale por la derecha a un 44 % del alto. Hoy
-// se dibuja solo la principal (layers={1}): la segunda queda por si vuelve.
-const FIBER_PLACEMENTS = [
-  [0, 0, 0, 0],
-  [2.1, -4.6, 0.29, 2.4],
-]
+import { FibrasEscena } from './fibras-escena'
+import { HeroTitle } from './hero-intro'
 
 // Retraso de cada pieza en la entrada (.intro-in en globals.css)
 const introAt = (ms: number) => ({ '--intro-at': `${ms}ms` }) as CSSProperties
@@ -38,27 +29,13 @@ const introAt = (ms: number) => ({ '--intro-at': `${ms}ms` }) as CSSProperties
 // viñeta, grano ni partículas, para que el degradé se siga leyendo igual.
 // Con el mouse encima, la cámara se inclina hacia él con un resorte y se
 // enfoca el tramo que queda bajo el puntero (los eventos se escuchan en
-// window: el contenedor no los recibe).
+// window: el contenedor no los recibe). La misma cinta vuelve en el cierre
+// del recorrido, detrás del cuerpo entero y con otra diagonal: los ajustes
+// de las dos tomas están en fibras-escena.tsx.
 export function HeroFondo() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0">
-      <HeroFibers
-        lightMode
-        glowColor="#003c6f"
-        secondaryColor="#2260a1"
-        lineColor="#ffffff"
-        rotation={-39}
-        fiberStyle="strands"
-        threads={96}
-        layers={1}
-        placements={FIBER_PLACEMENTS}
-        depthOfField={0.3}
-        brightness={0.75}
-        particles={0.3}
-        sparkle={0.6}
-        grain={0}
-        vignette={0}
-      />
+      <FibrasEscena />
     </div>
   )
 }
@@ -131,13 +108,13 @@ export function HeroTexto() {
 // centrado en la altura del cuello (el ancla de la toma, --ancla-hero de
 // tour-scroll.tsx, más CUELLO_BAJO_ANCLA de camara.ts), en dos líneas: es el
 // hueco que deja la cabeza corrida a la derecha. Sin JS, con el ancla de las
-// pantallas altas (74 % del alto, en dvh como la escena fija). Al empezar a
+// pantallas altas (77 % del alto, en dvh como la escena fija). Al empezar a
 // deslizar se apaga (--desliz-t). En los dos, el riel a la izquierda.
 function ScrollCue() {
   return (
     <p
       aria-hidden
-      className="intro-in aviso-deslizar absolute top-[calc(var(--ancla-hero,74dvh)+var(--cuello)-1.25rem)] left-[clamp(1rem,4vw,1.5rem)] flex max-w-[10rem] flex-row-reverse items-center gap-md text-balance text-body-sm text-on-surface-variant md:top-auto md:bottom-lg md:left-0 md:max-w-none"
+      className="intro-in aviso-deslizar absolute top-[calc(var(--ancla-hero,77dvh)+var(--cuello)-1.25rem)] left-[clamp(1rem,4vw,1.5rem)] flex max-w-[10rem] flex-row-reverse items-center gap-md text-balance text-body-sm text-on-surface-variant md:top-auto md:bottom-lg md:left-0 md:max-w-none"
       style={{ ...introAt(INTRO_AT.scrollCue), '--cuello': `${(CUELLO_BAJO_ANCLA * 100).toFixed(2)}dvh` } as CSSProperties}
     >
       Deslizá para recorrer el cuerpo

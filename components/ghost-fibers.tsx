@@ -14,6 +14,10 @@
 //   `dashes` y `lines`.
 // - La prop `introStart`: mientras sea false, la intro espera en su comienzo
 //   (sin fibras), para arrancarla con la entrada de la home.
+// - La prop `introKey`: cuando cambia, la intro vuelve a correr desde el
+//   principio (la cinta vuelve a crecer desde su comienzo).
+// - `ribbonScreenPoint`: dónde cae en pantalla el centro de una cinta, con la
+//   misma cámara, para ubicar una cinta por donde tiene que pasar.
 // WebGL2 propio, sin dependencias. Con `prefers-reduced-motion` dibuja un
 // cuadro fijo, sin intro ni interacción.
 // La regla desactivada marca el ref con los ajustes actuales, que se lee en el
@@ -63,6 +67,7 @@ export interface GhostFibersProps extends HTMLAttributes<HTMLDivElement> {
   pulseOnClick?: boolean;
   intro?: boolean;
   introStart?: boolean;
+  introKey?: string | number;
   lightMode?: boolean;
   paused?: boolean;
   dpr?: number;
@@ -678,6 +683,32 @@ const applyMat3 = (m: number[], v: number[]) => [
   m[2]! * v[0]! + m[5]! * v[1]! + m[8]! * v[2]!
 ];
 
+const PITCH = 0.12;
+
+// Punto del centro de la cinta `place` ([desplazamiento, profundidad,
+// pendiente, fase]) en s (-0,5 a 0,5), en píxeles desde arriba a la
+// izquierda de un contenedor de width × height, con la cámara en reposo
+// (sin mouse) y sin ondas. Misma matemática que cameraFor y screenOf.
+export function ribbonScreenPoint(
+  width: number,
+  height: number,
+  settings: { rotation: number; perspective?: number; scale?: number },
+  place: number[],
+  s: number
+) {
+  const fit = clamp(width / height / 1.5, 0.6, 1);
+  const scale = clamp(settings.scale ?? 1, 0.3, 3) * fit;
+  const x = s * RIBBON_LENGTH;
+  const local = [x * scale, (place[0]! + x * place[2]!) * scale, place[1]! * scale];
+  const orient = orientation((settings.perspective ?? 0.65) * 0.85, PITCH, settings.rotation * DEG);
+  const world = applyMat3(orient, local);
+  const m = multiply(frustum(FOV, width / Math.max(height, 1), 0.1, 60), [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -CAMERA, 1]);
+  const cx = m[0]! * world[0]! + m[4]! * world[1]! + m[8]! * world[2]! + m[12]!;
+  const cy = m[1]! * world[0]! + m[5]! * world[1]! + m[9]! * world[2]! + m[13]!;
+  const w = m[3]! * world[0]! + m[7]! * world[1]! + m[11]! * world[2]! + m[15]!;
+  return { x: ((cx / w) * 0.5 + 0.5) * width, y: (0.5 - (cy / w) * 0.5) * height };
+}
+
 const GhostFibers = ({
   glowColor = '#8b5cf6',
   lineColor,
@@ -714,6 +745,7 @@ const GhostFibers = ({
   pulseOnClick = true,
   intro = true,
   introStart = true,
+  introKey,
   lightMode = false,
   paused = false,
   dpr,
@@ -723,6 +755,7 @@ const GhostFibers = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wakeRef = useRef<(() => void) | null>(null);
+  const restartRef = useRef<(() => void) | null>(null);
   const settings: Settings = {
     glowColor: String(glowColor),
     lineColor: lineColor ? String(lineColor) : '',
@@ -878,7 +911,7 @@ const GhostFibers = ({
       const eye = [0, 0, CAMERA];
       const projection = frustum(FOV, aspect, 0.1, 60);
       const view = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -eye[0]!, -eye[1]!, -eye[2]!, 1];
-      const orient = orientation(s.perspective * 0.85 + state.look.x * 0.22, 0.12 - state.look.y * 0.14, s.rotation);
+      const orient = orientation(s.perspective * 0.85 + state.look.x * 0.22, PITCH - state.look.y * 0.14, s.rotation);
       return { eye, viewProj: multiply(projection, view), orient };
     };
 
@@ -1212,11 +1245,17 @@ const GhostFibers = ({
       if (!raf) render();
       wake();
     };
+    restartRef.current = () => {
+      state.intro = 0;
+      last = 0;
+      wake();
+    };
 
     return () => {
       alive = false;
       cancelAnimationFrame(raf);
       wakeRef.current = null;
+      restartRef.current = null;
       resizeObserver.disconnect();
       intersection.disconnect();
       window.removeEventListener('pointermove', onPointerMove);
@@ -1235,6 +1274,14 @@ const GhostFibers = ({
   useEffect(() => {
     wakeRef.current?.();
   });
+
+  // Otra clave de intro: la cinta vuelve a crecer desde el principio
+  const introKeyRef = useRef(introKey);
+  useEffect(() => {
+    if (introKey === introKeyRef.current) return;
+    introKeyRef.current = introKey;
+    restartRef.current?.();
+  }, [introKey]);
 
   const { className = '', ...attributes } = rest;
 

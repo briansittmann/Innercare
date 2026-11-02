@@ -39,16 +39,18 @@ export function Tour() {
         fondo={<HeroFondo />}
         entrada={<HeroTexto />}
         cierre={
-          // Cierre (k = 7): el cuerpo entero y el texto final a la izquierda
+          // Cierre (k = 7): el cuerpo entero y el texto final a la izquierda.
+          // Las piezas (data-entra) entran de a una al llegar; el botón,
+          // último y con rebote (data-rebote), como en el contacto.
           <>
-            <h3 className="max-w-[18ch] text-balance font-display-lg text-display-lg text-on-surface">
+            <h3 data-entra className="max-w-[18ch] text-balance font-display-lg text-display-lg text-on-surface">
               {cierreRecorrido.titulo}
             </h3>
-            <p className="mt-md max-w-[46ch] text-body-lg text-on-surface-variant min-[820px]:mt-lg">
+            <p data-entra className="mt-md max-w-[46ch] text-body-lg text-on-surface-variant min-[820px]:mt-lg">
               {cierreRecorrido.texto}
             </p>
             <div className="mt-lg flex flex-wrap gap-sm min-[820px]:mt-xl">
-              <ContactLink href={contactHref} className="boton boton-primario">
+              <ContactLink href={contactHref} data-entra data-rebote className="boton boton-primario">
                 {contactLabel}
               </ContactLink>
             </div>
@@ -215,7 +217,7 @@ const posterCelular = getImageProps({
 // como el póster del hero de antes: si no, se veía nítida en el primer cuadro
 function VistaHero() {
   return (
-    <div className="intro-3d absolute top-[calc(var(--ancla-hero,74dvh)-31vh)] right-0 h-[62vh] w-full overflow-hidden [--foco:0.62] min-[820px]:top-auto min-[820px]:bottom-0 min-[820px]:aspect-[14/15] min-[820px]:h-[min(100%,80vw)] min-[820px]:w-auto min-[820px]:[--foco:0.555]">
+    <div className="intro-3d absolute top-[calc(var(--ancla-hero,77dvh)-31vh)] right-0 h-[62vh] w-full overflow-hidden [--foco:0.62] min-[820px]:top-auto min-[820px]:bottom-0 min-[820px]:aspect-[14/15] min-[820px]:h-[min(100%,80vw)] min-[820px]:w-auto min-[820px]:[--foco:0.555]">
       <picture>
         <source media="(min-width: 768px)" srcSet={posterEscritorio.srcSet} sizes={posterEscritorio.sizes} />
         <img

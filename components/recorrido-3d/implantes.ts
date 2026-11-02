@@ -30,13 +30,11 @@
 // CAD de Innercare, reemplazan a estos respetando el nombre de malla.
 //
 // Por qué la craneoplastía sigue en su archivo (decidido en la fase 5 del
-// cuerpo único): es la única pieza de la toma del hero. Va en el primer
-// pantallazo, junto a CUERPO.hero (73 KB contra los 313 KB de
-// implantes-recorrido.glb, que se pide después de la intro), y es el mismo
-// archivo, byte por byte, que la paridad del hero verificó contra el busto de
-// antes. Llevarla a implantes-recorrido.glb obligaba a bajar ese archivo
-// entero antes de la intro o a partirlo, y a regenerar los .glb (Blender no
-// es determinista en los booleanos). La escena la lee dos veces del mismo
+// cuerpo único, cuando el hero cargaba solo lo suyo): es el mismo archivo,
+// byte por byte, que la paridad del hero verificó contra el busto de antes, y
+// llevarla a implantes-recorrido.glb obligaba a regenerar los .glb (Blender
+// no es determinista en los booleanos). Hoy los dos archivos se piden a la
+// vez, detrás de la pantalla de carga. La escena la lee dos veces del mismo
 // archivo, que se pide una sola vez: refractada dentro del vidrio en el hero
 // (CraneoHero, escena.tsx) y en la capa de implantes desde la parada 1.
 //
@@ -51,12 +49,12 @@ export const IMPLANTES_GLB = '/modelos/implantes.glb'
 export const IMPLANTES_RECORRIDO_GLB = '/modelos/implantes-recorrido.glb'
 
 // --- El cuerpo (piel y esqueleto) -------------------------------------------
-// Va en dos archivos (3d/scripts/partir.mjs, desde npm run modelos), para
-// que el primer pantallazo pese como el busto:
-// - `hero`: lo que se ve en la toma del hero (CUERPO.mallasHero). Se pide
-//   primero; el hero del cuerpo único carga solo este.
-// - `resto`: todo lo demás. El recorrido carga los dos y busca cada malla
-//   por nombre en cualquiera de ellos.
+// Va en dos archivos (3d/scripts/partir.mjs, desde npm run modelos), de
+// cuando el primer pantallazo cargaba solo el busto; hoy los dos se piden a
+// la vez, detrás de la pantalla de carga, y la escena busca cada malla por
+// nombre en cualquiera de ellos:
+// - `hero`: lo que se ve en la toma del hero (CUERPO.mallasHero).
+// - `resto`: todo lo demás.
 // La piel va partida por altura en tres mallas (CUERPO.piel), con los mismos
 // triángulos, vértices, normales y nodo que la piel entera: la escena las
 // trata como una sola y oculta las que quedan enteras debajo del corte. La

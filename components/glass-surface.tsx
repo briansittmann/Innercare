@@ -11,6 +11,9 @@
 /* eslint-disable react-hooks/exhaustive-deps, react-hooks/refs, react-hooks/set-state-in-effect, react-hooks/immutability */
 import { useEffect, useState, useRef, useId, type CSSProperties, type ReactNode, type RefObject } from 'react';
 
+// Mínimo entre dos regeneraciones del mapa de refracción mientras cambia el tamaño (ms)
+const INTERVALO_MAPA = 160;
+
 export type GlassSurfaceChannel = 'R' | 'G' | 'B';
 
 export type GlassSurfaceRenderer = 'auto' | 'svg' | 'webgl';
@@ -543,18 +546,33 @@ const GlassSurface = ({
     mixBlendMode
   ]);
 
+  // Cambio propio: mientras el tamaño cambia seguido (la barra estirándose
+  // en la entrada de la home, 900 ms), el mapa se regenera como mucho cada
+  // INTERVALO_MAPA ms y una vez más al tamaño final. Regenerarlo en cada
+  // cuadro (un SVG nuevo que el navegador decodifica y rasteriza a la
+  // densidad de la pantalla) frenaba la entrada: el mapa va estirado
+  // (preserveAspectRatio="none"), así que uno de hace unos cuadros se ve igual.
   useEffect(() => {
-    if (!containerRef.current) return;
-
+    const element = containerRef.current;
+    if (!element) return;
+    let ultimo = 0;
+    let pendiente = 0;
+    const aplicar = () => {
+      pendiente = 0;
+      ultimo = performance.now();
+      setBoxSize(`${element.offsetWidth}x${element.offsetHeight}`);
+    };
     const resizeObserver = new ResizeObserver(() => {
-      const element = containerRef.current;
-      if (element) setBoxSize(`${element.offsetWidth}x${element.offsetHeight}`);
+      const falta = INTERVALO_MAPA - (performance.now() - ultimo);
+      if (falta <= 0) aplicar();
+      else if (!pendiente) pendiente = window.setTimeout(aplicar, falta);
     });
 
-    resizeObserver.observe(containerRef.current);
+    resizeObserver.observe(element);
 
     return () => {
       resizeObserver.disconnect();
+      if (pendiente) window.clearTimeout(pendiente);
     };
   }, []);
 

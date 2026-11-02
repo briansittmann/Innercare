@@ -160,7 +160,6 @@ export function CarruselPlanta({ fotos }: { fotos: readonly FotoPlanta[] }) {
           radius={12}
           fit="natural"
           autoplay={false}
-          captureWheel={false}
           veil
           veilColor={VELO}
           ariaLabel="Fotos de la planta y de los implantes"

@@ -22,6 +22,7 @@ import {
   limites,
   lectorMascara,
   leerColor,
+  mascaraDeImagen,
   muestrear,
   rgba,
   type Ctx,
@@ -40,32 +41,6 @@ export const DURACION_FAB = 3800
 const U = 300
 const ALTO_U = 225
 const ESCALA_MASCARA = 2
-
-// Qué píxel de la imagen es pieza: alfa casi pleno y no negro. La sombra de
-// contacto del render es negra con alfa parcial: forma parte de la imagen
-// pero no de la silueta (no se talla ni se imprime).
-const ALFA_PIEZA = 200
-const LUZ_PIEZA = 30
-
-// Máscara blanca con la silueta de la pieza, en unidades a ESCALA_MASCARA,
-// para muestrear con las utilidades de lienzo.ts
-function mascaraDeImagen(imagen: HTMLImageElement) {
-  const c = crearLienzo(U * ESCALA_MASCARA, ALTO_U * ESCALA_MASCARA)
-  const g = c.getContext('2d', { willReadFrequently: true })
-  if (!g) return c
-  g.drawImage(imagen, 0, 0, c.width, c.height)
-  const datos = g.getImageData(0, 0, c.width, c.height)
-  const d = datos.data
-  for (let i = 0; i < d.length; i += 4) {
-    const a = d[i + 3] ?? 0
-    const luz = ((d[i] ?? 0) + (d[i + 1] ?? 0) + (d[i + 2] ?? 0)) / 3
-    const pieza = a > ALFA_PIEZA && luz > LUZ_PIEZA
-    d[i] = d[i + 1] = d[i + 2] = 255
-    d[i + 3] = pieza ? 255 : 0
-  }
-  g.putImageData(datos, 0, 0)
-  return c
-}
 
 type Particula = { x: number; y: number; dentro: boolean; vx: number; borde: boolean }
 
@@ -86,7 +61,8 @@ export class AnimacionFabricacion {
     // La pieza terminada, ya cargada y decodificada (4:3, fondo transparente)
     private readonly imagen: HTMLImageElement,
   ) {
-    const m = mascaraDeImagen(imagen)
+    // La silueta de la pieza (lienzo.ts), en unidades a ESCALA_MASCARA
+    const m = mascaraDeImagen(imagen, U, ALTO_U, ESCALA_MASCARA)
     const b = limites(m, ESCALA_MASCARA)
     this.colores = {
       hueso: leerColor('--color-hueso', '#2260a1'),

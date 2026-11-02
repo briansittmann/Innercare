@@ -7,7 +7,6 @@ import {
   Lightformer,
   MeshTransmissionMaterial,
   PerformanceMonitor,
-  useGLTF,
 } from '@react-three/drei'
 import {
   AdditiveBlending,
@@ -39,12 +38,15 @@ import {
   GIRO_ENTRADA,
   GIRO_PERFIL,
   ORDEN_PARADAS,
+  REARME_ENTRADA_CIERRE,
   SEGUNDOS_ENTRADA,
   SUBIDA_ENTRADA,
+  UMBRAL_ENTRADA_CIERRE,
   camaraPara,
   deslizHero,
   giroVaiven,
   opacidadBase,
+  opacidadCierre,
   pesoHero,
   pesoMaxilar,
   pesoTarjeta,
@@ -67,6 +69,8 @@ import {
 import { estadoRecorrido } from './estado'
 import { CUERPO, IMPLANTES, IMPLANTES_GLB, esPiel, type Implante } from './implantes'
 import { Miniaturas, useArchivosImplantes } from './miniaturas'
+import { useModelo } from './modelos'
+import { completar } from '../carga'
 import { useIntroPhase } from '../intro'
 
 // Escena 3D única de la home: el cuerpo de vidrio entero, del hero al cierre
@@ -81,11 +85,11 @@ import { useIntroPhase } from '../intro'
 // ese aspecto pasa al de las paradas con el peso del hero (pesoHero)
 // mientras la cámara va a la craneoplastía.
 
-// Lo que se ve en el hero (CUERPO.hero) y la craneoplastía se piden al
-// cargar el módulo; el resto del cuerpo y los otros cinco implantes, cuando
-// terminó la entrada de la home (Escena).
-useGLTF.preload(CUERPO.hero, false, true)
-useGLTF.preload(IMPLANTES_GLB, false, true)
+// El chunk de la escena llegó: primera tarea de la pantalla de carga
+// (components/carga.ts). Los .glb se piden en cuanto se monta el canvas
+// (useModelo, con su progreso), todos a la vez: la pantalla de carga espera
+// el cuerpo entero y los seis implantes antes de mostrar la página.
+completar('escena')
 
 // Recorte del hero: mientras se ve
 // la toma del hero entera (peso del hero 1), la escena dibuja solo en la caja
@@ -130,6 +134,15 @@ const INTENSIDAD_BRILLO = 0.2
 const LUZ_BARRIDO = new Color('#5fa2ff')
 const TINTA_PENDIENTE = new Color('#2260a1')
 const DURACION_BARRIDO = 1500 // ms
+// Cierre: al llegar, el barrido corre por los seis implantes de la cabeza a
+// los pies, uno tras otro con este escalón (la entrada del cuerpo entero;
+// el texto entra a la vez, tour-scroll.tsx)
+const ESCALON_BARRIDO_CIERRE = 140 // ms
+// Con el cuerpo entero la línea del barrido queda de unos píxeles: cada
+// implante, además, se enciende y se apaga (brillo y borde de luz) en este
+// tiempo, así la entrada se lee como una luz que baja por el cuerpo
+const DURACION_PULSO_CIERRE = 900 // ms
+const INTENSIDAD_PULSO = 1.6
 const ANCHO_BARRIDO = 0.004 // m: medio ancho de la línea de luz
 const MEZCLA_LINEA = 0.9
 const MEZCLA_PENDIENTE = 0.55
@@ -238,18 +251,13 @@ type PropsCuerpo = {
   fondo: Texture
 }
 
-// El cuerpo sale de dos archivos (CUERPO en implantes.ts): el hero carga solo
-// el suyo; el recorrido, los dos. Cada uno con su useGLTF (la caché es por
-// archivo: pedirlos como lista los volvía a descargar).
-function CuerpoHero(props: PropsCuerpo) {
-  const hero = useGLTF(CUERPO.hero, false, true)
-  const escenas = useMemo(() => [hero.scene], [hero.scene])
-  return <Cuerpo {...props} escenas={escenas} />
-}
-
+// El cuerpo sale de dos archivos (CUERPO en implantes.ts: lo que se ve en el
+// hero y el resto), cada uno con su useModelo (la caché es por archivo:
+// pedirlos como lista los volvía a descargar). Los dos se piden a la vez,
+// detrás de la pantalla de carga.
 function CuerpoEntero(props: PropsCuerpo) {
-  const hero = useGLTF(CUERPO.hero, false, true)
-  const resto = useGLTF(CUERPO.resto, false, true)
+  const hero = useModelo(CUERPO.hero)
+  const resto = useModelo(CUERPO.resto)
   const escenas = useMemo(() => [hero.scene, resto.scene], [hero.scene, resto.scene])
   return <Cuerpo {...props} escenas={escenas} />
 }
@@ -258,9 +266,12 @@ function Cuerpo({ calidad, fondo, escenas }: PropsCuerpo & { escenas: Object3D[]
   const { pieles, huesosCuerpo, topes } = useMemo(() => {
     const mallas = escenas.flatMap(mallasDe)
     const pieles = mallas.filter((m) => esPiel(m.name))
-    // Altura del punto más alto de cada trozo de piel, en el mundo: debajo
-    // del corte, el trozo entero se oculta
-    const topes = new Map(pieles.map((m) => [m.name, new Box3().setFromObject(m).max.y]))
+    // Altura del punto más alto de cada malla (piel y hueso), en el mundo:
+    // debajo del corte, la malla entera se oculta. En el hero quedan solo las
+    // del busto, como antes del cuerpo único (el cuerpo entero ya está
+    // cargado, pero el corte descarta en el fragmento: sin esto, el
+    // esqueleto entero pasaba por el vértice en cada cuadro de la entrada)
+    const topes = new Map(mallas.map((m) => [m.name, new Box3().setFromObject(m).max.y]))
     return { pieles, huesosCuerpo: mallas.filter((m) => !esPiel(m.name)), topes }
   }, [escenas])
   // El buffer del vidrio oculta la piel entera (el grupo de sus trozos); en
@@ -331,7 +342,9 @@ function Cuerpo({ calidad, fondo, escenas }: PropsCuerpo & { escenas: Object3D[]
               ? 1
               : 1 - h
       material.opacity = opacidad * peso
-      malla.visible = material.opacity > 0.002
+      malla.visible =
+        material.opacity > 0.002 &&
+        (nombre === 'hueso_columna_alta' || (topes.get(nombre) ?? Infinity) > corte.hueso.corteY.value)
     }
     for (const [nombre, mb] of bordes.current) {
       // El material del borde es uno solo, compartido por los trozos
@@ -415,7 +428,7 @@ function Cuerpo({ calidad, fondo, escenas }: PropsCuerpo & { escenas: Object3D[]
 const cruceCraneo = (h: number) => MathUtils.smoothstep(h, 0.44, 0.56)
 
 function CraneoHero() {
-  const archivo = useGLTF(IMPLANTES_GLB, false, true)
+  const archivo = useModelo(IMPLANTES_GLB)
   const malla = useMemo(
     () => mallasDe(archivo.scene).find((m) => m.name === 'implante_craneoplastia'),
     [archivo.scene],
@@ -668,13 +681,28 @@ function Implantes() {
   const mallas = useRef<(Mesh | null)[]>([])
   // Barrido de cada pieza: arranca cuando su tarjeta pasa de 0,8 (casi
   // llegando a la parada) y se rearma cuando la tarjeta se va
-  const barridos = useRef(piezas.map(() => ({ armado: true, inicio: -Infinity })))
+  const barridos = useRef(piezas.map(() => ({ armado: true, inicio: -Infinity, pulso: false })))
+  // Entrada del cierre: se dispara una vez cada vez que el cierre aparece
+  const cierreArmado = useRef(true)
   const reticula = useRef<HTMLElement | null>(null)
 
   useFrame(({ camera, size }) => {
     const { seg, reducido } = estadoRecorrido
     const ahora = performance.now()
     const base = opacidadBase(seg, reducido)
+    const cierre = opacidadCierre(seg, reducido)
+    if (cierre > UMBRAL_ENTRADA_CIERRE && cierreArmado.current) {
+      cierreArmado.current = false
+      piezas.forEach(({ implante }, i) => {
+        const barrido = barridos.current[i]
+        if (!barrido) return
+        barrido.armado = false
+        barrido.pulso = true
+        barrido.inicio = ahora + ORDEN_PARADAS.indexOf(implante.parada) * ESCALON_BARRIDO_CIERRE
+      })
+    } else if (cierre < REARME_ENTRADA_CIERRE) {
+      cierreArmado.current = true
+    }
     // En la toma del hero no hay implantes encima del vidrio
     const h = pesoHeroActual()
     const visibles = 1 - h
@@ -713,13 +741,22 @@ function Implantes() {
       if (malla) malla.visible = material.opacity > 0.002
 
       const barrido = barridos.current[i]
+      let pulso = 0
       if (barrido) {
         if (w > 0.8 && barrido.armado) {
           barrido.armado = false
+          barrido.pulso = false
           barrido.inicio = ahora
           llegada = true
         } else if (w < 0.1) {
           barrido.armado = true
+        }
+        // Pulso del cierre: sube y baja una vez con el barrido de la pieza
+        if (barrido.pulso && !reducido) {
+          const tp = MathUtils.clamp((ahora - barrido.inicio) / DURACION_PULSO_CIERRE, 0, 1)
+          pulso = Math.sin(tp * Math.PI) * material.opacity
+          if (tp < 1) barriendo = true
+          material.emissiveIntensity = Math.max(material.emissiveIntensity, INTENSIDAD_PULSO * pulso)
         }
         // Avance (0 a 1) con entrada y salida suaves; la fuerza sube y baja
         // en los extremos para que la banda no aparezca ni corte de golpe
@@ -731,11 +768,13 @@ function Implantes() {
         const avance = t * t * (3 - 2 * t)
         const margen = ANCHO_BARRIDO * 2
         luz.uBarridoY.value = MathUtils.lerp(pieza.caja.max.y + margen, pieza.caja.min.y - margen, avance)
+        // La fuerza va con lo que se ve del implante: en la parada, su
+        // tarjeta (presente); en el cierre, su opacidad de base
         luz.uBarrido.value = corriendo
-          ? Math.min(1, t / 0.12, (1 - t) / 0.12) * presente
+          ? Math.min(1, t / 0.12, (1 - t) / 0.12) * Math.max(presente, material.opacity)
           : 0
       }
-      luz.uBorde.value = presente
+      luz.uBorde.value = Math.max(presente, pulso)
       if (presente > pesoActiva) {
         pesoActiva = presente
         activa = i
@@ -995,36 +1034,22 @@ function Escena({ calidad, alListo }: { calidad: Quality; alListo: () => void })
   }, -2)
   const invalidate = useThree((s) => s.invalidate)
   useLayoutEffect(() => invalidate(), [ancho, alto, invalidate])
-  // El resto del cuerpo y los otros cinco implantes se piden cuando terminó
-  // la entrada de la home: el hero carga solo lo suyo (CUERPO.hero y la
-  // craneoplastía)
-  const resto = useIntroPhase() === 'done'
+  // Todo junto, en un solo Suspense: la pantalla de carga
+  // (components/pantalla-carga.tsx) espera a que el cuerpo entero, los seis
+  // implantes y las miniaturas estén montados y dibujados (Listo) antes de
+  // mostrar la página, así ninguna parada aparece sin su implante.
   return (
     <>
       <CamaraRecorrido />
       <Pasadas />
       <LuzImplantes />
       <Suspense fallback={null}>
-        {!resto ? (
-          <CuerpoHero calidad={calidad} fondo={fondo} />
-        ) : (
-          // Mientras llega el resto del cuerpo (después de la intro), sigue
-          // el del hero: lo que falta queda debajo del corte de la toma hero
-          <Suspense
-            fallback={<CuerpoHero calidad={calidad} fondo={fondo} />}
-          >
-            <CuerpoEntero calidad={calidad} fondo={fondo} />
-          </Suspense>
-        )}
+        <CuerpoEntero calidad={calidad} fondo={fondo} />
         <CraneoHero />
+        <Implantes />
+        <Miniaturas />
         <Listo alListo={alListo} />
       </Suspense>
-      {resto && (
-        <Suspense fallback={null}>
-          <Implantes />
-          <Miniaturas />
-        </Suspense>
-      )}
     </>
   )
 }
@@ -1051,6 +1076,7 @@ export default function EscenaRecorrido({
     MathUtils.clamp(window.devicePixelRatio, DPR_MIN_HERO, DPR_MAX_HERO),
   )
   const [calidadHero, setCalidadHero] = useState<Quality>('media')
+  const fase = useIntroPhase()
   const bajar = () => {
     if (dprHero > DPR_MIN_HERO) setDprHero(Math.max(DPR_MIN_HERO, dprHero - 0.25))
     else setCalidadHero('baja')
@@ -1063,8 +1089,13 @@ export default function EscenaRecorrido({
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
     >
       {/* Mide mientras se ve el hero (vaivén a cada cuadro); con frameloop
-          "demand" y quieto no recibe cuadros */}
-      <PerformanceMonitor onDecline={bajar} />
+          "demand" y quieto no recibe cuadros. Recién cuando la entrada
+          terminó: mientras se carga y durante la entrada los cuadros caen
+          igual (decodificación, compilación, el estirón del header), y
+          reaccionar ahí bajaba la resolución (el canvas se redimensiona) y
+          después la calidad del vidrio (recompila sus programas: medido sin
+          tope, una tarea de 2,8 s) en medio de la entrada: el tirón */}
+      {fase === 'done' && <PerformanceMonitor onDecline={bajar} />}
       <Escena
         calidad={calidadHero === 'baja' ? 'baja' : calidad}
         alListo={alListo}

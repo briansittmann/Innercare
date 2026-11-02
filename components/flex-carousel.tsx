@@ -70,7 +70,6 @@ export interface FlexCarouselProps extends Partial<PresetValues> {
   autoplay?: boolean;
   interval?: number;
   captions?: boolean;
-  captureWheel?: boolean;
   // Tope de la curva de la lente, en px, y altura del centro de la fila (0..1)
   maxCurl?: number;
   align?: number;
@@ -97,7 +96,6 @@ interface Settings extends PresetValues {
   focusOnClick: boolean;
   autoplay: boolean;
   interval: number;
-  captureWheel: boolean;
   maxCurl: number;
   align: number;
   captionBelowCurl: boolean;
@@ -401,7 +399,6 @@ const FlexCarousel = ({
   autoplay = false,
   interval = 4,
   captions = true,
-  captureWheel = true,
   maxCurl = Infinity,
   align = 0.5,
   captionBelowCurl = false,
@@ -454,7 +451,6 @@ const FlexCarousel = ({
       focusOnClick,
       autoplay,
       interval,
-      captureWheel,
       maxCurl,
       align,
       captionBelowCurl,
@@ -563,7 +559,6 @@ const FlexCarousel = ({
     let vel = 0;
     let goal = 0;
     let mode = 'spring';
-    let wheelAt = 0;
     let raf = 0;
     let last = performance.now();
     let visible = true;
@@ -890,13 +885,9 @@ const FlexCarousel = ({
         animating = true;
       }
 
-      if (mode === 'wheel' && now - wheelAt > 150) {
-        goal = snapPoint(m, goal);
-        mode = 'spring';
-      }
       if (!pointer.dragging) {
         const spinning = introState.running && introState.kind === 'spin';
-        const stiffness = spinning ? 9 : mode === 'wheel' ? 80 : 55;
+        const stiffness = spinning ? 9 : 55;
         const damping = 2 * Math.sqrt(stiffness);
         const steps = Math.ceil(dt / (1 / 240));
         const h = dt / steps;
@@ -1179,9 +1170,11 @@ const FlexCarousel = ({
       return [e.clientX - rect.left, e.clientY - rect.top] as const;
     };
 
+    // Con el dedo, el carrusel no se entera de un toque hasta que es un
+    // arrastre horizontal: el dedo que scrollea la página por encima de la
+    // tira no corta la intro, no frena la tira ni revela la foto que pisa.
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== undefined && e.button > 0) return;
-      skipIntro();
       const [x, y] = localPoint(e);
       pointer.down = true;
       pointer.id = e.pointerId;
@@ -1193,6 +1186,8 @@ const FlexCarousel = ({
       pointer.startPos = pos;
       pointer.dragging = false;
       pointer.samples = [{ x, t: performance.now() }];
+      if (pointer.touch) return;
+      skipIntro();
       interactedAt = performance.now();
       if (Math.abs(vel) > 40) {
         goal = pos;
@@ -1204,9 +1199,10 @@ const FlexCarousel = ({
 
     const onPointerMove = (e: PointerEvent) => {
       const [x, y] = localPoint(e);
+      const touch = e.pointerType === 'touch';
       pointer.x = x;
       pointer.y = y;
-      pointer.over = true;
+      if (!touch) pointer.over = true;
       if (pointer.down && e.pointerId === pointer.id) {
         const dx = x - pointer.startX;
         const dy = y - pointer.startY;
@@ -1218,6 +1214,8 @@ const FlexCarousel = ({
           }
           if (Math.abs(dx) > slop) {
             pointer.dragging = true;
+            skipIntro();
+            interactedAt = performance.now();
             pointer.startX = x;
             pointer.startPos = pos;
             closeFocus();
@@ -1238,6 +1236,7 @@ const FlexCarousel = ({
           while (pointer.samples.length > 2 && now - pointer.samples[0]!.t > 100) pointer.samples.shift();
         }
       }
+      if (touch && !pointer.dragging) return;
       dirty = true;
       start();
     };
@@ -1289,8 +1288,11 @@ const FlexCarousel = ({
       start();
     };
 
+    // El navegador cancela el toque cuando se queda con el gesto para
+    // scrollear: si no era un arrastre, la tira sigue como estaba
     const onPointerCancel = () => {
       pointer.down = false;
+      if (!pointer.dragging) return;
       pointer.dragging = false;
       container.removeAttribute('data-dragging');
       const s = settingsRef.current;
@@ -1300,40 +1302,21 @@ const FlexCarousel = ({
       start();
     };
 
-    const onWheel = (e: WheelEvent) => {
-      const s = settingsRef.current;
-      if (!s || e.ctrlKey) return;
-      let dx = e.deltaX;
-      let dy = e.deltaY;
-      if (e.shiftKey && Math.abs(dx) < Math.abs(dy)) {
-        dx = dy;
-        dy = 0;
-      }
-      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? height : 1;
-      const horizontal = Math.abs(dx) > Math.abs(dy);
-      if (!horizontal && !s.captureWheel) return;
-      e.preventDefault();
-      skipIntro();
-      interactedAt = performance.now();
-      if (closeFocus()) return;
-      const delta = Math.max(-120, Math.min(120, (horizontal ? dx : dy) * unit));
-      goal += delta * 1.25;
-      mode = 'wheel';
-      wheelAt = performance.now();
-      start();
-    };
-
+    // Sin rueda: la tira se mueve solo si se la arrastra (o con el teclado,
+    // con el foco en ella). Un listener de rueda no pasivo hacía esperar al
+    // scroll de la página y, si el gesto arrancaba con algo de horizontal,
+    // lo cancelaba entero.
     const onKeyDown = (e: KeyboardEvent) => {
       const s = settingsRef.current;
       if (!s) return;
       const m = metrics(s);
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      if (e.key === 'ArrowRight') {
         e.preventDefault();
         skipIntro();
         closeFocus();
         interactedAt = performance.now();
         step(m, 1);
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
         skipIntro();
         closeFocus();
@@ -1372,7 +1355,6 @@ const FlexCarousel = ({
     container.addEventListener('pointerup', onPointerUp);
     container.addEventListener('pointerleave', onPointerLeave);
     container.addEventListener('pointercancel', onPointerCancel);
-    container.addEventListener('wheel', onWheel, { passive: false });
     container.addEventListener('keydown', onKeyDown);
     container.addEventListener('focus', onFocus);
     container.addEventListener('blur', onBlur);
@@ -1409,7 +1391,6 @@ const FlexCarousel = ({
       container.removeEventListener('pointerup', onPointerUp);
       container.removeEventListener('pointerleave', onPointerLeave);
       container.removeEventListener('pointercancel', onPointerCancel);
-      container.removeEventListener('wheel', onWheel);
       container.removeEventListener('keydown', onKeyDown);
       container.removeEventListener('focus', onFocus);
       container.removeEventListener('blur', onBlur);
@@ -1427,7 +1408,7 @@ const FlexCarousel = ({
   return (
     <div
       ref={containerRef}
-      className={`group relative h-full w-full cursor-grab touch-pan-y select-none overflow-hidden overscroll-contain outline-none [-webkit-tap-highlight-color:transparent] ${hitArea ? 'pointer-events-none' : 'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary'} data-[hover=open]:cursor-zoom-in data-[hover=close]:cursor-zoom-out data-[dragging]:cursor-grabbing ${className}`.trim()}
+      className={`group relative h-full w-full cursor-grab touch-pan-y select-none overflow-hidden outline-none [-webkit-tap-highlight-color:transparent] ${hitArea ? 'pointer-events-none' : 'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary'} data-[hover=open]:cursor-zoom-in data-[hover=close]:cursor-zoom-out data-[dragging]:cursor-grabbing ${className}`.trim()}
       style={
         {
           ...style,

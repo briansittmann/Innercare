@@ -193,6 +193,20 @@ h1,h2,h3{font-variation-settings:"wdth" 88;font-weight:450;letter-spacing:-.03em
 .cta .btn.ghost{background:transparent;color:var(--on-brand);border-color:currentColor;backdrop-filter:none}
 @media (max-width:820px){.cta{grid-template-columns:1fr}.cta-side{align-items:flex-start}}
 
+/* Touch / contact */
+.touch{position:relative;height:280vh}
+.touch-stage{position:sticky;top:0;height:100vh;height:100dvh;overflow:hidden;background:radial-gradient(80% 70% at 50% 50%,#13306B,#071430 72%);color:#fff}
+.touch-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.touch-card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100% - 40px));padding:clamp(28px,4vw,44px);border-radius:28px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 40px 90px -40px rgba(0,0,0,.8);text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px;z-index:2}
+.touch-card h2{font-size:clamp(30px,3.6vw,48px);line-height:1.02;letter-spacing:-.035em;color:#fff}
+.touch-card p{margin:0;color:rgba(255,255,255,.78);max-width:36ch}
+.touch-intro{position:absolute;left:50%;top:38%;transform:translate(-50%,-100%);margin:0;width:min(760px,calc(100% - 40px));text-align:center;font-variation-settings:"wdth" 88;font-weight:430;font-size:clamp(28px,3.6vw,50px);line-height:1.05;letter-spacing:-.035em;color:#fff;text-wrap:balance;z-index:1;pointer-events:none}
+.touch-intro p{margin:0}
+.touch-kicker{display:block;font-variation-settings:"wdth" 100;font-size:clamp(13px,1.1vw,15px);font-weight:560;letter-spacing:.01em;color:#9DB4FF;margin-bottom:14px}
+.touch-card .btn{background:#fff;color:#003C6F;margin-top:6px}
+.touch-card .cta-logo{color:#fff}
+.touch-card .cta-logo{display:flex;align-items:center;gap:12px;font-variation-settings:"wdth" 82;font-weight:620;font-size:26px;letter-spacing:-.02em}
+.touch-card .cta-logo i{width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,rgba(140,165,255,.95) 60%,rgba(255,255,255,.25));box-shadow:0 0 22px rgba(140,165,255,.7)}
 footer{padding:40px clamp(20px,5vw,72px) 48px;color:var(--ink-2);font-size:14.5px}
 footer .wrap{display:flex;flex-wrap:wrap;gap:12px 40px;justify-content:space-between;border-top:1px solid var(--line);padding-top:28px}
 footer strong{color:var(--ink);font-weight:600}
@@ -410,14 +424,14 @@ section[id]{scroll-margin-top:0}
   </div>
 </section>
 
-<section class="sec" id="contacto" aria-labelledby="cta-title">
-  <div class="wrap cta">
-    <div>
+<section class="touch" id="contacto" aria-labelledby="cta-title">
+  <div class="touch-stage">
+    <canvas aria-hidden="true"></canvas>
+    <div class="touch-intro"><span class="touch-kicker">Planificamos, diseñamos, fabricamos.</span><p>Todo empieza con una conversación.</p></div>
+    <div class="touch-card">
+      <span class="cta-logo" role="img" aria-label="Innercare"><i aria-hidden="true"></i>Innercare</span>
       <h2 id="cta-title">¿Tenés un caso para resolver?</h2>
       <p>Enviános los estudios del paciente y coordinamos la planificación quirúrgica junto a tu equipo.</p>
-    </div>
-    <div class="cta-side">
-      <span class="cta-logo" role="img" aria-label="Innercare"><i aria-hidden="true"></i>Innercare</span>
       <a class="btn" href="#" data-soon>Contactar</a>
     </div>
   </div>
@@ -619,7 +633,83 @@ const fabs=[...document.querySelectorAll('.fab')].map(el=>{
 const io=new IntersectionObserver(es=>es.forEach(e=>{const f=fabs.find(x=>x.el===e.target);f.visible=e.isIntersecting;if(e.intersectionRatio>.45&&!f.start)f.start=performance.now();}),{threshold:[0,.45]});
 fabs.forEach(f=>io.observe(f.el));
 
+/* ---------- touch (contact) ---------- */
+const touchSec=document.getElementById('contacto');
+const touchCv=touchSec.querySelector('canvas'),tctx=touchCv.getContext('2d');let TW=0,TH=0;
+const touchCard=touchSec.querySelector('.touch-card'),touchIntro=touchSec.querySelector('.touch-intro');let cardFocus=false;
+touchCard.addEventListener('focusin',()=>cardFocus=true);touchCard.addEventListener('focusout',()=>cardFocus=false);
+function drawHand(g,droop){
+  taper(g,0,150,36,190,140,31);
+  g.beginPath();g.ellipse(232,140,64,42,-.08,0,Math.PI*2);g.fill();
+  taper(g,276,128,13,402,118+droop,8);
+  taper(g,286,150,12,336,166,10.5);taper(g,336,166,10,320,192,8.5);
+  taper(g,278,166,11,318,184,9.5);taper(g,318,184,9,300,204,8);
+  taper(g,262,178,9.5,292,198,8);taper(g,292,198,8,278,212,7);
+  taper(g,246,112,14,302,96,9.5);
+}
+const DROOP=20;
+function handPts(droop){const base=sample(mask(440,260,g=>drawHand(g,droop)),3),out=[];
+  for(const p of base){const a=Math.random()*Math.PI*2,s=.4+Math.random();out.push({...p,k:Math.random(),vx:Math.cos(a)*s,vy:Math.sin(a)*s,ph:Math.random()*6.28});
+    if(p.e&&Math.random()<.6){const b=Math.random()*Math.PI*2,r=3+Math.random()*12;out.push({x:p.x+Math.cos(b)*r,y:p.y+Math.sin(b)*r,e:false,k:Math.random(),vx:Math.cos(a)*s,vy:Math.sin(a)*s,ph:Math.random()*6.28});}}
+  return out;}
+const handL=handPts(DROOP),handR=handPts(0);
+const SPN=700,sphere=[];
+for(let i=0;i<SPN;i++){const y=1-2*(i+.5)/SPN,r=Math.sqrt(1-y*y),th=i*2.39996;sphere.push({x:r*Math.cos(th),y,z:r*Math.sin(th),u:Math.random(),d:Math.random()*.3});}
+function rectPoint(u,x,y,w,h){const P=2*(w+h);let s=u*P;if(s<w)return [x+s,y];s-=w;if(s<h)return [x+w,y+s];s-=h;if(s<w)return [x+w-s,y+h];s-=w;return [x,y+h-s];}
+function drawTouch(q,t){
+  const g=tctx,W=TW,H=TH;g.setTransform(DPR,0,0,DPR,0,0);g.clearRect(0,0,W,H);
+  const o=(reduced||cardFocus)?1:smooth(clamp((q-.74)/.1));
+  touchCard.style.opacity=o.toFixed(3);
+  touchCard.style.transform=`translate(-50%,-50%) translateY(${((1-o)*14).toFixed(1)}px) scale(${(.94+.06*o).toFixed(3)})`;
+  touchCard.style.pointerEvents=o>.5?'auto':'none';
+  const io2=reduced?0:1-smooth(clamp((q-.2)/.14));
+  touchIntro.style.opacity=io2.toFixed(3);
+  if(reduced)return;
+  const cx=W/2,cy=H/2,hs=Math.min(W*.47/410,H*.42/200);
+  touchIntro.style.top=(cy-44*hs-Math.max(40,H*.08))+'px';
+  touchIntro.style.transform=`translate(-50%,-100%) translateY(${((1-io2)*-16).toFixed(1)}px)`;
+  const app=smooth(clamp(q/.45)),open=smooth(clamp((q-.53)/.2));
+  const gap=lerp(W*.32,2.5,app)+open*W*.08;
+  const sway=Math.sin(t*1.3);
+  g.globalCompositeOperation='lighter';
+  const ANG=-.4,ca=Math.cos(ANG),sa0=Math.sin(ANG);
+  const hand=(pts,mirror,tipY,rgb)=>{
+    const alpha=1-open;if(alpha<=.01)return;
+    const sgn=mirror?1:-1,tX=cx+sgn*gap*ca,tY=cy+sgn*gap*sa0;
+    for(const pass of [0,1]){
+      g.fillStyle=`rgba(${rgb},${(pass?.75:.22)*alpha})`;const sz=pass?1.8:1.3;
+      for(const p of pts){if(!!p.e!==!!pass)continue;if(p.x<150&&p.k*150>p.x)continue;
+        let dx=sgn*(410-p.x)*hs,dy=(p.y-tipY)*hs;
+        dx+=p.vx*open*140+Math.sin(t*1.3+p.ph)*1.2;dy+=p.vy*open*140+Math.cos(t*1.1+p.ph)*1.2;
+        g.fillRect(tX+dx*ca-dy*sa0,tY+dx*sa0+dy*ca,sz,sz);}
+    }
+  };
+  hand(handL,false,118+DROOP,'150,175,255');
+  hand(handR,true,118,'215,222,236');
+  const fq=Math.exp(-(((q-.5)/.03)**2));
+  if(fq>.01){const rad=30+260*fq;const fg=g.createRadialGradient(cx,cy,0,cx,cy,rad);fg.addColorStop(0,`rgba(255,255,255,${.95*fq})`);fg.addColorStop(.25,`rgba(170,190,255,${.5*fq})`);fg.addColorStop(1,'rgba(120,150,255,0)');g.fillStyle=fg;g.fillRect(cx-rad,cy-rad,rad*2,rad*2);}
+  const grow=smooth(clamp((q-.47)/.1)),fadeIn=smooth(clamp((q-.47)/.06)),fadeOut=1-smooth(clamp((q-.8)/.08));
+  const sa=fadeIn*fadeOut;
+  if(sa>.01){
+    const sr=grow*Math.min(W,H)*.11,rot=t*.6,cr=Math.cos(rot),sn=Math.sin(rot);
+    const m=smooth(clamp((q-.64)/.14));
+    const cb=touchCard.getBoundingClientRect(),kb=touchCv.getBoundingClientRect();
+    const rx=cb.left-kb.left,ry=cb.top-kb.top;
+    for(const p of sphere){
+      const X=cx+(p.x*cr+p.z*sn)*sr,Y=cy+p.y*sr,zz=-p.x*sn+p.z*cr;
+      const mm=smooth(clamp((m-p.d)/.7));
+      const [tx,ty]=rectPoint(p.u,rx,ry,cb.width,cb.height);
+      const b=lerp(.35+.65*(zz+1)/2,.9,mm);
+      g.fillStyle=`rgba(200,215,255,${(b*sa).toFixed(3)})`;
+      g.fillRect(lerp(X,tx,mm),lerp(Y,ty,mm),1.8,1.8);
+    }
+  }
+  g.globalCompositeOperation='source-over';
+}
+document.querySelectorAll('a[href="#contacto"]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const top=touchSec.getBoundingClientRect().top+scrollY+touchSec.offsetHeight-innerHeight;scrollTo({top,behavior:reduced?'auto':'smooth'});}));
+
 function resize(){
+  ({w:TW,h:TH}=fit(touchCv));
   ({w:SW,h:SHH}=fit(stageCv));({w:PW,h:PH}=fit(procCv));
   cards.forEach(cd=>{const s=fit(cd.cv);cd.cw=s.w;cd.ch=s.h;});
   fabs.forEach(f=>{const s=fit(f.cv);f.w=s.w;f.h=s.h;});
@@ -749,6 +839,8 @@ function frame(now){
   const r2=procWrap.getBoundingClientRect();
   if(r2.bottom>0&&r2.top<vh)drawProcess(clamp(-r2.top/(r2.height-vh)),t);
   fabs.forEach(f=>{if(f.visible)drawFab(f,now);});
+  const r3=touchSec.getBoundingClientRect();
+  if(r3.bottom>0&&r3.top<vh)drawTouch(clamp(-r3.top/(r3.height-vh)),t);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

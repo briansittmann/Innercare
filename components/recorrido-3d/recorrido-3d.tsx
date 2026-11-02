@@ -1,14 +1,16 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { Component, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { getIntroPhase, INTRO_MAX_WAIT, loadedAtHome, startIntro, useIntroPhase } from '../intro'
+import { Component, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { completar, estaCompleta, fallar } from '../carga'
+import { useIntroPhase } from '../intro'
 import { ANCHO_CELULAR } from './camara'
 import { estadoRecorrido } from './estado'
 
 // three.js solo en el navegador y en un bundle aparte. La escena única (el
-// hero y el recorrido) se monta apenas el navegador queda libre: es el 3D
-// del primer pantallazo.
+// hero y el recorrido) se monta de inmediato mientras la pantalla de carga
+// (components/pantalla-carga.tsx) espera por ella; si ya está todo cargado
+// (se vuelve a la home), apenas el navegador queda libre.
 const EscenaRecorrido = dynamic(() => import('./escena'), { ssr: false })
 
 // Resolución acotada: el vidrio del cuerpo entero llena la pantalla en las
@@ -19,7 +21,8 @@ const DPR_ESCRITORIO = 1.5
 const DPR_CELULAR = 1.5
 
 let soporteWebGL: boolean | undefined
-function hayWebGL() {
+export function hayWebGL() {
+  if (typeof document === 'undefined') return false
   if (soporteWebGL === undefined) {
     try {
       const canvas = document.createElement('canvas')
@@ -37,11 +40,13 @@ function hayWebGL() {
 const sinSuscripcion = () => () => {}
 
 // Si la escena falla (contexto perdido, modelo que no carga), queda el
-// lugar reservado (las vistas de planificación de cada parada)
+// lugar reservado (las vistas de planificación de cada parada) y la pantalla
+// de carga se va igual
 class LimiteEscena extends Component<{ children: ReactNode }, { fallo: boolean }> {
   state = { fallo: false }
 
   static getDerivedStateFromError() {
+    fallar()
     return { fallo: true }
   }
 
@@ -76,37 +81,33 @@ export function Recorrido3D({
         },
   )
 
-  // Arranque de la entrada de la home (components/intro.ts), mientras no
-  // haya pantalla de carga: cuando el 3D está listo (alListo de la escena), o
-  // a los INTRO_MAX_WAIT ms si tarda. Enseguida si no hay 3D, si se pide
-  // menos movimiento o si se llegó a la home desde otra página.
+  // Sin WebGL no hay nada que cargar: la pantalla de carga se va enseguida
   useEffect(() => {
-    if (getIntroPhase() !== 'waiting') return
-    if (
-      !loadedAtHome ||
-      !hayWebGL() ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) {
-      startIntro()
-      return
-    }
-    const id = setTimeout(startIntro, INTRO_MAX_WAIT)
-    return () => clearTimeout(id)
+    if (!hayWebGL()) fallar()
   }, [])
 
   // Giro de entrada del cuerpo en la toma del hero: quieto en la pose de
-  // partida mientras la intro espera; si el 3D estuvo listo antes de que
-  // arrancara, entra girando; si no, aparece ya en su pose.
+  // partida mientras la pantalla de carga espera (la intro, en `waiting`);
+  // entra girando si la intro corre (startIntro), y aparece ya en su pose si
+  // se saltó (skipIntro: la página se cargó lejos del hero). Una vez que
+  // giró, sigue en `play` cuando la intro termina.
   const fase = useIntroPhase()
-  const [primero, setPrimero] = useState(false)
+  const giro = useRef(false)
   useEffect(() => {
-    estadoRecorrido.entrada = fase === 'waiting' ? 'hold' : primero ? 'play' : 'skip'
+    if (fase === 'running') giro.current = true
+    estadoRecorrido.entrada = fase === 'waiting' ? 'hold' : giro.current ? 'play' : 'skip'
     estadoRecorrido.invalidar?.()
-  }, [fase, primero])
+  }, [fase])
 
-  // Carga diferida: cuando el navegador queda libre (como mucho, 1,5 s)
+  // Montaje: de inmediato mientras la pantalla de carga espera por los
+  // modelos; si ya están (se vuelve a la home), cuando el navegador queda
+  // libre (como mucho, 1,5 s)
   useEffect(() => {
     if (!webgl || montar) return
+    if (!estaCompleta()) {
+      const id = setTimeout(() => setMontar(true), 0)
+      return () => clearTimeout(id)
+    }
     if ('requestIdleCallback' in window) {
       const id = window.requestIdleCallback(() => setMontar(true), { timeout: 1500 })
       return () => window.cancelIdleCallback(id)
@@ -128,11 +129,7 @@ export function Recorrido3D({
           dpr={config.dpr}
           alListo={() => {
             setListo(true)
-            if (getIntroPhase() === 'waiting') {
-              setPrimero(true)
-              estadoRecorrido.entrada = 'play'
-              startIntro()
-            }
+            completar('cuadro')
             alListo()
           }}
         />

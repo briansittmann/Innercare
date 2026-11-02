@@ -11,17 +11,39 @@ import { contactHref, contactLabel } from './nav-links'
 // ya esté en la URL); desde las fichas, vuelve a la home arriba de todo.
 // #inicio arranca 72 px por encima (pasa por detrás del header), así que el
 // scroll-padding-top lo deja en el borde de la página.
-function Logo({ className }: { className: string }) {
+//
+// La bolita naranja de arriba baja el texto del logo: "InnerCare" ocupa de
+// 266 a 581 px de los 733 de la imagen, con su centro al 57,8 % del alto. Sube
+// el 8,5 % de su alto (2,7 px a 32 px) para que quede a la altura del texto
+// del menú; en el celular, centrado en la píldora.
+//
+// `compacto` (la barra de escritorio): la barra reparte el ancho entre el
+// logo, los enlaces y el botón, y entre 768 y unos 1300 px de ventana a la
+// columna del logo no le alcanza para el logo entero, que se aplastaba. Ahí
+// va el ícono (el del favicon) en su lugar: lo decide una consulta de
+// contenedor sobre la columna (.logo-barra en globals.css). Las dos imágenes
+// van en el HTML y el CSS muestra una.
+function Logo({ className, compacto = false }: { className: string; compacto?: boolean }) {
   return (
-    <AnchorLink href="/#inicio" aria-label="Innercare, inicio" className="shrink-0">
+    <AnchorLink href="/#inicio" aria-label="Innercare, inicio" className="logo-header shrink-0">
       <Image
-        src="/logo.png"
+        src="/logo-header.png"
         alt="Innercare"
-        width={1200}
-        height={466}
+        width={2145}
+        height={733}
         sizes="96px"
-        className={className}
+        className={`${compacto ? 'logo-completo ' : ''}${className} -translate-y-[8.5%]`}
       />
+      {compacto && (
+        <Image
+          src="/favicon.png"
+          alt="Innercare"
+          width={256}
+          height={256}
+          sizes="32px"
+          className="logo-icono h-8 w-8 object-contain"
+        />
+      )}
     </AnchorLink>
   )
 }
@@ -60,8 +82,10 @@ export function SiteHeader() {
           >
             <div className="w-full min-w-0">
               <div className="grid w-[calc(100cqw-1rem)] grid-cols-[1fr_auto_1fr] items-center pl-4">
-                <span className="nav-intro-logo justify-self-start">
-                  <Logo className="h-8 w-auto" />
+                {/* A todo el ancho de su columna: la consulta de contenedor
+                    mide cuánto lugar le queda al logo */}
+                <span className="nav-intro-logo logo-barra justify-self-stretch">
+                  <Logo className="h-8 w-auto" compacto />
                 </span>
                 <DesktopNav className="nav-intro-links" />
                 <ContactLink href={contactHref} className="nav-intro-cta boton boton-primario justify-self-end">

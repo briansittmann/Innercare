@@ -13,7 +13,8 @@
     "modelos": "sh 3d/scripts/modelos.sh",
     "fotos": "node scripts/fotos-carrusel.mjs",
     "mapa": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/mapa-argentina.mjs",
-    "fabricacion": "sh 3d/scripts/fabricacion.sh"
+    "fabricacion": "sh 3d/scripts/fabricacion.sh",
+    "manos": "node scripts/manos.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

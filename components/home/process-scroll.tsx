@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import AnimatedContent from '@/components/animated-content'
 import { ajustar, clamp, lerp } from '@/components/animaciones/lienzo'
 import {
+  DURACION_ENTRADA,
   N_PROCESO_CELULAR,
   N_PROCESO_ESCRITORIO,
   PiezaProceso,
@@ -23,6 +25,12 @@ import {
 // pantalla (el vaivén es continuo; con movimiento reducido, quieta y sin
 // transiciones: cada paso muestra su forma).
 //
+// Entrada, una vez al llegar (un solo disparo, el de AnimatedContent): el
+// título y los tres pasos suben y se aclaran de un desenfoque, de a uno
+// (los [data-entra]), mientras la pieza se arma con partículas que llegan
+// desde los costados (proceso.ts); al terminar aparece la leyenda. Estado en
+// `data-entrada` de la pieza: `espera`, `armando` y `lista`.
+//
 // Sin JS no hay paso activo: los tres se ven enteros y, en lugar de la
 // pieza, la vista del primer paso (`respaldo`, oculta con JS por CSS).
 export function ProcessScroll({
@@ -39,6 +47,11 @@ export function ProcessScroll({
   const ref = useRef<HTMLDivElement>(null)
   const lienzo = useRef<HTMLCanvasElement>(null)
   const [activo, setActivo] = useState<number | null>(null)
+  // Cuándo arrancó la entrada (performance.now()); null mientras espera. Es
+  // un ref para que sobreviva si la ruta se oculta y vuelve: la pieza nueva
+  // aparece armada, como el texto.
+  const inicioEntrada = useRef<number | null>(null)
+  const [entrada, setEntrada] = useState<'espera' | 'armando' | 'lista'>('espera')
 
   useEffect(() => {
     const root = ref.current
@@ -54,6 +67,7 @@ export function ProcessScroll({
     let anterior = 0
     let q = 0
     let ultimoPaso = -1
+    let armada = false
     // Puntero sobre la pieza (solo mouse o trackpad), en coordenadas de la
     // ventana, con su velocidad suavizada entre eventos. Se pasa al lienzo en
     // cada cuadro: al entrar a la sección con el scroll, el canvas se mueve
@@ -90,7 +104,13 @@ export function ProcessScroll({
         if (x >= 0 && y >= 0 && x <= r.width && y <= r.height)
           enLienzo = { x, y, vx: puntero.vx, vy: puntero.vy }
       }
-      pieza.dibujar(g, medida.w, medida.h, medida.dpr, q, ahora / 1000, reducido, dt, enLienzo)
+      const inicio = inicioEntrada.current
+      const e = inicio === null ? 0 : clamp((ahora - inicio) / 1000 / DURACION_ENTRADA)
+      if (e >= 1 && !armada) {
+        armada = true
+        setEntrada('lista')
+      }
+      pieza.dibujar(g, medida.w, medida.h, medida.dpr, q, ahora / 1000, reducido, dt, enLienzo, e)
       // El vaivén sigue mientras la sección se ve
       if (visible && !reducido) cuadro = requestAnimationFrame(pintar)
     }
@@ -149,36 +169,70 @@ export function ProcessScroll({
 
   return (
     <div ref={ref} className="relative h-full">
-      <div className="sticky top-0 mx-auto grid h-dvh max-w-[83.75rem] grid-rows-[auto_1fr] content-start gap-md px-[clamp(1.25rem,5vw,4.5rem)] pt-[5.25rem] pb-[2.5rem] md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:grid-rows-1 md:content-center md:items-center md:gap-[clamp(1.5rem,5vw,4.5rem)] md:pt-[6rem]">
+      <AnimatedContent
+        targets="[data-entra]"
+        stagger={0.12}
+        distance={24}
+        blur={6}
+        // Con la sección casi entera en pantalla: en escritorio la pieza va
+        // centrada en la altura y, antes, se armaba debajo del borde
+        threshold={0.7}
+        onStart={() => {
+          inicioEntrada.current ??= performance.now()
+          setEntrada((actual) => (actual === 'espera' ? 'armando' : actual))
+        }}
+        // Sin animación (movimiento reducido, o la ruta que vuelve): armada
+        onComplete={() => {
+          inicioEntrada.current ??= -Infinity
+          if (inicioEntrada.current === -Infinity) setEntrada('lista')
+        }}
+        className="sticky top-0 mx-auto grid h-dvh max-w-[83.75rem] grid-rows-[auto_1fr] content-start gap-md px-[clamp(1.25rem,5vw,4.5rem)] pt-[5.25rem] pb-[2.5rem] md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:grid-rows-1 md:content-center md:items-center md:gap-[clamp(1.5rem,5vw,4.5rem)] md:pt-[6rem]"
+      >
         <div>
           {titulo}
           <ol className="mt-[0.875rem] grid gap-xs md:mt-[2.25rem]">
             {pasos.map((paso, i) => {
               const apagado = activo !== null && activo !== i
+              // La entrada anima el <li> (opacidad en línea) y el paso
+              // apagado se atenúa adentro, para que no se pisen. El título
+              // del activo crece y el del que deja de serlo se achica, con
+              // el tamaño de letra (no con una escala) para que lo de abajo
+              // se corra; el número sigue la línea de base del título.
               return (
                 <li
                   key={paso.step}
+                  data-entra
                   aria-current={activo === i ? 'step' : undefined}
-                  className={`grid grid-cols-[2.75rem_1fr] gap-x-[0.625rem] gap-y-[0.375rem] border-t border-outline-variant py-[0.625rem] transition-opacity duration-300 md:py-[0.875rem] ${
-                    apagado ? 'opacity-45' : ''
-                  }`}
+                  className="border-t border-outline-variant py-[0.625rem] md:py-[0.875rem]"
                 >
-                  <span
-                    aria-hidden
-                    className="pt-[3px] font-data-mono text-[0.9375rem] font-semibold tabular-nums text-hueso"
-                  >
-                    {paso.step}
-                  </span>
-                  <h3 className="font-headline-sm text-[1.125rem] leading-snug font-medium tracking-[-0.015em] text-on-surface md:text-[1.3125rem]">
-                    {paso.title}
-                  </h3>
-                  <p
-                    className={`col-start-2 text-[0.9375rem] leading-normal text-on-surface-variant md:block ${
-                      apagado ? 'hidden' : ''
+                  <div
+                    className={`grid grid-cols-[2.75rem_1fr] items-baseline gap-x-[0.625rem] gap-y-[0.375rem] transition-opacity duration-300 ${
+                      apagado ? 'opacity-45' : ''
                     }`}
                   >
-                    {paso.description}
-                  </p>
+                    <span
+                      aria-hidden
+                      className="font-data-mono text-[0.9375rem] font-semibold tabular-nums text-hueso"
+                    >
+                      {paso.step}
+                    </span>
+                    <h3
+                      className={`font-headline-sm leading-snug font-medium tracking-[-0.015em] text-on-surface transition-[font-size] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                        activo === i
+                          ? 'text-[1.375rem] md:text-[1.75rem]'
+                          : 'text-[1.125rem] md:text-[1.3125rem]'
+                      }`}
+                    >
+                      {paso.title}
+                    </h3>
+                    <p
+                      className={`col-start-2 text-[0.9375rem] leading-normal text-on-surface-variant md:block ${
+                        apagado ? 'hidden' : ''
+                      }`}
+                    >
+                      {paso.description}
+                    </p>
+                  </div>
                 </li>
               )
             })}
@@ -189,6 +243,7 @@ export function ProcessScroll({
             vista del primer paso (.proceso-respaldo). */}
         <div
           data-pieza-proceso
+          data-entrada={entrada}
           className="relative order-first h-[38vh] md:order-none md:h-[min(74vh,43.75rem)]"
         >
           <div aria-hidden className="proceso-luz absolute inset-0 bottom-[2rem]" />
@@ -200,7 +255,7 @@ export function ProcessScroll({
           </div>
           {leyenda}
         </div>
-      </div>
+      </AnimatedContent>
     </div>
   )
 }

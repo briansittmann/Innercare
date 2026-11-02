@@ -22,6 +22,11 @@
 //
 // Al pasar el mouse, las partículas cerca del puntero se apartan y vuelven a
 // su lugar con un resorte (desplazamiento en pantalla, aparte de la forma).
+//
+// Entrada (una vez, al llegar a la sección): las partículas llegan desde los
+// costados, la mitad por cada uno (del lado en que va cada una, la diáfisis
+// llegaba solo por la derecha), se juntan en una nube al centro y se posan en la forma que toque (al llegar, los cortes de TC).
+// Se arma de arriba abajo, como un tomógrafo que va sumando cortes.
 
 import { clamp, lerp, smooth, leerColor, type Ctx, type Rgb } from './lienzo'
 
@@ -381,6 +386,14 @@ const ALCANCE_MIN = 0.5
 const RESORTE = 26
 const AMORTIGUACION = 6.5
 
+// Entrada: duración (s) y, en fracciones de ella, cuánto se demora el pie de
+// la pieza respecto de la cabeza, el retraso al azar de cada partícula y lo
+// que dura su vuelo (suman 1)
+export const DURACION_ENTRADA = 2.6
+const ENTRADA_ESCALON = 0.4
+const ENTRADA_AZAR = 0.15
+const ENTRADA_VUELO = 0.45
+
 export class PiezaProceso {
   private formas: [P3[], P3[], P3[]]
   private retraso: Float32Array
@@ -398,6 +411,15 @@ export class PiezaProceso {
   private desvioY: Float32Array
   private alcance: Float32Array
   private desarmada = false
+  // Entrada: retraso al azar, de qué lado sale (el signo) y cuánto más lejos
+  // del borde, su altura de
+  // salida respecto de la de llegada (en altos del lienzo) y su lugar en la
+  // nube del centro por la que pasa
+  private entradaRetraso: Float32Array
+  private salidaX: Float32Array
+  private salidaY: Float32Array
+  private nubeX: Float32Array
+  private nubeY: Float32Array
 
   constructor(n: number) {
     this.formas = formas(n)
@@ -411,6 +433,12 @@ export class PiezaProceso {
     this.desvioX = desvio.map(Math.cos)
     this.desvioY = desvio.map(Math.sin)
     this.alcance = new Float32Array(n).map(() => ALCANCE_MIN + Math.random() * (1 - ALCANCE_MIN))
+    this.entradaRetraso = new Float32Array(n).map(() => Math.random() * ENTRADA_AZAR)
+    this.salidaX = new Float32Array(n).map(() => Math.random() * 2 - 1)
+    this.salidaY = new Float32Array(n).map(() => (Math.random() * 2 - 1) * 0.3)
+    // Suma de dos al azar: la nube, más densa en el centro
+    this.nubeX = new Float32Array(n).map(() => Math.random() + Math.random() - 1)
+    this.nubeY = new Float32Array(n).map(() => Math.random() + Math.random() - 1)
     const hueso = leerColor('--color-hueso', '#2260a1')
     const colores: Rgb[] = [
       hueso,
@@ -440,7 +468,8 @@ export class PiezaProceso {
 
   // q: progreso de la sección (0 a 1); t: segundos, para el vaivén; dt:
   // segundos desde el cuadro anterior, para el hover; puntero: null si no
-  // está sobre la pieza (o con movimiento reducido)
+  // está sobre la pieza (o con movimiento reducido); entrada: progreso de la
+  // entrada (0 a 1; con movimiento reducido no se usa)
   dibujar(
     g: Ctx,
     w: number,
@@ -451,6 +480,7 @@ export class PiezaProceso {
     reducido: boolean,
     dt = 0,
     puntero: Puntero | null = null,
+    entrada = 1,
   ) {
     g.setTransform(dpr, 0, 0, dpr, 0, 0)
     g.clearRect(0, 0, w, h)
@@ -488,6 +518,10 @@ export class PiezaProceso {
     const cx = w / 2
     const cy = h / 2
     const tam = Math.max(1.8, sc * 1.05)
+
+    // Mientras entran, sin hover
+    const entrando = !reducido && entrada < 1
+    if (entrando) puntero = null
 
     // Hover: con el puntero encima o mientras las partículas vuelven
     if (reducido && this.desarmada) this.armar()
@@ -552,6 +586,29 @@ export class PiezaProceso {
         sx += ox
         sy += oy
       }
+      // Entrada: de su costado a su lugar, pasando por la nube del centro
+      // (una curva cuadrática que frena al llegar); chica y tenue mientras
+      // vuela. Las que todavía no salieron no se dibujan.
+      let crece = 1
+      let techo = 3
+      if (entrando) {
+        const u = clamp(
+          (entrada - ENTRADA_ESCALON * clamp(y / ALTO) - this.entradaRetraso[i]!) / ENTRADA_VUELO,
+        )
+        if (u <= 0) continue
+        const v = 1 - (1 - u) ** 3
+        const lado = this.salidaX[i]!
+        const lejos = 0.06 + Math.abs(lado) * 0.3
+        const x0 = lado < 0 ? -w * lejos : w * (1 + lejos)
+        const y0 = sy + this.salidaY[i]! * h
+        const nx = cx + this.nubeX[i]! * w * 0.14
+        const ny = lerp(cy, sy, 0.5) + this.nubeY[i]! * h * 0.12
+        const s = 1 - v
+        sx = s * s * x0 + 2 * s * v * nx + v * v * sx
+        sy = s * s * y0 + 2 * s * v * ny + v * v * sy
+        crece = 0.35 + 0.65 * v
+        techo = Math.floor(v * 3.99)
+      }
       // Profundidad: lo de atrás, más tenue y más chico
       const prof = clamp((Z / 35 + 1) / 2)
       let nivel = Math.min(3, Math.floor(prof * 4))
@@ -559,6 +616,7 @@ export class PiezaProceso {
       // que el paso 3 tiene que mostrar
       const metal = (b.c === 2 ? m : 0) + (a.c === 2 ? 1 - m : 0)
       if (metal > 0.5) nivel = Math.min(3, nivel + 1)
+      nivel = Math.min(nivel, techo)
       const mezcla = a.c === b.c ? 0 : Math.round(m * 8)
       const estilo = this.estilos[a.c]![b.c]![mezcla]![nivel]!
       let lista = this.lotes.get(estilo)
@@ -566,7 +624,7 @@ export class PiezaProceso {
         lista = []
         this.lotes.set(estilo, lista)
       }
-      lista.push(sx, sy, tam * (0.8 + prof * 0.4) * (1 + metal * 0.25))
+      lista.push(sx, sy, tam * (0.8 + prof * 0.4) * (1 + metal * 0.25) * crece)
     }
     if (hover) {
       // Ya volvieron todas: se deja de calcular hasta el próximo puntero

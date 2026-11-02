@@ -1,26 +1,36 @@
 'use client'
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { gsap } from 'gsap'
 import { AnchorLink } from '@/components/anchor-link'
 import {
   ANCHO_CELULAR,
+  PAUSA_CIERRE,
+  REARME_ENTRADA_CIERRE,
   TRAMOS,
+  UMBRAL_ENTRADA_CIERRE,
   clamp,
   DESLIZ_HERO,
   anclaHeroCelular,
   deslizHero,
+  fibrasEnCierre,
   indiceVisible,
   opacidadCierre,
   opacidadEntrada,
+  opacidadFondoCierre,
   pesoTarjeta,
+  segDe,
 } from '@/components/recorrido-3d/camara'
+import { useIntroPhase } from '@/components/intro'
 import { estadoRecorrido } from '@/components/recorrido-3d/estado'
 import { Recorrido3D } from '@/components/recorrido-3d/recorrido-3d'
+import { fijarTomaFibras } from './fibras-escena'
 import { useProximidad } from './use-proximidad'
 
 // Armazón del hero y del recorrido por el cuerpo (#recorrido), con el
 // comportamiento del borrador (docs/landing/landing-borrador.html,
-// updateTour): un contenedor de ocho pantallas con una escena fija (sticky)
+// updateTour): un contenedor de nueve pantallas (ocho más la pausa del
+// cierre, PAUSA_CIERRE) con una escena fija (sticky)
 // y un solo cuerpo 3D (components/recorrido-3d/). El progreso del scroll
 // mueve la cámara y, con el mismo guion (camara.ts), funde el texto del
 // hero, las fibras, las tarjetas, el texto del cierre y el índice
@@ -30,8 +40,14 @@ import { useProximidad } from './use-proximidad'
 // Hero (k = 0): la cabeza de perfil, como el busto de antes, con el texto
 // del hero encima y las fibras detrás. Paradas (k = 1…6): el implante al
 // 34 % del ancho y la tarjeta a la derecha (en el celular, arriba, y la
-// tarjeta como hoja inferior). Cierre (k = 7): el cuerpo entero y el texto
-// final.
+// tarjeta como hoja inferior). Cierre (k = 7): el cuerpo entero, el texto
+// final y, detrás del cuerpo, la misma cinta de fibras con otra diagonal;
+// después, una pantalla de pausa con todo quieto, para que el final no se
+// pase de largo, con el aviso "Deslizá para continuar" abajo a la derecha.
+// Al llegar al cierre (UMBRAL_ENTRADA_CIERRE), una entrada por tiempo con
+// gsap, cada vez que aparece: el título, la bajada, el botón (con rebote) y
+// el aviso, de a uno (data-entra; estados en data-cierre: espera, entrando,
+// lista), mientras la escena barre los implantes de la cabeza a los pies.
 //
 // Sin JS (`scripting: none` en globals.css), la escena deja de ser fija y
 // todo se lee en orden: hero, tarjetas y cierre. Con JS, lo que la escena
@@ -52,8 +68,9 @@ export function TourScroll({
   // Lugar reservado: una vista por parada, más la del cuerpo entero al final
   // (y, si hay, la de la toma del hero)
   vistas: readonly ReactNode[]
-  // Detrás del cuerpo en la toma del hero (la cinta de fibras); se funde con
-  // el texto de la entrada
+  // Detrás del cuerpo (la cinta de fibras): en la toma del hero, donde se
+  // funde con el texto de la entrada, y en el cierre, detrás del cuerpo
+  // entero con otra diagonal (fibras-escena.tsx)
   fondo?: ReactNode
   entrada: ReactNode
   cierre: ReactNode
@@ -66,6 +83,7 @@ export function TourScroll({
   const capaFondo = useRef<HTMLDivElement>(null)
   const capaFundido = useRef<HTMLDivElement>(null)
   const capaCierre = useRef<HTMLDivElement>(null)
+  const capaAviso = useRef<HTMLDivElement>(null)
   const indice = useRef<HTMLElement>(null)
   const riel = useRef<HTMLOListElement>(null)
   // Hover del índice: los enlaces cerca del cursor se corren (LineSidebar)
@@ -79,9 +97,14 @@ export function TourScroll({
   // Las miniaturas 3D (components/recorrido-3d/miniaturas.tsx) se ven por un
   // hueco en la tarjeta. Se abre cuando el canvas terminó de aparecer (su
   // fundido dura 700 ms): antes, por el hueco se vería la escena vacía.
+  // Y no antes de que termine la entrada de la home: con las miniaturas a la
+  // vista la escena deja de recortarse a la caja del busto (recorteHero) y
+  // dibuja las seis vistas en cada cuadro, y eso no tiene que pisar la
+  // entrada (el cuerpo ya está cargado detrás de la pantalla de carga).
   const [minis, setMinis] = useState(false)
+  const fase = useIntroPhase()
   useEffect(() => {
-    if (!listo) return
+    if (!listo || fase !== 'done') return
     const id = window.setTimeout(() => {
       setMinis(true)
       estadoRecorrido.minis = true
@@ -91,7 +114,7 @@ export function TourScroll({
       window.clearTimeout(id)
       estadoRecorrido.minis = false
     }
-  }, [listo])
+  }, [listo, fase])
   // Se dibuja solo mientras el recorrido está en pantalla
   useEffect(() => {
     const nodo = contenedor.current
@@ -138,6 +161,52 @@ export function TourScroll({
     const tarjetas = [...nodo.querySelectorAll<HTMLElement>('[data-tarjeta]')]
     const movimiento = window.matchMedia('(prefers-reduced-motion: reduce)')
 
+    // Entrada del cierre (las mismas magnitudes que la tarjeta del contacto)
+    const piezas = [
+      ...(capaCierre.current?.querySelectorAll<HTMLElement>('[data-entra]') ?? []),
+      ...(capaAviso.current?.querySelectorAll<HTMLElement>('[data-entra]') ?? []),
+    ]
+    let lineaCierre: gsap.core.Timeline | null = null
+    const entrarCierre = () => {
+      if (fijo.dataset.cierre !== 'espera') return
+      if (movimiento.matches) {
+        fijo.dataset.cierre = 'lista'
+        return
+      }
+      // En orden: el título y la bajada, el botón (con rebote) y el aviso
+      const indiceBoton = piezas.findIndex((p) => p.hasAttribute('data-rebote'))
+      const boton = indiceBoton >= 0 ? piezas[indiceBoton] : undefined
+      const antes = indiceBoton >= 0 ? piezas.slice(0, indiceBoton) : piezas
+      const despues = indiceBoton >= 0 ? piezas.slice(indiceBoton + 1) : []
+      const desde = { opacity: 0, y: 28, filter: 'blur(6px)' }
+      const hasta = { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.7, ease: 'power3.out', stagger: 0.18 }
+      lineaCierre = gsap.timeline({
+        onComplete: () => {
+          gsap.set(piezas, { clearProps: 'filter,transform' })
+          fijo.dataset.cierre = 'lista'
+        },
+      })
+      if (antes.length) lineaCierre.fromTo(antes, desde, hasta)
+      if (boton) {
+        lineaCierre.fromTo(
+          boton,
+          { opacity: 0, y: 36, scale: 0.85 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: 'back.out(2.2)' },
+          antes.length ? `<${(antes.length * 0.18).toFixed(2)}` : 0,
+        )
+      }
+      if (despues.length) lineaCierre.fromTo(despues, desde, hasta, '<0.18')
+      fijo.dataset.cierre = 'entrando'
+    }
+    // El cierre volvió a esconderse: las piezas vuelven a esperar
+    const rearmarCierre = () => {
+      if (fijo.dataset.cierre === 'espera') return
+      lineaCierre?.kill()
+      lineaCierre = null
+      gsap.set(piezas, { clearProps: 'all' })
+      fijo.dataset.cierre = 'espera'
+    }
+
     let objetivo = 0
     let seg = -1
     let cuadro = 0
@@ -149,7 +218,7 @@ export function TourScroll({
     const leer = () => {
       const r = nodo.getBoundingClientRect()
       const recorrido = r.height - window.innerHeight
-      objetivo = recorrido > 0 ? clamp(-r.top / recorrido) * TRAMOS : 0
+      objetivo = recorrido > 0 ? segDe(-r.top / recorrido) : 0
       estadoRecorrido.fijo = r.top <= 0 && r.bottom >= window.innerHeight
     }
 
@@ -180,22 +249,35 @@ export function TourScroll({
       })
       const entrada = opacidadEntrada(s, reducido, celular)
       mostrar(capaEntrada.current, entrada)
-      mostrar(capaFondo.current, entrada)
       // Celular: el texto y las fibras suben con el busto (la cámara usa el
       // mismo desliz), como subía el hero de antes con el scroll
       const pantallas = deslizHero(s, celular)
       const desliz = pantallas * (escena.current?.clientHeight ?? window.innerHeight)
       const subir = desliz ? `translate3d(0, ${(-desliz).toFixed(1)}px, 0)` : ''
       if (capaEntrada.current) capaEntrada.current.style.transform = subir
-      if (capaFondo.current) capaFondo.current.style.transform = subir
       escena.current?.style.setProperty('--desliz', `${desliz.toFixed(1)}px`)
       // De 0 a 1 en el desliz: con esto se apaga el aviso de deslizar
       escena.current?.style.setProperty('--desliz-t', (pantallas / DESLIZ_HERO).toFixed(3))
-      // Las fibras dejan de dibujar cuando terminan de irse: sin caja, su
-      // IntersectionObserver las pausa; vuelven al subir
-      if (capaFondo.current) capaFondo.current.style.display = entrada < 0.02 ? 'none' : ''
+      // La cinta de fibras: con el texto del hero en la primera toma y detrás
+      // del cuerpo entero en el cierre (fibras-escena.tsx). Es un solo
+      // canvas: cambia de toma a mitad del recorrido, mientras no se ve. En
+      // el cierre no sube con el desliz del celular y ocupa la pantalla
+      // (data-toma, globals.css). Deja de dibujar cuando termina de irse: sin
+      // caja, su IntersectionObserver la pausa; vuelve al aparecer.
+      const enCierre = fibrasEnCierre(s)
+      fijarTomaFibras(enCierre ? 'cierre' : 'hero')
+      const fondo = enCierre ? opacidadFondoCierre(s, reducido) : entrada
+      if (capaFondo.current) {
+        mostrar(capaFondo.current, fondo)
+        capaFondo.current.style.transform = enCierre ? '' : subir
+        capaFondo.current.dataset.toma = enCierre ? 'cierre' : 'hero'
+        capaFondo.current.style.display = fondo < 0.02 ? 'none' : ''
+      }
       const cierre = opacidadCierre(s, reducido)
       mostrar(capaCierre.current, cierre)
+      mostrar(capaAviso.current, cierre)
+      if (cierre > UMBRAL_ENTRADA_CIERRE) entrarCierre()
+      else if (cierre < REARME_ENTRADA_CIERRE) rearmarCierre()
       // Al final del cierre, el degradé se funde en el gris de "Cómo
       // trabajamos", que sigue debajo
       mostrar(capaFundido.current, cierre)
@@ -266,6 +348,7 @@ export function TourScroll({
       window.removeEventListener('resize', alRedimensionar)
       movimiento.removeEventListener('change', alMover)
       cancelAnimationFrame(cuadro)
+      lineaCierre?.kill()
       if (estadoRecorrido.escena === fijo) estadoRecorrido.escena = null
     }
   }, [vistaInicio])
@@ -274,7 +357,7 @@ export function TourScroll({
     <div
       ref={contenedor}
       className="recorrido"
-      style={{ '--tramos': TRAMOS + 1 } as CSSProperties}
+      style={{ '--tramos': TRAMOS + PAUSA_CIERRE + 1 } as CSSProperties}
     >
       {/* Anclas de cada parada, a la altura de scroll donde la cámara llega a
           ella (k pantallas desde el principio del recorrido) */}
@@ -290,14 +373,16 @@ export function TourScroll({
         />
       ))}
 
-      <div ref={escena} data-escena-3d data-listo={listo || undefined} data-minis={minis || undefined} className="recorrido-escena">
-        <div ref={capaFundido} aria-hidden className="recorrido-fundido" />
-
+      <div ref={escena} data-escena-3d data-listo={listo || undefined} data-minis={minis || undefined} data-cierre="espera" className="recorrido-escena">
+        {/* Antes del fundido: al final del cierre, el gris de abajo tapa la
+            cinta y no el cuerpo, que va encima */}
         {fondo && (
-          <div ref={capaFondo} aria-hidden className="recorrido-fondo-hero">
+          <div ref={capaFondo} aria-hidden data-toma="hero" className="recorrido-fondo-hero">
             {fondo}
           </div>
         )}
+
+        <div ref={capaFundido} aria-hidden className="recorrido-fundido" />
 
         {/* Lugar reservado del 3D (sin WebGL o mientras carga) */}
         <div aria-hidden className="recorrido-vistas">
@@ -353,6 +438,15 @@ export function TourScroll({
 
         <div ref={capaCierre} className="recorrido-texto recorrido-cierre">
           {cierre}
+        </div>
+
+        {/* Aviso de deslizar del cierre: abajo a la derecha, a la derecha
+            del cuerpo, con el riel del hero (.aviso-deslizar). Entra último
+            (data-entra) y sigue la opacidad del cierre. */}
+        <div ref={capaAviso} aria-hidden className="recorrido-aviso-cierre">
+          <p data-entra className="aviso-deslizar flex max-w-[6rem] items-center gap-md text-balance text-right text-body-sm text-on-surface-variant md:max-w-none md:text-left">
+            Deslizá para continuar
+          </p>
         </div>
       </div>
     </div>

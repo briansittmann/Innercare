@@ -4,7 +4,7 @@ import { INTRO_AT } from './intro-timeline'
 export { INTRO_AT }
 
 // Entrada orquestada de la home: una sola línea de tiempo que comparten el
-// header, el hero (3D, fibras y textos) y, más adelante, la pantalla de carga.
+// header, el hero (3D, fibras y textos) y la pantalla de carga.
 //
 // Fases:
 // - waiting: todo listo para entrar, pero oculto. Es lo que trae el HTML del
@@ -15,18 +15,11 @@ export { INTRO_AT }
 // - done: terminó. Ya no hay animaciones aplicadas, así que volver a la home
 //   (Cache Components la conserva con <Activity>) no la repite.
 //
-// Hoy la arranca Hero3D en cuanto el 3D está listo, o a los INTRO_MAX_WAIT ms
-// si tarda (en ese caso entra la imagen fija y el 3D la reemplaza después,
-// sin giro). Cuando haya pantalla de carga, la arranca ella al irse.
-// Los tiempos de cada pieza, en intro-timeline.ts.
-
-export const INTRO_MAX_WAIT = 2500
-
-// Si el sitio se cargó por la home. Se lee al evaluar el módulo, en la
-// hidratación de la primera página (NavIntro lo importa desde el layout).
-// Al llegar a la home navegando desde otra página no se espera al 3D: la
-// entrada del hero arranca enseguida.
-export const loadedAtHome = typeof window !== 'undefined' && window.location.pathname === '/'
+// La arranca la pantalla de carga (components/pantalla-carga.tsx) al irse,
+// con el 3D entero ya cargado y dibujado: startIntro() si la página está
+// arriba (el hero a la vista) y skipIntro() si se recargó con el scroll más
+// abajo (no hay nada que hacer entrar). Los tiempos de cada pieza, en
+// intro-timeline.ts.
 
 export type IntroPhase = 'waiting' | 'running' | 'done'
 
@@ -49,6 +42,14 @@ export function startIntro() {
     phase = 'done'
     emit()
   }, INTRO_AT.end)
+}
+
+// Sin entrada: todo aparece armado (la página se cargó con el scroll lejos
+// del hero, o sin movimiento)
+export function skipIntro() {
+  if (phase !== 'waiting') return
+  phase = 'done'
+  emit()
 }
 
 function subscribe(listener: () => void) {

@@ -9,18 +9,20 @@ import ShapeGrid from './shape-grid'
 // Distribución al contacto) y las fichas (de "Más implantes" al contacto).
 //
 // Los costados y el borde de arriba se desvanecen en proporción a la caja.
-// Abajo, la malla sigue 2,5 rem más allá del envoltorio (el padding de
-// arriba del footer, hasta su línea) y se desvanece en 3 rem: así se ve
-// entera debajo del bloque de contacto, que queda centrado en ella (pedido
-// del usuario). Siempre va justo antes del footer (home y fichas).
+// Abajo, con `hastaFooter`, la malla sigue 2,5 rem más allá del envoltorio
+// (el padding de arriba del footer, hasta su línea) y se desvanece en 3 rem:
+// así se ve entera debajo del bloque de contacto de las fichas, que queda
+// centrado en ella (pedido del usuario). En la home ya no va antes del
+// footer sino del cierre de contacto con las manos (fondo oscuro, opaco):
+// ahí termina en su borde (`hastaFooter={false}`).
 //
 // El envoltorio pinta el fondo de la página y aísla el apilamiento: la malla
 // va entre ese fondo y el contenido, que tiene que ser transparente donde
 // se quiera ver.
-export function FondoMalla({ children }: { children: ReactNode }) {
+export function FondoMalla({ children, hastaFooter = true }: { children: ReactNode; hastaFooter?: boolean }) {
   return (
     <div className="relative isolate bg-surface">
-      <div className="absolute inset-x-0 top-0 -bottom-[2.5rem] -z-10">
+      <div className={`absolute inset-x-0 top-0 -z-10 ${hastaFooter ? '-bottom-[2.5rem]' : 'bottom-0'}`}>
         <ShapeGrid
           shape="hexagon"
           cellSize={64}

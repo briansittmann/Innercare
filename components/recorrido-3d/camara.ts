@@ -102,8 +102,8 @@ export const giroVaiven = (t: number) =>
 // arriba de todo, medido sobre el hero de antes:
 // - Escritorio (1440 × 900): la caja del 3D del hero ocupaba todo el alto y
 //   la cabeza caía a 1066 px (ancla 0,740).
-// - Celular (390 × 844): la cabeza cae a 625 px y hacia la derecha (ancla
-//   [0,62, 0,74]), debajo del texto, con la cara, el cuello y el arranque de
+// - Celular (390 × 844): la cabeza cae a 650 px y hacia la derecha (ancla
+//   [0,62, 0,77]), debajo del texto, con la cara, el cuello y el arranque de
 //   los hombros a la vista (en las pantallas bajas, algo más abajo:
 //   anclaHeroCelular); a su izquierda, a la altura del cuello, el aviso de
 //   deslizar (CUELLO_BAJO_ANCLA). Con el desliz (deslizHero) va al busto
@@ -120,21 +120,22 @@ export const HERO: Clave = {
   azimut: -GIRO_PERFIL,
   elevacion: Math.atan2(HERO_ALTURA_CAMARA, HERO_DISTANCIA),
   escritorio: { ancla: [0.7404, 0.5], alto: ALTO_HERO, estiramiento: 1.11, distancia: DISTANCIA_HERO },
-  celular: { ancla: [0.62, 0.74], alto: (ALTO_HERO * 844) / 523, estiramiento: 1, distancia: DISTANCIA_HERO },
+  celular: { ancla: [0.62, 0.77], alto: (ALTO_HERO * 844) / 523, estiramiento: 1, distancia: DISTANCIA_HERO },
 }
 
 // Celular: en las pantallas bajas, la cabeza baja lo justo para que la
-// coronilla (0,14 m sobre el objetivo) quede debajo del texto del hero, hasta
-// el ancla 0,8; en las altas queda en 0,74. `pieTexto` es el pie del texto
+// coronilla (0,14 m sobre el objetivo) quede 32 px debajo del texto del
+// hero, hasta el ancla 0,82; en las altas queda en 0,77. `pieTexto` es el pie del texto
 // (la línea de habilitaciones) en px desde arriba de la escena, y `alto`, el
 // de la escena; los mide tour-scroll.tsx. `HERO.celular.alto` son los metros
 // que entran en la pantalla.
 const CORONILLA = 0.14
-const ANCLA_HERO_BAJA = 0.8
+const HUECO_TEXTO = 32
+const ANCLA_HERO_BAJA = 0.82
 export function anclaHeroCelular(pieTexto: number, alto: number) {
   const y = HERO.celular.ancla[1]
   if (pieTexto <= 0 || alto <= 0) return y
-  return clamp(pieTexto / alto + CORONILLA / HERO.celular.alto, y, ANCLA_HERO_BAJA)
+  return clamp((pieTexto + HUECO_TEXTO) / alto + CORONILLA / HERO.celular.alto, y, ANCLA_HERO_BAJA)
 }
 
 // Celular: cuánto más abajo que el objetivo queda el cuello (1,45 m, unos
@@ -178,6 +179,14 @@ export const ORDEN_PARADAS: readonly ParadaId[] = [
 ]
 
 export const TRAMOS = ORDEN_PARADAS.length + 1
+
+// Cierre: una pantalla más de scroll con el cuerpo entero quieto (seg se
+// queda en TRAMOS), para que el final no se pase de largo. El contenedor
+// mide TRAMOS + PAUSA_CIERRE + 1 pantallas (tour-scroll.tsx).
+export const PAUSA_CIERRE = 1
+
+// Progreso p (0 a 1) del contenedor a seg
+export const segDe = (p: number) => Math.min(TRAMOS, clamp(p) * (TRAMOS + PAUSA_CIERRE))
 
 // Por debajo de este ancho, la cámara y la tarjeta del celular (borrador)
 export const ANCHO_CELULAR = 820
@@ -351,5 +360,27 @@ export function opacidadCierre(seg: number, reducido: boolean) {
   if (reducido) return Math.round(seg) >= TRAMOS ? 1 : 0
   return clamp((seg - 6.55) / 0.3)
 }
+
+// Entrada del cierre, por tiempo y una vez cada vez que aparece: los
+// implantes se barren de la cabeza a los pies (escena.tsx) y el texto, el
+// botón y el aviso de deslizar entran de a uno (tour-scroll.tsx). Se
+// dispara cuando el cierre pasó la mitad de su opacidad y se rearma cuando
+// vuelve a esconderse.
+export const UMBRAL_ENTRADA_CIERRE = 0.5
+export const REARME_ENTRADA_CIERRE = 0.15
+
+// Cinta de fibras del cierre: la misma del hero, detrás del cuerpo entero,
+// de la esquina de abajo a la izquierda a la de arriba a la derecha. Aparece
+// con el paso de la diáfisis al cuerpo entero (seg 6,4 a 6,8), un poco antes
+// que el texto, para que el fondo se abra con la cámara.
+export function opacidadFondoCierre(seg: number, reducido: boolean) {
+  if (reducido) return Math.round(seg) >= TRAMOS ? 1 : 0
+  return clamp((seg - 6.4) / 0.4)
+}
+
+// De qué toma es la cinta: la del hero en la primera mitad del recorrido y la
+// del cierre en la segunda. Cambia mientras no se ve (se va en 0,35 o 0,6 y
+// vuelve en 6,4), así que el salto de una a otra nunca se ve.
+export const fibrasEnCierre = (seg: number) => seg >= TRAMOS / 2
 
 export const indiceVisible = (seg: number) => seg > 0.5 && seg < 6.5

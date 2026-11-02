@@ -55,6 +55,11 @@
      el vidrio refracte el mismo degradé. */
   --color-stage-from: #e6eef8;
   --color-stage-to: #c3d7ee;
+  /* Manos de partículas del cierre de contacto (components/animaciones/
+     manos.ts): la del paciente, celeste; la de titanio, plateada. Solo los
+     lee ese canvas (leerColor); con mezcla aditiva sobre el azul oscuro. */
+  --color-mano-paciente: #96afff;
+  --color-mano-titanio: #d7deec;
 
   /* WhatsApp brand accent — used only by the contact CTA card */
   --color-whatsapp: #25d366;
@@ -200,6 +205,11 @@
    a `data-scroll-behavior="smooth"` en <html> (app/layout.tsx). */
 html {
   scroll-padding-top: 72px;
+  /* El ancho no cambia cuando la pantalla de carga (html[data-cargando]) o
+     un panel bloquean el scroll: con barras de scroll clásicas, sacar la
+     barra al irse la pantalla redimensionaba todos los canvas (el 3D vuelve
+     a crear sus buffers) justo cuando arranca la entrada. */
+  scrollbar-gutter: stable;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -656,6 +666,75 @@ body {
     }
 
     .boton-crece:hover {
+      scale: none;
+    }
+  }
+
+  /* Logo del header (components/site-header.tsx). Con el puntero encima
+     crece un poco; al apretarlo se hunde rápido, como un botón físico, y al
+     soltarlo vuelve con un rebote chico mientras la página sube al inicio.
+     Escala del enlace, no de la imagen: la imagen ya usa translate para
+     alinear el texto del logo con el del menú. Bloque, porque un enlace en
+     línea no toma la escala. Con movimiento reducido, quieto. */
+  .logo-header {
+    display: block;
+    width: fit-content;
+    transition: scale 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Barra de escritorio: el logo entero mide 93,6 px a 32 px de alto (2145 ×
+     733). Si su columna queda más angosta (ventanas de 768 a unos 1300 px),
+     en lugar de aplastarlo va el ícono del favicon, cuadrado y entero. El que
+     aparece entra con un fundido corto, para que el cambio al achicar o
+     agrandar la ventana no salte. El enlace se ajusta a la imagen visible
+     (fit-content, arriba): no tapa los enlaces del menú. */
+  .logo-barra {
+    container: logo-barra / inline-size;
+  }
+
+  .logo-icono {
+    display: none;
+  }
+
+  @container logo-barra (width < 94px) {
+    .logo-completo {
+      display: none;
+    }
+
+    .logo-icono {
+      display: block;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .logo-barra :is(.logo-completo, .logo-icono) {
+      transition:
+        opacity 240ms var(--ease-out),
+        scale 240ms var(--ease-out);
+
+      @starting-style {
+        opacity: 0;
+        scale: 0.85;
+      }
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .logo-header:hover {
+      scale: 1.06;
+    }
+  }
+
+  .logo-header:active {
+    scale: 0.94;
+    transition-duration: 90ms;
+    transition-timing-function: var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .logo-header,
+    .logo-header:hover,
+    .logo-header:active {
       scale: none;
     }
   }
@@ -1291,6 +1370,153 @@ body {
   }
 }
 
+/* Pantalla de carga de la home (components/pantalla-carga.tsx). Tapa la
+   página, encima del header (z-50 sobre su z-40), con el degradé del hero:
+   al irse se funde sobre el mismo fondo. Arriba, al centro, la pieza en
+   partículas (canvas 4:3) y debajo la palabra del proceso, que entra
+   subiendo desde un desenfoque (como .intro-in) mientras la anterior se va
+   hacia arriba; abajo, el cargador a la izquierda y el porcentaje grande a la
+   derecha, en cifras tabulares para que no salte de ancho.
+   - Sin JS no existe (scripting: enabled); si el JS no llega a hidratar
+     (data-js lo pone el componente), se oculta sola a los 8 s.
+   - data-carga='saliendo': el fundido de salida (el canvas despega las
+     partículas mientras tanto).
+   - html[data-cargando]: la página no se mueve mientras se ve. */
+.pantalla-carga {
+  display: none;
+}
+
+@keyframes pantalla-carga-respaldo {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (scripting: enabled) {
+  .pantalla-carga {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    background: linear-gradient(var(--color-stage-from), var(--color-stage-to));
+    color: var(--color-on-surface);
+  }
+
+  .pantalla-carga:not([data-js]) {
+    animation: pantalla-carga-respaldo 0.4s 8s forwards;
+  }
+
+  .pantalla-carga[data-carga='saliendo'] {
+    opacity: 0;
+    transition: opacity 500ms var(--ease-out) 250ms;
+  }
+
+  html[data-cargando] {
+    overflow: hidden;
+  }
+}
+
+.pantalla-carga-centro {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--spacing-md);
+  padding-top: 64px;
+}
+
+.pantalla-carga-pieza {
+  width: min(86vw, calc(58dvh * 4 / 3));
+  aspect-ratio: 4 / 3;
+}
+
+@media (min-width: 820px) {
+  .pantalla-carga-pieza {
+    width: min(58vw, calc(62dvh * 4 / 3));
+  }
+}
+
+/* Una línea, con las dos palabras (la que entra y la que sale) apiladas */
+.pantalla-carga-palabra {
+  position: relative;
+  display: grid;
+  min-height: 1.2em;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.pantalla-carga-palabra > span {
+  grid-area: 1 / 1;
+}
+
+@keyframes palabra-entra {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+    filter: blur(6px);
+  }
+}
+
+@keyframes palabra-sale {
+  to {
+    opacity: 0;
+    translate: 0 -14px;
+    filter: blur(6px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* La que se va sale rápido y la que entra espera a que se haya ido:
+     no se pisan */
+  .pantalla-carga-palabra > [data-entra] {
+    animation: palabra-entra 520ms var(--ease-out) 180ms backwards;
+  }
+
+  .pantalla-carga-palabra > [data-sale] {
+    animation: palabra-sale 260ms var(--ease-out) forwards;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pantalla-carga-palabra > [data-sale] {
+    display: none;
+  }
+}
+
+.pantalla-carga-pie {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding-bottom: var(--spacing-lg);
+}
+
+@media (min-width: 820px) {
+  .pantalla-carga-pie {
+    padding-bottom: var(--spacing-xl);
+  }
+}
+
+.pantalla-carga-pie > [role='status'] {
+  padding-bottom: 0.35em;
+}
+
+.pantalla-carga-numero {
+  display: inline-flex;
+  align-items: baseline;
+  /* Ancho fijo para tres cifras: el texto no se corre al pasar de 99 a 100 */
+  min-width: 3.3ch;
+  justify-content: flex-end;
+  line-height: 1;
+}
+
+.pantalla-carga-porciento {
+  margin-left: 0.12em;
+  font-size: 0.5em;
+  color: var(--color-on-surface-variant);
+}
+
 /* Aviso de deslizar del hero (components/home/hero.tsx). Junto al texto,
    un riel fino del primario por el que cae un tramo más oscuro, una y otra
    vez: indica la dirección sin flechas ni rebotes. Con movimiento reducido,
@@ -1516,8 +1742,10 @@ body {
 /* El hero dentro de la escena fija. La cinta de
    fibras va detrás del cuerpo; el texto, encima, con la maqueta que tenía
    como sección propia (a todo el alto, bajo el header). Las dos capas se
-   funden con el progreso (tour-scroll.tsx). Al final del cierre, el degradé
-   se apaga en el gris de "Cómo trabajamos" (.recorrido-fundido). */
+   funden con el progreso (tour-scroll.tsx). La cinta vuelve en el cierre,
+   detrás del cuerpo entero (data-toma="cierre"). Al final del cierre, el
+   degradé se apaga en el gris de "Cómo trabajamos" (.recorrido-fundido),
+   que tapa la cinta pero no el cuerpo. */
 .recorrido-fondo-hero,
 .recorrido-fundido,
 .recorrido-intro-3d {
@@ -1533,6 +1761,12 @@ body {
   .recorrido-fondo-hero {
     bottom: auto;
     height: 140.2%;
+  }
+
+  /* En el cierre la cinta cruza la pantalla de esquina a esquina */
+  .recorrido-fondo-hero[data-toma='cierre'] {
+    bottom: 0;
+    height: auto;
   }
 
   /* El degradé, igual: medido contra el hero alto, no contra una pantalla
@@ -1691,14 +1925,43 @@ body {
   }
 }
 
-/* Con JS, la escena empieza en la entrada: tarjetas, cierre e índice
-   ocultos hasta que el guion les dé opacidad. */
+/* Con JS, la escena empieza en la entrada: tarjetas, cierre, aviso del
+   cierre e índice ocultos hasta que el guion les dé opacidad. */
 @media (scripting: enabled) {
   .recorrido-tarjeta,
   .recorrido-cierre,
+  .recorrido-aviso-cierre,
   .recorrido-indice {
     opacity: 0;
     visibility: hidden;
+  }
+
+  /* Las piezas del cierre que todavía no entraron (data-cierre: espera,
+     entrando, lista; tour-scroll.tsx). gsap toma el control (opacidad en
+     línea) al disparar. Con movimiento reducido, todo a la vista. */
+  @media (prefers-reduced-motion: no-preference) {
+    .recorrido-escena[data-cierre='espera'] [data-entra] {
+      opacity: 0;
+    }
+  }
+}
+
+/* Aviso de deslizar del cierre: abajo a la derecha, en la esquina que deja
+   libre el cuerpo (anclado al 68 % del ancho en escritorio y centrado en el
+   celular, donde los pies llegan casi al borde pero las piernas son
+   angostas). Mismo riel que el del hero. */
+.recorrido-aviso-cierre {
+  position: absolute;
+  z-index: 3;
+  right: clamp(1rem, 4vw, 1.5rem);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem);
+  pointer-events: none;
+}
+
+@media (width >= 820px) {
+  .recorrido-aviso-cierre {
+    right: clamp(1.25rem, 6vw, 6rem);
+    bottom: 2.5rem;
   }
 }
 
@@ -1723,6 +1986,7 @@ body {
   .recorrido-fondo-hero,
   .recorrido-fundido,
   .recorrido-reticula,
+  .recorrido-aviso-cierre,
   .recorrido-indice {
     display: none;
   }
@@ -1928,14 +2192,12 @@ body {
 }
 
 /* Tarjetas de Fabricación (components/home/manufacturing.tsx): con el
-   puntero encima suben y ganan sombra, pedido del usuario (docs/BOTONES.md,
-   sección 6, dice que una tarjeta que no es link no sube: acá sí). La sombra
-   va en ::after y se anima por opacidad; `isolation` la deja por encima del
+   puntero encima ganan sombra, sin subir (docs/BOTONES.md, sección 6: una
+   tarjeta que no es link no sube). La sombra va en ::after y se anima por opacidad; `isolation` la deja por encima del
    fondo de la sección y por debajo del contenido de la tarjeta. Entra en
    400 ms y se va en 300 ms, como las tarjetas de enlace. */
 .tarjeta-fabricacion {
   isolation: isolate;
-  transition: translate 300ms var(--ease-out);
 }
 
 .tarjeta-fabricacion::after {
@@ -1953,22 +2215,10 @@ body {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .tarjeta-fabricacion:hover {
-    translate: 0 -6px;
-    transition-duration: 400ms;
-    transition-timing-function: var(--ease-in-out);
-  }
-
   .tarjeta-fabricacion:hover::after {
     opacity: 1;
     transition-duration: 400ms;
     transition-timing-function: var(--ease-in-out);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tarjeta-fabricacion:hover {
-    translate: none;
   }
 }
 
@@ -2015,6 +2265,31 @@ body {
 @media (scripting: enabled) {
   .proceso-respaldo {
     display: none;
+  }
+}
+
+/* Entrada de la pieza (data-entrada: espera, armando, lista): las partículas
+   llegan desde los costados del lienzo, que se desvanecen para que aparezcan
+   sin cortarse contra un borde invisible (la pieza armada no los alcanza).
+   La luz se enciende cuando arrancan y la leyenda aparece cuando la pieza
+   quedó armada. Sin respaldo por tiempo: la entrada la dispara el scroll, y
+   si el JS no toma el control tampoco hay pieza que leer. */
+.proceso-lienzo {
+  mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent);
+}
+
+.proceso-luz {
+  transition: opacity 1.2s ease-out;
+}
+
+.proceso-leyenda {
+  transition: opacity 0.6s ease-out;
+}
+
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  [data-pieza-proceso][data-entrada='espera'] .proceso-luz,
+  [data-pieza-proceso]:not([data-entrada='lista']) .proceso-leyenda {
+    opacity: 0;
   }
 }
 
@@ -2072,12 +2347,111 @@ body {
   }
 }
 
+/* Contacto de la home: manos de partículas (components/home/contacto.tsx,
+   contacto-manos.tsx y components/animaciones/manos.ts). Sección de 2,8
+   pantallas con el escenario fijo: el degradé radial de azules oscuros de la
+   marca (como el del borrador) y, detrás de las manos, la malla hexagonal.
+   - .contacto-ancla: #contacto cae al final de la sección, con la tarjeta ya
+     armada (el mismo truco que .recorrido-ancla: scrollIntoView más el
+     scroll-padding-top de 72 px dejan la sección en q = 1).
+   - .contacto-intro: el texto, centrado en el escenario; la línea chica
+     (data-kicker) y las palabras del titular (data-palabra) entran por
+     tiempo. JS desplaza el bloque hacia arriba con el scroll y lo apaga.
+   - .contacto-tarjeta: la tarjeta, centrada. JS escribe opacity y transform;
+     sus piezas (data-entra) entran por tiempo cuando aparece.
+   - data-manos: espera (HTML del servidor), animando, quieta (movimiento
+     reducido, foco de teclado en la tarjeta o la secuencia terminada).
+     data-intro y data-tarjeta: espera, entrando, lista (las entradas). */
+.contacto-escenario {
+  background: radial-gradient(80% 70% at 50% 50%, var(--color-primary), var(--color-on-primary-fixed) 72%);
+}
+
+.contacto-ancla {
+  position: absolute;
+  left: 0;
+  top: calc(100% - 100dvh + 72px);
+  width: 1px;
+  height: 1px;
+}
+
+.contacto-intro {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: min(47.5rem, 100% - 2.5rem);
+  text-align: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.contacto-tarjeta {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  z-index: 2;
+}
+
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  [data-manos='espera'] .contacto-tarjeta {
+    opacity: 0;
+    animation: contenido-animado-respaldo 0.4s 2.5s forwards;
+  }
+
+  [data-manos='espera'] .contacto-intro {
+    opacity: 0;
+  }
+
+  /* Lo que todavía no entró: la línea chica, las palabras y las piezas de
+     la tarjeta. gsap toma el control (opacidad en línea) al disparar. */
+  [data-intro='espera'] [data-kicker],
+  [data-intro='espera'] [data-palabra],
+  [data-tarjeta='espera'] [data-entra] {
+    opacity: 0;
+  }
+}
+
+[data-manos='quieta'] .contacto-intro,
+[data-manos='quieta'] .contacto-lienzo,
+[data-sin-manos] .contacto-intro,
+[data-sin-manos] .contacto-lienzo {
+  display: none;
+}
+
+/* Sin JS: la tarjeta en flujo y la sección a su alto natural, sin manos */
+@media (scripting: none) {
+  .contacto-seccion {
+    height: auto;
+  }
+
+  .contacto-escenario {
+    position: static;
+    height: auto;
+    padding-block: clamp(5.5rem, 13vh, 9.375rem);
+  }
+
+  .contacto-lienzo,
+  .contacto-intro {
+    display: none;
+  }
+
+  .contacto-tarjeta {
+    position: static;
+    translate: none;
+    margin-inline: auto;
+  }
+}
+
 /* Entrada del header (components/site-header.tsx), solo si el sitio se carga
-   por la home (NavIntro), con el busto (intro.ts). En el celular, la barra
-   baja con un fundido. En escritorio:
+   por la home (NavIntro), con el busto (intro.ts). Arranca a los
+   --intro-nav (INTRO_AT.nav): junto con el título, no desde el primer
+   cuadro. En el celular, la barra baja con un fundido. En
+   escritorio:
    1. Aparece la barra como píldora con el logo al centro (130 px: el logo
       de 82 px más 24 px de cada lado, los mismos que tendrá al final).
-   2. Se estira hasta su ancho con un resorte: se pasa un 4,6 % y vuelve.
+   2. A los 350 ms se estira hasta su ancho con un resorte: se pasa un
+      4,6 % y vuelve.
    3. Mientras crece, entran los enlaces uno tras otro.
    4. Al final, "Plantear un caso" con un rebote más marcado.
    Los resortes son curvas linear() calculadas (amortiguación 0,7 y 0,45).
@@ -2132,40 +2506,40 @@ body {
 
 @media (prefers-reduced-motion: no-preference) {
   .nav-intro[data-intro='running'] .nav-intro-movil {
-    animation: nav-movil-in 600ms var(--ease-out) backwards;
+    animation: nav-movil-in 600ms var(--ease-out) var(--intro-nav, 1100ms) backwards;
   }
 
   .nav-intro[data-intro='running'] .nav-intro-bar {
     animation:
-      fade-in 350ms var(--ease-out) backwards,
-      nav-stretch 900ms var(--spring-soft) 750ms backwards;
+      fade-in 350ms var(--ease-out) var(--intro-nav, 1100ms) backwards,
+      nav-stretch 900ms var(--spring-soft) calc(var(--intro-nav, 1100ms) + 350ms) backwards;
   }
 
   .nav-intro[data-intro='running'] .nav-intro-logo {
-    animation: nav-logo-in 500ms var(--ease-out) 100ms backwards;
+    animation: nav-logo-in 500ms var(--ease-out) calc(var(--intro-nav, 1100ms) + 100ms) backwards;
   }
 
   /* Solo opacidad y desenfoque: PillNav mide la posición de cada enlace
      para el punto activo y el relleno del hover. */
   .nav-intro[data-intro='running'] .nav-intro-links li {
     animation: nav-link-in 450ms var(--ease-out) backwards;
-    animation-delay: 850ms;
+    animation-delay: calc(var(--intro-nav, 1100ms) + 450ms);
   }
 
   .nav-intro[data-intro='running'] .nav-intro-links li:nth-child(2) {
-    animation-delay: 930ms;
+    animation-delay: calc(var(--intro-nav, 1100ms) + 530ms);
   }
 
   .nav-intro[data-intro='running'] .nav-intro-links li:nth-child(3) {
-    animation-delay: 1010ms;
+    animation-delay: calc(var(--intro-nav, 1100ms) + 610ms);
   }
 
   .nav-intro[data-intro='running'] .nav-intro-links li:nth-child(4) {
-    animation-delay: 1090ms;
+    animation-delay: calc(var(--intro-nav, 1100ms) + 690ms);
   }
 
   .nav-intro[data-intro='running'] .nav-intro-cta {
-    animation: nav-cta-in 700ms var(--spring-bouncy) 1400ms backwards;
+    animation: nav-cta-in 700ms var(--spring-bouncy) calc(var(--intro-nav, 1100ms) + 1000ms) backwards;
   }
 }
 

@@ -22,6 +22,7 @@ export function Process() {
         titulo={
           <h2
             id="proceso-titulo"
+            data-entra
             className="max-w-[16ch] text-balance font-display-lg text-[1.875rem] leading-none tracking-[-0.03em] text-on-surface md:text-display-lg"
           >
             Cómo trabajamos cada caso

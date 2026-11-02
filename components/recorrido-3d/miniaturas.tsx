@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { PerspectiveCamera, View, useGLTF } from '@react-three/drei'
+import { PerspectiveCamera, View } from '@react-three/drei'
 import { MeshSurfaceSampler } from 'three/examples/jsm/math/MeshSurfaceSampler.js'
 import {
   AlwaysDepth,
@@ -25,6 +25,7 @@ import {
 import { ANCHO_CELULAR, ORDEN_PARADAS, TOMAS_PARADA, clamp, pesoTarjeta } from './camara'
 import { estadoRecorrido } from './estado'
 import { IMPLANTES, IMPLANTES_GLB, IMPLANTES_RECORRIDO_GLB, type Implante } from './implantes'
+import { useModelo } from './modelos'
 
 // Miniaturas de las tarjetas del recorrido: el ensamble de partículas del
 // guion (docs/landing/LANDING_SPEC.md, sección 4, y drawMini del borrador).
@@ -410,7 +411,21 @@ function Miniatura({
   )
   useEffect(() => () => estado.liberar(), [estado])
 
+  // Los programas de la vista (fondo, metal con el estudio de luz, puntos)
+  // se compilan en paralelo en el primer cuadro, detrás de la pantalla de
+  // carga, y no cuando la tarjeta aparece por primera vez (compilarlos ahí
+  // frenaba más de 100 ms). El grupo está oculto hasta su parada: se lo
+  // muestra solo mientras compile recorre la escena.
+  const calentado = useRef(false)
   useFrame(({ gl, scene }) => {
+    if (!calentado.current && raiz.environment && grupo.current && camara.current) {
+      calentado.current = true
+      estado.metal.envMap = raiz.environment
+      scene.environment = raiz.environment
+      grupo.current.visible = true
+      gl.compileAsync(scene, camara.current).catch(() => {})
+      grupo.current.visible = false
+    }
     estado.cuadro(scene, raiz, gl.getPixelRatio(), grupo.current, camara.current, latido)
   })
 
@@ -440,13 +455,13 @@ function Miniatura({
   )
 }
 
-// Los .glb de los implantes, cada uno con su useGLTF: la caché de useGLTF es
-// por pedido, así que pedirlos como lista volvía a descargar implantes.glb,
-// que la craneoplastía del hero ya había pedido sola. Si una entrada de
-// IMPLANTES apunta a otro archivo, se suma acá.
+// Los .glb de los implantes, cada uno con su useModelo (modelos.ts): la
+// caché es por pedido, así que pedirlos como lista volvía a descargar
+// implantes.glb, que la craneoplastía del hero ya había pedido sola. Si una
+// entrada de IMPLANTES apunta a otro archivo, se suma acá.
 export function useArchivosImplantes() {
-  const craneo = useGLTF(IMPLANTES_GLB, false, true)
-  const resto = useGLTF(IMPLANTES_RECORRIDO_GLB, false, true)
+  const craneo = useModelo(IMPLANTES_GLB)
+  const resto = useModelo(IMPLANTES_RECORRIDO_GLB)
   return useMemo(
     () => new Map([[IMPLANTES_GLB, craneo], [IMPLANTES_RECORRIDO_GLB, resto]]),
     [craneo, resto],

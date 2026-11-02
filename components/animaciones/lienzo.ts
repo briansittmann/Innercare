@@ -62,6 +62,32 @@ export function muestrear(c: HTMLCanvasElement, paso: number, escala = 1, ruido 
   return puntos
 }
 
+// Máscara blanca con la silueta de una imagen con fondo transparente (los
+// renders de public/img/fabricacion/), en una caja de `w` × `h` unidades a
+// `escala` píxeles por unidad. Qué píxel es pieza: alfa casi pleno y no
+// negro. La sombra de contacto del render es negra con alfa parcial: forma
+// parte de la imagen pero no de la silueta.
+export function mascaraDeImagen(imagen: HTMLImageElement, w: number, h: number, escala = 1) {
+  const c = crearLienzo(w * escala, h * escala)
+  const g = c.getContext('2d', { willReadFrequently: true })
+  if (!g) return c
+  g.drawImage(imagen, 0, 0, c.width, c.height)
+  const datos = g.getImageData(0, 0, c.width, c.height)
+  const d = datos.data
+  for (let i = 0; i < d.length; i += 4) {
+    const a = d[i + 3] ?? 0
+    const luz = ((d[i] ?? 0) + (d[i + 1] ?? 0) + (d[i + 2] ?? 0)) / 3
+    const pieza = a > ALFA_PIEZA && luz > LUZ_PIEZA
+    d[i] = d[i + 1] = d[i + 2] = 255
+    d[i + 3] = pieza ? 255 : 0
+  }
+  g.putImageData(datos, 0, 0)
+  return c
+}
+
+const ALFA_PIEZA = 200
+const LUZ_PIEZA = 30
+
 // Alfa de la máscara en un punto (en unidades)
 export function lectorMascara(c: HTMLCanvasElement, escala = 1) {
   const g = c.getContext('2d', { willReadFrequently: true })
