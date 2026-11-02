@@ -17,7 +17,7 @@ const sourceSans3 = Source_Sans_3({
 })
 
 // Pendiente: `metadataBase` con el dominio definitivo, para que og:image
-// sea una URL absoluta.
+// sea una URL absoluta. La imagen es app/opengraph-image.tsx.
 export const metadata: Metadata = {
   title: {
     default: 'Innercare | Implantes ortopédicos a medida del paciente',
@@ -36,7 +36,6 @@ export const metadata: Metadata = {
     title: 'Innercare | Innovación tecnológica en beneficio del paciente',
     description:
       'Implantes ortopédicos modulares y a medida del paciente, fabricados en titanio biocompatible por mecanizado CNC e impresión 3D.',
-    images: ['/img/fabricacion-cnc-planta.jpg'],
   },
   twitter: {
     card: 'summary_large_image',
