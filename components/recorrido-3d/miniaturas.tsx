@@ -17,6 +17,7 @@ import {
   Quaternion,
   ShaderMaterial,
   Vector3,
+  type WebGLRenderer,
   type Group,
   type Object3D,
   type PerspectiveCamera as Camara,
@@ -281,6 +282,7 @@ class EstadoMiniatura {
   readonly fondo = materialFondo()
   readonly metal: MeshStandardMaterial
   private inicio: number | null = null
+  private calentado = false
   private base: Quaternion
 
   constructor(
@@ -310,6 +312,18 @@ class EstadoMiniatura {
     this.puntos.dispose()
     this.fondo.dispose()
     this.metal.dispose()
+  }
+
+  // Compila los programas de la vista una sola vez, en el primer cuadro con
+  // el estudio de luz listo (ver Miniatura)
+  calentar(gl: WebGLRenderer, escena: Scene, raiz: Scene, grupo: Group | null, cam: Camara | null) {
+    if (this.calentado || !raiz.environment || !grupo || !cam) return
+    this.calentado = true
+    this.metal.envMap = raiz.environment
+    escena.environment = raiz.environment
+    grupo.visible = true
+    gl.compileAsync(escena, cam).catch(() => {})
+    grupo.visible = false
   }
 
   cuadro(
@@ -416,16 +430,8 @@ function Miniatura({
   // carga, y no cuando la tarjeta aparece por primera vez (compilarlos ahí
   // frenaba más de 100 ms). El grupo está oculto hasta su parada: se lo
   // muestra solo mientras compile recorre la escena.
-  const calentado = useRef(false)
   useFrame(({ gl, scene }) => {
-    if (!calentado.current && raiz.environment && grupo.current && camara.current) {
-      calentado.current = true
-      estado.metal.envMap = raiz.environment
-      scene.environment = raiz.environment
-      grupo.current.visible = true
-      gl.compileAsync(scene, camara.current).catch(() => {})
-      grupo.current.visible = false
-    }
+    estado.calentar(gl, scene, raiz, grupo.current, camara.current)
     estado.cuadro(scene, raiz, gl.getPixelRatio(), grupo.current, camara.current, latido)
   })
 
