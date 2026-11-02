@@ -36,6 +36,20 @@ const suscribirAngosta = (avisar: () => void) => {
 }
 const esAngosta = () => window.matchMedia(ANGOSTA).matches
 
+// WebGL2 se comprueba una sola vez y el contexto de prueba se libera: antes
+// se creaba uno nuevo cada vez que la tira se acercaba y quedaba vivo, y en
+// el celular, ida y vuelta por la sección, se acumulaban (trababan el scroll
+// y acercaban el tope de contextos del navegador)
+let webgl2: boolean | undefined
+function hayWebgl2() {
+  if (webgl2 === undefined) {
+    const gl = document.createElement('canvas').getContext('webgl2')
+    webgl2 = !!gl
+    gl?.getExtension('WEBGL_lose_context')?.loseContext()
+  }
+  return webgl2
+}
+
 // En escritorio la curva es mucho más grande que la franja de las tarjetas.
 // Para que no la corte un borde invisible, el canvas se estira hacia el
 // espacio libre: arriba, hasta las tarjetas de Fabricación; abajo, hasta el
@@ -91,7 +105,7 @@ export function CarruselPlanta({ fotos }: { fotos: readonly FotoPlanta[] }) {
         }
         // Recién al acercarse se comprueba WebGL2: sin soporte, queda el
         // respaldo y no se vuelve a montar nada
-        if (!document.createElement('canvas').getContext('webgl2')) {
+        if (!hayWebgl2()) {
           setRespaldo(true)
           observador.disconnect()
           return

@@ -1663,17 +1663,22 @@ body {
 }
 
 /* #recorrido es un ancla más (la de la craneoplastía, tour-scroll.tsx), con
-   el mismo desplazamiento que las de cada parada */
+   el mismo desplazamiento que las de cada parada.
+   El largo del recorrido y sus anclas van en lvh, fijo: en dvh, cada vez que
+   la barra del navegador del celular se escondía o volvía, el contenedor
+   (8,7 pantallas) cambiaba unos 700 px de alto y todo lo de abajo saltaba
+   (sin scroll anchoring en Safari, la página "subía sola"). La escena fija
+   sigue en dvh: su alto no mueve nada fuera del contenedor. */
 
 .recorrido {
   position: relative;
-  height: calc(var(--tramos) * 100dvh);
+  height: calc(var(--tramos) * 100lvh);
 }
 
 .recorrido-ancla {
   position: absolute;
   left: 0;
-  top: calc(var(--k) * 100dvh + 74px);
+  top: calc(var(--k) * 100lvh + 74px);
   width: 1px;
   height: 1px;
 }

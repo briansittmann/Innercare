@@ -145,6 +145,7 @@ En el orden del borrador: hero y recorrido (una sola sección, `#inicio`), `#pro
 - Componentes de React Bits: no instalarlos con `shadcn add`, porque corrompe las cadenas de sombras y colores. Sacá el código con `npx shadcn@latest view @react-bits/<Nombre>-TS-TW` y copialo a mano a `components/` (nombre en kebab-case).
 - Copy visible: sin guiones largos (`—`) ni rangos con guion ("10 a 12 mm") y como máximo un eyebrow cada tres secciones.
 - Contenedor de página: utilidad `page-container`.
+- Largos de scroll (contenedores de secciones atadas al scroll y sus anclas) en `lvh` o `vh`, nunca en `dvh`: en el celular, el `dvh` cambia al esconderse la barra del navegador y todo lo de abajo salta (pasó con el recorrido, 8,7 pantallas, al pasar por la tira de Fabricación). Las escenas fijas (`sticky`) sí van en `dvh`.
 - Fotos de planta (máquinas, instalaciones): siempre con `PlantPhoto` (blanco y negro con tinte de marca). Las de producto y casos, sin tratamiento. Excepción: la tira de Fabricación va en color con el velo del carrusel (`docs/DECISIONES.md`).
 
 ## Datos

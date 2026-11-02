@@ -847,6 +847,14 @@ Rama `cuerpo-unico`.
 - 2026-11-02, pedido del usuario: la pausa baja de una pantalla a 0,7 (`PAUSA_CIERRE`), porque frenaba de más. Sigue alcanzando para que el texto termine de entrar antes de seguir.
 - Entrada del cierre, por tiempo y cada vez que aparece (como la tarjeta del contacto): el cuerpo ya llega con la cámara, así que su entrada es una luz que baja por los implantes (el barrido de cada parada, uno tras otro de la cabeza a los pies, más un pulso de brillo y borde de luz por pieza, porque con el cuerpo entero la línea sola queda de unos píxeles y no se ve) mientras el título, la bajada, el botón (con rebote) y el aviso entran de a uno. Se descartó mover o escalar el canvas del cuerpo: durante el tramo anterior ya se está moviendo con la cámara y un salto encima se leía como un error.
 
+## 2026-11-02 · Scroll trabado en el celular después de la tira de Fabricación
+
+**Decisión.** El recorrido mide su largo y ubica sus anclas en `lvh` en vez de `dvh` (`.recorrido` y `.recorrido-ancla` en `globals.css`); la escena fija sigue en `dvh`. La tira de fotos comprueba WebGL2 una sola vez y libera el contexto de prueba (`hayWebgl2` en `carrusel-planta.tsx`).
+
+**Motivo.** Pedido del usuario: en el celular, al pasar por el carrusel, el scroll se trababa y la página "subía sola". El contenedor del recorrido mide 8,7 pantallas en `dvh`, que cambia unos 80 px cada vez que la barra del navegador se esconde o vuelve: el alto cambiaba unos 700 px y todo lo de abajo saltaba (Safari no compensa con scroll anchoring). Además, cada vez que la tira se acercaba se creaba un contexto WebGL2 de prueba que no se liberaba; ida y vuelta por la sección se acumulaban.
+
+**Descartado.** Dejar la tira montada para siempre: es el tercer contexto WebGL y la regla de rendimiento pide liberarlo.
+
 ## Pendientes abiertos
 
 - ~~**Respaldo del 3D sin WebGL.**~~ Resuelto el 2026-10-29 con el prototipo de cabeza: se comprueba el contexto antes de montar el canvas, que va dentro de un límite de errores, y sin WebGL queda la imagen fija (`public/img/cuerpo-inicio.webp`).
