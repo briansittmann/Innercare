@@ -77,7 +77,7 @@ export function LatticeLoader({
   return (
     <span
       role="status"
-      className={`group relative inline-flex items-center leading-none [gap:calc(var(--ll-font)*0.625)]${className ? ` ${className}` : ''}`}
+      className={`group relative inline-flex items-center gap-[0.75em] leading-none${className ? ` ${className}` : ''}`}
       data-status={status}
       data-shape={shape}
       style={
@@ -85,7 +85,6 @@ export function LatticeLoader({
           '--ll-n': grid,
           '--ll-cell': `${cellSize}px`,
           '--ll-gap': `${gap}px`,
-          '--ll-font': '1em',
           '--ll-idle': idleOpacity,
           '--ll-cycle': `${cycle}ms`,
         } as CSSProperties
