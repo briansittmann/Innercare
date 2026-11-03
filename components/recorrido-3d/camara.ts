@@ -57,7 +57,9 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 export const smooth = (t: number) => t * t * (3 - 2 * t)
 
 // Cierre: el cuerpo entero anclado a la derecha (68 % del ancho), con el
-// texto a la izquierda; en el celular, centrado y debajo del texto.
+// texto a la izquierda; en el celular, debajo del texto y corrido a la
+// derecha (62 % del ancho, como la cabeza del hero), para dejarle la esquina
+// de abajo a la izquierda al aviso de deslizar.
 // Borrador: s = alto × 0,88 / 1000 en escritorio y × 0,6 en el celular.
 const CENTRO_CUERPO: Vec3 = [0, 0.85, 0]
 const cuerpoEntero = (fraccion: number) => (1000 * UNIDAD) / fraccion
@@ -67,7 +69,7 @@ const CIERRE: Clave = {
   azimut: -0.3,
   elevacion: 0.04,
   escritorio: { ancla: [0.68, 0.53], alto: cuerpoEntero(0.88) },
-  celular: { ancla: [0.5, 0.68], alto: cuerpoEntero(0.6) },
+  celular: { ancla: [0.62, 0.68], alto: cuerpoEntero(0.6) },
 }
 
 // --- Toma del hero -----------------------------------------------------------

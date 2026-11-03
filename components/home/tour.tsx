@@ -177,11 +177,12 @@ function VistaParada({ parada }: { parada: Parada }) {
 // entrada, con fondo transparente (public/img/cuerpo-entero.webp, 440 × 900
 // a 1,5x: el alto entero de la escena). En escritorio va al alto de la
 // escena y centrada al 68 %, donde la cámara pone el cuerpo; en el celular,
-// a dos tercios (la cámara del celular lo muestra más chico) y con el centro
-// del cuerpo al 74 % del alto, como en camara.ts.
+// a dos tercios (la cámara del celular lo muestra más chico), centrada al
+// 62 % del ancho y con el centro del cuerpo al 74 % del alto, como en
+// camara.ts.
 function VistaCuerpo() {
   return (
-    <div className="absolute top-[38.6%] left-1/2 aspect-[660/1350] h-[66.7%] -translate-x-1/2 min-[820px]:top-0 min-[820px]:left-[68%] min-[820px]:h-full">
+    <div className="absolute top-[38.6%] left-[62%] aspect-[660/1350] h-[66.7%] -translate-x-1/2 min-[820px]:top-0 min-[820px]:left-[68%] min-[820px]:h-full">
       <Image
         src="/img/cuerpo-entero.webp"
         alt=""

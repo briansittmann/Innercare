@@ -441,10 +441,12 @@ export function TourScroll({
         </div>
 
         {/* Aviso de deslizar del cierre: abajo a la derecha, a la derecha
-            del cuerpo, con el riel del hero (.aviso-deslizar). Entra último
-            (data-entra) y sigue la opacidad del cierre. */}
+            del cuerpo (en el celular, abajo a la izquierda, con el riel a
+            su izquierda como en el hero), con el riel del hero
+            (.aviso-deslizar). Entra último (data-entra) y sigue la opacidad
+            del cierre. */}
         <div ref={capaAviso} aria-hidden className="recorrido-aviso-cierre">
-          <p data-entra className="aviso-deslizar flex max-w-[6rem] items-center gap-md text-balance text-right text-body-sm text-on-surface-variant md:max-w-none md:text-left">
+          <p data-entra className="aviso-deslizar flex max-w-[6rem] flex-row-reverse items-center gap-md text-balance text-left text-body-sm text-on-surface-variant md:max-w-none min-[820px]:flex-row">
             Deslizá para continuar
           </p>
         </div>

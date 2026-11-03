@@ -247,6 +247,21 @@ body {
   }
 }
 
+/* Sobre el azul oscuro del contacto de la home (header con
+   data-fondo="oscuro", components/header-fondo.tsx), el vidrio de la barra
+   pasa a blanco opaco con un fundido: los enlaces no se leían. El
+   !important, por los estilos en línea de GlassSurface. El backdrop-filter
+   queda: el fondo opaco lo tapa y quitarlo de golpe se notaría al empezar
+   el fundido. */
+.nav-glass {
+  transition-property: opacity, background-color;
+  transition-duration: 260ms;
+}
+
+[data-fondo='oscuro'] .nav-glass {
+  background-color: var(--color-surface-container-lowest) !important;
+}
+
 /* Vidrio de la navegación, barra e índice lateral (GlassSurface aplica sus
    estilos en línea, de ahí el !important): opaco si el sistema pide reducir
    la transparencia. */
@@ -1951,20 +1966,21 @@ body {
   }
 }
 
-/* Aviso de deslizar del cierre: abajo a la derecha, en la esquina que deja
-   libre el cuerpo (anclado al 68 % del ancho en escritorio y centrado en el
-   celular, donde los pies llegan casi al borde pero las piernas son
-   angostas). Mismo riel que el del hero. */
+/* Aviso de deslizar del cierre: en la esquina que deja libre el cuerpo.
+   En escritorio, abajo a la derecha (el cuerpo va al 68 % del ancho); en el
+   celular, abajo a la izquierda (el cuerpo va al 62 %). Mismo riel que el
+   del hero. */
 .recorrido-aviso-cierre {
   position: absolute;
   z-index: 3;
-  right: clamp(1rem, 4vw, 1.5rem);
+  left: clamp(1rem, 4vw, 1.5rem);
   bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem);
   pointer-events: none;
 }
 
 @media (width >= 820px) {
   .recorrido-aviso-cierre {
+    left: auto;
     right: clamp(1.25rem, 6vw, 6rem);
     bottom: 2.5rem;
   }
