@@ -2258,11 +2258,14 @@ body {
 /* El velo del Flex Carousel en la tira clásica: cada foto va bajo el azul de
    la marca (en `color`, que conserva la luz de la foto, como el duotono del
    shader) salvo la que pasa por el centro, con una línea de tiempo de vista
-   horizontal. Sin soporte, todas en color. */
+   horizontal. Sin soporte, todas en color. El velo hereda el radio: en
+   Safari, el overflow redondeado de la foto no recorta una capa con
+   mix-blend-mode y opacidad animada, y asomaban sus esquinas en punta. */
 .carrusel-foto::after {
   content: '';
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   background: var(--color-on-primary-fixed);
   mix-blend-mode: color;
   opacity: 0;
