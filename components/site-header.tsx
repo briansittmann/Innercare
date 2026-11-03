@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { AnchorLink } from './anchor-link'
 import { ContactLink } from './contact-link'
 import { DesktopNav } from './desktop-nav'
+import { HeaderFondo } from './header-fondo'
 import { MobileNav } from './mobile-nav'
 import { NavIntro } from './nav-intro'
 import { NavGlass } from './nav-glass'
@@ -63,9 +64,12 @@ function Logo({ className, compacto = false }: { className: string; compacto?: b
 // píldora con el logo y se estira hasta su ancho. El contenido se maqueta siempre al ancho final
 // (100cqw de .nav-intro) y el vidrio lo recorta, así nada se reacomoda
 // mientras crece.
+//
+// Sobre el azul oscuro del contacto de la home, el vidrio pasa a opaco
+// (HeaderFondo y .nav-glass en globals.css).
 export function SiteHeader() {
   return (
-    <header className="pointer-events-none sticky top-0 z-40 pt-2">
+    <HeaderFondo className="pointer-events-none sticky top-0 z-40 pt-2">
       <NavIntro className="px-3 md:hidden">
         <MobileNav logo={<Logo className="h-8 w-auto" />} />
       </NavIntro>
@@ -96,6 +100,6 @@ export function SiteHeader() {
           </NavGlass>
         </NavIntro>
       </div>
-    </header>
+    </HeaderFondo>
   )
 }

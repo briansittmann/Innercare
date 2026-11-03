@@ -20,10 +20,14 @@ const TITULAR_INTRO = 'Todo empieza con una conversación.'
 //
 // #contacto va en un ancla al final de la sección (.contacto-ancla): un
 // enlace a /#contacto llega con la tarjeta ya armada.
+//
+// data-fondo-oscuro: mientras la sección pasa por detrás de la barra, el
+// vidrio del header se vuelve opaco (components/header-fondo.tsx).
 export function Contacto() {
   return (
     <section
       aria-labelledby="contacto-titulo"
+      data-fondo-oscuro
       className="contacto-seccion relative h-[280vh] bg-on-primary-fixed"
     >
       <span id="contacto" aria-hidden className="contacto-ancla" />
