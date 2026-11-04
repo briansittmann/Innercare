@@ -72,3 +72,16 @@ Script `qa/panel-innercare.mjs` del scratchpad; capturas en `docs/landing/textos
 ## 5. Build, lint y tipos
 
 `npm run build` (compuerta + `next build`), `npm run lint` y `npx tsc --noEmit` pasan sin errores sobre el árbol final. Dos avisos conocidos de antes: `metadataBase` sin definir (pendiente de CLAUDE.md). Una vez `next build` falló por tipos generados viejos en `.next/dev/types/validator.ts` (todavía describían `app/layout.tsx`, `app/@modal/[...catchAll]`…): se borró esa carpeta y se regeneró.
+
+## 6. Límites medidos (segunda pasada)
+
+Los límites provisionales de `LIMITES` (`keystatic.esquema.ts`) se reemplazaron por los medidos en 1440×900 y 390×844 (`LIMITES.md`), con estas decisiones:
+
+- `metadata.description` mide 223 y pasa los 160 convencionales: tope 240 y la ayuda del campo avisa que Google corta cerca de los 160. El texto no se tocó.
+- `openGraph.title` es `"{marca} | {titular del hero}"` y hoy mide exactamente 60: el tope de 60 lo comprueba la compuerta sobre la combinación (el titular solo tiene 50).
+- Las partes de la referencia ANMAT (separadas por « · ») se validan por parte, con el patrón del campo (hasta 25 cada una) más un tope total de 55.
+- `sede.calle`: el pedido decía 40 por campo, pero la dirección de Alberti ya mide 52 y la migración tiene que ser idéntica. Se aplicó la regla medida de `LIMITES.md` para la card: `"{calle}, {localidad}"` ≤ 61 (`direccionCard`, comprobado en la compuerta) y nombre mostrado + calle + localidad ≤ 78 (`sumaSedeCard`), con un tope por campo de 59.
+- Combinaciones en `scripts/contenido.mjs` (leen `LIMITES`): las cuatro etiquetas del menú ≤ 52; «Plantear un caso» + botón de vidrio ≤ 41 (con los topes por campo de 18 y 23 no puede pasarse: queda como red); las tres leyendas del proceso ≤ 40; por sede, `"{calle}, {localidad}"` ≤ 61 y nombre + calle + localidad ≤ 78; el título para redes ≤ 60.
+- Las ayudas de los campos que hoy están justo en el límite lo dicen: línea ANMAT, etiquetas del menú (en conjunto), botones del hero, «Deslizá para continuar», título y bajada del cierre, título del acetábulo (en la ayuda genérica del título de parada), descripción del paso 03, título de Fabricación, bajada de Habilitaciones, bajada de Distribución y bajada del contacto. La descripción de parada avisa que con cuatro datos técnicos conviene no pasar de 100.
+
+Con el contenido real: `Contenido OK: 10 secciones validadas.` Provocados y restaurados: titular de 51 → «no puede tener más de 50 caracteres»; título para redes de 62 → «mide 62 caracteres y no puede pasar de 60»; leyendas de 48 en total → «entre las tres suman 48 … no pueden pasar de 40»; las cuatro etiquetas del menú en 55 → «suman 55 … no pueden pasar de 52»; calle de Alberti con «bis» → «mide 65 caracteres y la tarjeta admite hasta 61» y «suman 80 … no pueden pasar de 78»; parte de referencia de 26 → el mensaje del patrón.

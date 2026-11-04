@@ -13,59 +13,76 @@ import { fields, singleton } from '@keystatic/core'
 import { provincias } from './content/mapa-argentina.ts'
 
 // Límites de largo, en caracteres, de los textos que afectan el diseño.
-// Provisionales: deducidos de los anchos del CSS (max-w-[36ch], columnas,
-// pensado para dos líneas…) que anota docs/landing/textos-editables/
-// INVENTARIO.md. Se reemplazan de una vez cuando lleguen los medidos.
+// Medidos en 1440×900 y 390×844 (90 % del menor con margen): el detalle y
+// las reglas están en docs/landing/textos-editables/LIMITES.md. Las claves
+// `suma*` y `direccionCard` son combinaciones que un tope por campo no
+// cubre; las comprueba scripts/contenido.mjs.
 export const LIMITES = {
-  heroTitular: 60,
-  heroBajada: 110,
-  heroBoton: 24,
-  heroLinea: 110,
-  heroAviso: 36,
-  menuEnlace: 20,
-  plantearCaso: 20,
+  heroTitular: 50,
+  heroBajada: 100,
+  heroBoton: 23,
+  heroLinea: 93,
+  heroAviso: 38,
+  avisoContinuar: 22,
+  menuEnlace: 15,
+  plantearCaso: 18,
   marca: 20,
-  cargaPalabra: 28,
-  cargaEtiqueta: 12,
-  cierreTitulo: 70,
-  cierreTexto: 100,
+  cargaPalabra: 32,
+  cargaEtiqueta: 20,
+  cierreTitulo: 63,
+  cierreTexto: 88,
   etiquetaTarjeta: 20,
-  paradaZona: 20,
-  paradaTitulo: 60,
-  paradaDescripcion: 190,
+  paradaZona: 36,
+  paradaTitulo: 47,
+  paradaDescripcion: 180,
   specEtiqueta: 16,
-  specValor: 40,
-  procesoTitulo: 40,
-  pasoTitulo: 40,
-  pasoDescripcion: 110,
-  leyenda: 20,
-  fabricacionTitulo: 50,
-  fabricacionBajada: 120,
-  tarjetaNombre: 32,
-  tarjetaTexto: 180,
+  specValor: 36,
+  procesoTitulo: 32,
+  pasoTitulo: 32,
+  pasoDescripcion: 90,
+  leyenda: 16,
+  fabricacionTitulo: 44,
+  fabricacionBajada: 110,
+  tarjetaNombre: 23,
+  tarjetaTexto: 140,
   volverAVer: 20,
   fotoTitulo: 48,
-  fotoSubtitulo: 32,
-  habilitacionesTitulo: 40,
-  habilitacionesBajada: 170,
-  habilitacionDetalle: 70,
-  habilitacionReferencia: 48,
-  distribucionTitulo: 40,
-  distribucionBajada: 140,
-  sedeTipo: 50,
-  sedeCalle: 60,
-  sedeLocalidad: 30,
-  contactoKicker: 48,
-  contactoIntro: 48,
-  contactoTitulo: 36,
-  contactoBajada: 110,
-  panelTitulo: 24,
-  panelBajada: 140,
+  fotoSubtitulo: 28,
+  habilitacionesTitulo: 35,
+  habilitacionesBajada: 152,
+  habilitacionDetalle: 60,
+  // Cada parte separada por " · " va en una línea
+  habilitacionReferenciaParte: 25,
+  habilitacionReferencia: 55,
+  distribucionTitulo: 35,
+  distribucionBajada: 119,
+  sedeTipo: 45,
+  // La card muestra "{calle}, {localidad}" en hasta 61 caracteres
+  // (direccionCard); la dirección de Alberti ya mide 52
+  sedeCalle: 59,
+  sedeLocalidad: 25,
+  contactoKicker: 40,
+  contactoIntro: 50,
+  contactoTitulo: 31,
+  contactoBajada: 95,
+  panelTitulo: 18,
+  panelBajada: 120,
   panelBoton: 24,
-  motivo: 30,
-  seoTitulo: 70,
-  seoDescripcion: 260,
-  ogDescripcion: 200,
+  motivo: 26,
+  otrosCanales: 40,
+  seoTitulo: 60,
+  // Google corta cerca de los 160; la descripción actual mide 223 y no se toca
+  seoDescripcion: 240,
+  seoDescripcionContacto: 160,
+  ogDescripcion: 160,
+  // "{marca} | {titular del hero}"
+  ogTitulo: 60,
+  // Combinaciones
+  sumaMenu: 52,
+  sumaBotonesHero: 41,
+  sumaLeyenda: 40,
+  direccionCard: 61,
+  sumaSedeCard: 78,
   // Textos que no afectan el diseño (alt, lectores de pantalla, mensajes)
   alt: 160,
   largo: 300,
@@ -87,10 +104,12 @@ function texto(
 }
 
 const PATRON = {
-  // "Disposición 0999/17", "N° 298-2023-R", "GLN 7798276610001 · Sub-GLN 7798276610018"
+  // "Disposición 0999/17", "N° 298-2023-R", "GLN 7798276610001 · Sub-GLN 7798276610018":
+  // cada parte (separadas por " · ", una por línea) de hasta 25 caracteres
   referencia: {
-    regex: /^(?=.*\d)[\p{L}\d°º/.\-· ]+$/u,
-    message: 'Escribí la referencia con su número, como «Disposición 0999/17» o «N° 298-2023-R».',
+    regex: /^(?=.*\d)[\p{L}\d°º/.\- ]{1,25}( · [\p{L}\d°º/.\- ]{1,25})*$/u,
+    message:
+      'Escribí la referencia con su número, como «Disposición 0999/17» o «N° 298-2023-R»; cada parte separada por « · » va en una línea y no puede pasar de 25 caracteres.',
   },
   telefono: {
     regex: /^\+54( \d{1,4}){2,3}-\d{4}$/,
@@ -124,12 +143,12 @@ function parada(nombre: string, nota?: string) {
       titulo: texto(
         'Título',
         LIMITES.paradaTitulo,
-        'Título de la tarjeta. Entra en dos líneas en la tarjeta de escritorio.',
+        'Título de la tarjeta, en dos líneas. El del acetábulo (47) ya está justo en el límite.',
       ),
       descripcion: texto(
         'Descripción',
         LIMITES.paradaDescripcion,
-        'Párrafo de la tarjeta, también en la hoja del celular: cuanto más largo, menos cuerpo se ve detrás.',
+        'Párrafo de la tarjeta, también en la hoja del celular: cuanto más largo, menos cuerpo se ve detrás. Si la parada tiene cuatro datos técnicos, conviene no pasar de 100 caracteres.',
         { multilinea: true },
       ),
       specs: fields.array(
@@ -174,7 +193,7 @@ export const singletons = {
       titular: texto(
         'Titular',
         LIMITES.heroTitular,
-        'Entra letra por letra en el hero; la entrada está medida para unas 47 letras. Se repite en el footer (con punto final), en la imagen para redes y en el título de Open Graph.',
+        'Entra letra por letra en el hero; la entrada está medida para unas 47 letras. Se repite en el footer (con punto final), en la imagen para redes y en el título de Open Graph («Innercare | …», que no puede pasar de 60: el actual está justo).',
       ),
       bajada: texto(
         'Bajada',
@@ -185,12 +204,12 @@ export const singletons = {
       botonRecorrer: texto(
         'Botón de vidrio',
         LIMITES.heroBoton,
-        'El segundo botón del hero, que baja al recorrido. Va al lado de «Plantear un caso» en una fila de 48 px en el celular.',
+        'El segundo botón del hero, que baja al recorrido. Va al lado de «Plantear un caso» en una fila de 48 px en el celular: entre los dos no pueden pasar de 41 caracteres, y hoy suman 38.',
       ),
       lineaHabilitaciones: texto(
         'Línea de habilitaciones',
         LIMITES.heroLinea,
-        'Debajo de los botones, con el sello. Resumen de las habilitaciones ANMAT acordado con Innercare; también va en la imagen para redes. Dos líneas de 46 caracteres.',
+        'Debajo de los botones, con el sello. Resumen de las habilitaciones ANMAT acordado con Innercare; también va en la imagen para redes. Dos líneas de 46 caracteres: la actual ya está justo en el límite.',
         { multilinea: true },
       ),
       avisoDeslizar: texto(
@@ -211,17 +230,17 @@ export const singletons = {
           titulo: texto(
             'Título',
             LIMITES.cierreTitulo,
-            'Al lado del cuerpo entero, en tres líneas de 18 caracteres.',
+            'Al lado del cuerpo entero, en tres líneas de 18 caracteres. El actual ya está justo en el límite.',
             { multilinea: true },
           ),
-          texto: texto('Bajada', LIMITES.cierreTexto, 'Dos líneas de 46 caracteres.', { multilinea: true }),
+          texto: texto('Bajada', LIMITES.cierreTexto, 'Dos líneas de 46 caracteres. La actual ya está justo en el límite.', { multilinea: true }),
         },
         { label: 'Cierre del recorrido', description: 'El texto final, con el cuerpo entero y el botón «Plantear un caso».' },
       ),
       avisoContinuar: texto(
         'Aviso de continuar',
-        LIMITES.heroAviso,
-        'Abajo a la derecha del cierre, con el riel. En el celular, en dos líneas.',
+        LIMITES.avisoContinuar,
+        'Abajo a la derecha del cierre, con el riel. En el celular, en dos líneas. El actual ya está justo en el límite.',
       ),
       etiquetas: fields.object(
         {
@@ -275,7 +294,7 @@ export const singletons = {
           resecar: texto('Zona a resecar', LIMITES.leyenda),
           implante: texto('Implante y guías', LIMITES.leyenda),
         },
-        { label: 'Leyenda de la pieza', description: 'Qué es cada color de la pieza, debajo de ella. Una o dos palabras cada una.' },
+        { label: 'Leyenda de la pieza', description: 'Qué es cada color de la pieza, debajo de ella, en una fila. Una o dos palabras cada una: entre las tres no pueden pasar de 40 caracteres.' },
       ),
     },
   }),
@@ -285,7 +304,7 @@ export const singletons = {
     path: 'content/datos/fabricacion',
     format: { data: 'json' },
     schema: {
-      titulo: texto('Título', LIMITES.fabricacionTitulo, 'Título de la sección, en dos líneas de 22 caracteres.'),
+      titulo: texto('Título', LIMITES.fabricacionTitulo, 'Título de la sección, en dos líneas de 22 caracteres. El actual ya está justo en el límite.'),
       bajada: texto('Bajada', LIMITES.fabricacionBajada, 'Dos líneas de 56 caracteres.', { multilinea: true }),
       tarjetas: fields.object(
         {
@@ -336,7 +355,7 @@ export const singletons = {
     format: { data: 'json' },
     schema: {
       titulo: texto('Título', LIMITES.habilitacionesTitulo, 'Título de la sección, en dos líneas de 16 caracteres.'),
-      bajada: texto('Bajada', LIMITES.habilitacionesBajada, 'Tres líneas de 56 caracteres.', { multilinea: true }),
+      bajada: texto('Bajada', LIMITES.habilitacionesBajada, 'Tres líneas de 56 caracteres. La actual ya está justo en el límite.', { multilinea: true }),
       filas: fields.array(
         fields.object({
           id: texto('Identificador', 40, 'Clave interna y estable de la fila, como «anmat-bpf». No se muestra.'),
@@ -373,7 +392,7 @@ export const singletons = {
     format: { data: 'json' },
     schema: {
       titulo: texto('Título', LIMITES.distribucionTitulo, 'Entra palabra por palabra; dos líneas de 16 caracteres.'),
-      bajada: texto('Bajada', LIMITES.distribucionBajada, 'Entra palabra por palabra; tres líneas de 56 caracteres.', { multilinea: true }),
+      bajada: texto('Bajada', LIMITES.distribucionBajada, 'Entra palabra por palabra; tres líneas de 56 caracteres. La actual ya está justo en el límite.', { multilinea: true }),
       accesibilidad: fields.object(
         { mapa: texto('Nombre del mapa', LIMITES.alt, 'Para lectores de pantalla.') },
         { label: 'Lectores de pantalla' },
@@ -398,9 +417,9 @@ export const singletons = {
           tipo: texto(
             'Nombre completo',
             LIMITES.sedeTipo,
-            'Primera línea de la tarjeta de la sede, como «Laboratorio de productos de tecnología médica». Las sucursales muestran solo «Sucursal».',
+            'Primera línea de la tarjeta de la sede, como «Laboratorio de productos de tecnología médica». Las sucursales muestran solo «Sucursal». En la tarjeta, nombre + calle + localidad no pueden pasar de 78 caracteres.',
           ),
-          calle: texto('Calle y número', LIMITES.sedeCalle, 'Dato regulado (carpeta institucional). En la tarjeta, junto a la localidad.'),
+          calle: texto('Calle y número', LIMITES.sedeCalle, 'Dato regulado (carpeta institucional). En la tarjeta va «calle, localidad», que no puede pasar de 61 caracteres.'),
           codigoPostal: fields.text({
             label: 'Código postal',
             description: 'Opcional. Se muestra solo en el footer, delante de la localidad.',
@@ -464,7 +483,7 @@ export const singletons = {
         'Entra palabra por palabra mientras las manos se arman. Una oración corta.',
       ),
       titulo: texto('Título de la tarjeta', LIMITES.contactoTitulo, 'La pregunta de la tarjeta final, en dos líneas de 16 caracteres.'),
-      bajada: texto('Bajada de la tarjeta', LIMITES.contactoBajada, 'Dos o tres líneas de 44 caracteres.', { multilinea: true }),
+      bajada: texto('Bajada de la tarjeta', LIMITES.contactoBajada, 'Dos o tres líneas de 44 caracteres. La actual ya está justo en el límite.', { multilinea: true }),
       panel: fields.object(
         {
           titulo: texto('Título', LIMITES.panelTitulo, 'Encabezado del panel y de la página /contacto.'),
@@ -473,7 +492,7 @@ export const singletons = {
           enviando: texto('Botón mientras envía', LIMITES.panelBoton, 'Reemplaza al botón de enviar mientras se manda la consulta.'),
           exitoTitulo: texto('Título de la confirmación', LIMITES.alt, 'Cuando la consulta se envió.'),
           exitoTexto: texto('Texto de la confirmación', LIMITES.largo, undefined, { multilinea: true }),
-          otrosCanales: texto('Otros canales', LIMITES.alt, 'Encima de los enlaces de WhatsApp y teléfono.'),
+          otrosCanales: texto('Otros canales', LIMITES.otrosCanales, 'Encima de los enlaces de WhatsApp y teléfono.'),
           motivos: fields.object(
             {
               producto: texto('Consulta sobre un producto', LIMITES.motivo, 'Al elegirlo aparece el selector de producto.'),
@@ -507,13 +526,14 @@ export const singletons = {
         },
         {
           label: 'Enlaces del menú',
-          description: 'La barra mide el 62 % de la ventana: con etiquetas más largas, el logo pasa a su ícono antes.',
+          description:
+            'La barra mide el 62 % de la ventana: entre las cuatro no pueden pasar de 52 caracteres (hoy suman 49, justo en el límite); con más, el logo pasa a su ícono y el menú se descentra.',
         },
       ),
       plantearCaso: texto(
         'Botón de contacto',
         LIMITES.plantearCaso,
-        'La única etiqueta de contacto del sitio: la barra, el menú del celular, el hero, las tarjetas, el cierre del recorrido y el contacto. Botón de 48 px.',
+        'La única etiqueta de contacto del sitio: la barra, el menú del celular, el hero, las tarjetas, el cierre del recorrido y el contacto. Botón de 48 px; en el hero va en la misma fila que el botón de vidrio (entre los dos, hasta 41 caracteres).',
       ),
       accesibilidad: fields.object(
         {
@@ -561,7 +581,7 @@ export const singletons = {
       descripcion: texto(
         'Descripción',
         LIMITES.seoDescripcion,
-        'La que muestran los buscadores debajo del título. Google corta cerca de los 160 caracteres.',
+        'La que muestran los buscadores debajo del título. Google corta cerca de los 160 caracteres (la actual mide 223).',
         { multilinea: true },
       ),
       ogDescripcion: texto(
@@ -579,7 +599,7 @@ export const singletons = {
       contacto: fields.object(
         {
           titulo: texto('Título', LIMITES.panelTitulo, 'Título de la pestaña de /contacto; se completa con la plantilla.'),
-          descripcion: texto('Descripción', LIMITES.seoDescripcion, undefined, { multilinea: true }),
+          descripcion: texto('Descripción', LIMITES.seoDescripcionContacto, 'Para los buscadores; Google corta cerca de los 160 caracteres.', { multilinea: true }),
         },
         { label: 'Página de contacto' },
       ),
@@ -595,7 +615,7 @@ function paso(nombre: string) {
         LIMITES.pasoTitulo,
         'Crece hasta 28 px cuando el paso está activo; con más de 30 caracteres puede pasar a dos líneas.',
       ),
-      descripcion: texto('Descripción', LIMITES.pasoDescripcion, 'Una o dos líneas. En el celular se ve solo la del paso activo.', {
+      descripcion: texto('Descripción', LIMITES.pasoDescripcion, 'Una o dos líneas. En el celular se ve solo la del paso activo. La del paso 03 ya está justo en el límite.', {
         multilinea: true,
       }),
     },

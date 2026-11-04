@@ -13,7 +13,7 @@ import { access } from 'node:fs/promises'
 import { join } from 'node:path'
 import { config } from '@keystatic/core'
 import { createReader } from '@keystatic/core/reader'
-import { singletons } from '../keystatic.esquema.ts'
+import { LIMITES, singletons } from '../keystatic.esquema.ts'
 
 const raiz = process.cwd()
 const reader = createReader(raiz, config({ storage: { kind: 'local' }, singletons }))
@@ -99,9 +99,49 @@ for (const [clave, definicion] of Object.entries(singletons)) {
   }
 }
 
-// Lo que el esquema no puede comprobar
+// Lo que el esquema no puede comprobar. Primero, las combinaciones de
+// textos que comparten un espacio (docs/landing/textos-editables/LIMITES.md,
+// "Combinaciones"): un tope por campo no alcanza.
+const largo = (...textos) => textos.reduce((suma, texto) => suma + (texto?.length ?? 0), 0)
+const menu = leidos.menu
+if (menu) {
+  const enlaces = Object.values(menu.enlaces)
+  if (largo(...enlaces) > LIMITES.sumaMenu) {
+    error('Menú y footer', `Enlaces del menú: entre las cuatro etiquetas suman ${largo(...enlaces)} caracteres y no pueden pasar de ${LIMITES.sumaMenu} (la barra se descentra)`)
+  }
+}
+const hero = leidos.hero
+if (hero && menu) {
+  const botones = largo(menu.plantearCaso, hero.botonRecorrer)
+  if (botones > LIMITES.sumaBotonesHero) {
+    error('Hero', `Botón de vidrio y «${menu.plantearCaso}» suman ${botones} caracteres y no pueden pasar de ${LIMITES.sumaBotonesHero} (van en una fila en el celular)`)
+  }
+  const ogTitulo = `${menu.marca} | ${hero.titular}`
+  if (ogTitulo.length > LIMITES.ogTitulo) {
+    error('Hero', `Titular: el título para redes «${ogTitulo}» mide ${ogTitulo.length} caracteres y no puede pasar de ${LIMITES.ogTitulo}`)
+  }
+}
+const proceso = leidos.proceso
+if (proceso) {
+  const leyenda = Object.values(proceso.leyenda)
+  if (largo(...leyenda) > LIMITES.sumaLeyenda) {
+    error('Cómo trabajamos', `Leyenda de la pieza: entre las tres suman ${largo(...leyenda)} caracteres y no pueden pasar de ${LIMITES.sumaLeyenda} (una fila en el celular)`)
+  }
+}
+
 const distribucion = leidos.distribucion
 if (distribucion) {
+  distribucion.sedes.forEach((sede, i) => {
+    const direccion = `${sede.calle}, ${sede.localidad}`
+    if (direccion.length > LIMITES.direccionCard) {
+      error('Distribución', `Sedes › ${i + 1} › Calle y número: «${direccion}» mide ${direccion.length} caracteres y la tarjeta admite hasta ${LIMITES.direccionCard}`)
+    }
+    const tipoMostrado = sede.rol === 'sucursal' ? 'Sucursal' : sede.tipo
+    const card = largo(tipoMostrado, sede.calle, sede.localidad)
+    if (card > LIMITES.sumaSedeCard) {
+      error('Distribución', `Sedes › ${i + 1}: nombre, calle y localidad suman ${card} caracteres en la tarjeta y no pueden pasar de ${LIMITES.sumaSedeCard}`)
+    }
+  })
   const principales = distribucion.sedes.filter((sede) => sede.principal)
   if (principales.length !== 1) {
     error(
