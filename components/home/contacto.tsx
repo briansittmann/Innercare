@@ -24,9 +24,10 @@ const TITULAR_INTRO = 'Todo empieza con una conversación.'
 // data-fondo-oscuro: mientras la sección pasa por detrás de la barra, el
 // vidrio del header se vuelve opaco (components/header-fondo.tsx).
 export function Contacto() {
+  const palabras = TITULAR_INTRO.split(' ')
   return (
     <section
-      aria-labelledby="contacto-titulo"
+      aria-labelledby="contacto-cierre-titulo"
       data-fondo-oscuro
       className="contacto-seccion relative h-[280vh] bg-on-primary-fixed"
     >
@@ -40,10 +41,11 @@ export function Contacto() {
             >
               Planificamos, diseñamos, fabricamos.
             </span>
-            {TITULAR_INTRO.split(' ').map((palabra, i) => (
-              <span key={palabra} data-palabra className="inline-block">
+            {/* La clave es la posición: una palabra repetida no puede romper la entrada */}
+            {palabras.map((palabra, i) => (
+              <span key={i} data-palabra className="inline-block">
                 {palabra}
-                {i < TITULAR_INTRO.split(' ').length - 1 ? '\u00a0' : ''}
+                {i < palabras.length - 1 ? ' ' : ''}
               </span>
             ))}
           </p>
@@ -51,9 +53,12 @@ export function Contacto() {
         tarjeta={
           <div className="cta-luz grid w-[min(80rem,calc(100vw-2rem))] items-end gap-xl rounded-xl p-[clamp(2.25rem,6vw,5rem)] text-on-primary md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
             <div>
+              {/* contacto-cierre-titulo y no contacto-titulo: ese id es el del
+                  encabezado del panel de contacto (contact-parts.tsx), que se
+                  abre sobre la home */}
               <h2
                 data-entra
-                id="contacto-titulo"
+                id="contacto-cierre-titulo"
                 className="max-w-[16ch] text-balance font-display-lg text-[clamp(2.25rem,1.4rem+3.2vw,4.25rem)] leading-none tracking-[-0.04em]"
               >
                 ¿Tenés un caso para resolver?
