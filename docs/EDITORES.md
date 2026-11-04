@@ -18,6 +18,7 @@ El panel tiene a la izquierda un menú en tres grupos (**Portada**, **Secciones*
 |---|---|
 | Portada › **Hero** | La primera pantalla: titular, bajada, el botón «Recorrer los implantes», la línea de habilitaciones y el aviso para deslizar. El titular también va en el footer y en la tarjeta que aparece al compartir el enlace. |
 | Portada › **Recorrido de implantes** | El recorrido por el cuerpo: la tarjeta de cada una de las seis paradas, el índice de la izquierda y el cierre con el cuerpo entero. |
+| Portada › **Fichas técnicas (PDF)** | El PDF de cada parada: el enlace «Ficha técnica (PDF)» de su tarjeta y, en Hombro y Fémur proximal, el botón de la página del producto. |
 | Secciones › **Cómo trabajamos** | La sección «Cómo trabajamos»: el título, los tres pasos y la leyenda de colores debajo de la pieza. |
 | Secciones › **Fabricación** | La sección «Fabricación»: las dos tarjetas animadas y la tira de fotos de la planta. |
 | Secciones › **Habilitaciones** | La tabla de habilitaciones ANMAT y del Sistema Nacional de Trazabilidad. |
@@ -30,7 +31,8 @@ El panel tiene a la izquierda un menú en tres grupos (**Portada**, **Secciones*
 ## Qué podés cambiar
 
 - **Hero:** titular, bajada, el botón de vidrio, la línea de habilitaciones y el aviso de deslizar.
-- **Recorrido de implantes:** en cada parada (Cráneo, Maxilar, Hombro, Acetábulo, Fémur proximal y Diáfisis femoral), la zona anatómica, el título, la descripción, los datos técnicos (de uno a cuatro), el texto alternativo de la foto y la ficha técnica en PDF. Además, el título y la bajada del cierre, el aviso de continuar y las etiquetas de las tarjetas.
+- **Recorrido de implantes:** en cada parada (Cráneo, Maxilar, Hombro, Acetábulo, Fémur proximal y Diáfisis femoral), la zona anatómica, el título, la descripción, los datos técnicos (de uno a cuatro) y el texto alternativo de la foto. Además, el título y la bajada del cierre, el aviso de continuar y las etiquetas de las tarjetas.
+- **Fichas técnicas (PDF):** el PDF de cada una de las seis paradas (ver «La ficha técnica en PDF»).
 - **Cómo trabajamos:** el título, el título y la descripción de cada paso, y las tres etiquetas de la leyenda.
 - **Fabricación:** título, bajada, el nombre y el texto de las dos tarjetas, el botón «Volver a ver» y, de cada una de las ocho fotos de la tira, el texto alternativo, el pie y la segunda línea.
 - **Habilitaciones:** título, bajada y las filas de la tabla. Podés agregar, quitar o reordenar filas (hasta ocho).
@@ -44,7 +46,7 @@ Los campos de **texto alternativo** y los grupos **Lectores de pantalla** no se 
 
 ## Qué no se cambia desde el panel
 
-- **Fotos e imágenes** (la tira de Fabricación, las sedes, las paradas, los pasos): se cambian reemplazando el archivo, y eso lo hace Brian. Mandale la foto nueva. La única excepción es la ficha PDF de cada parada.
+- **Fotos e imágenes** (la tira de Fabricación, las sedes, las paradas, los pasos): se cambian reemplazando el archivo, y eso lo hace Brian. Mandale la foto nueva. La única excepción es la ficha PDF de cada parada, que se sube desde el panel.
 - **El cuerpo 3D, los implantes y las animaciones:** son modelos y programación. Lo mismo el orden de las paradas y cuáles son a medida o de catálogo.
 - **La cantidad de pasos, tarjetas y fotos:** Cómo trabajamos tiene tres pasos, Fabricación dos tarjetas y ocho fotos. La animación de cada sección está hecha para esa cantidad.
 - **Los enlaces del menú y las direcciones internas de cada sección:** otras páginas y los buscadores apuntan a ellas.
@@ -71,6 +73,10 @@ Los caracteres se cuentan con espacios y signos incluidos.
 - «Plantear un caso» más el botón de vidrio del hero: hasta 41 (van en la misma fila en el celular).
 - Las tres etiquetas de la leyenda de Cómo trabajamos: hasta 40.
 - En cada sede, «calle, localidad»: hasta 61; y el nombre que muestra la tarjeta (las sucursales dicen solo «Sucursal») más la calle y la localidad: hasta 78.
+- En cada sede, «localidad, provincia» (la etiqueta del mapa): hasta 38. Y si la sede es la planta industrial, su nombre completo va entero bajo la etiqueta: hasta 23.
+- En una parada con cuatro datos técnicos, la descripción: hasta 100.
+- La sede principal tiene que tener al menos un teléfono (es el WhatsApp del footer y del contacto), y dos sedes no pueden tener las mismas coordenadas.
+- Una lista que el panel deja vacía (filas de la tabla, sedes, datos técnicos de una parada, etapas de la carga) frena la publicación: el panel avisa al guardar, pero por las dudas la web también lo controla.
 - «Innercare | » más el titular del hero, que es el título de la tarjeta al compartir el enlace: hasta 60.
 - Tiene que haber exactamente una sede principal.
 
@@ -78,9 +84,9 @@ Si alguno de estos no se cumple, el cambio se guarda pero **no se publica**: la 
 
 ## La ficha técnica en PDF
 
-Cada parada del recorrido tiene el campo **Ficha técnica (PDF)**. Si tiene un archivo, la tarjeta de la parada muestra el enlace «Ficha técnica (PDF)»; en Hombro y Fémur proximal, la página del producto también lo ofrece.
+Los PDF tienen su propia sección, Portada › **Fichas técnicas (PDF)**, con un campo por parada («Fémur proximal: ficha técnica», «Hombro: ficha técnica»…). Si una parada tiene archivo, su tarjeta en el recorrido muestra el enlace «Ficha técnica (PDF)»; en Hombro y Fémur proximal, la página del producto también lo ofrece. Están aparte de los textos del recorrido a propósito: así un guardado nunca mezcla archivos con las listas de datos técnicos.
 
-- **Subir:** en Recorrido de implantes, abrí la parada, elegí el archivo en «Ficha técnica (PDF)» y guardá.
+- **Subir:** en Fichas técnicas (PDF), elegí el archivo en el campo de la parada y guardá.
 - **Reemplazar:** elegí el archivo nuevo en el mismo campo y guardá. Se guarda siempre con el mismo nombre, así que el enlace no cambia.
 - **Quitar:** quitá el archivo del campo y guardá. El enlace desaparece de la tarjeta.
 

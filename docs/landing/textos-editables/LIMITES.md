@@ -132,7 +132,7 @@ Lo único propio del footer es "© {año} Innercare", que no se edita ni afecta 
 | Texto | Dónde | Largo actual | Regla | Límite propuesto | Nota |
 |---|---|---|---|---|---|
 | `title` por defecto | `app/layout.tsx:23` | 55 | Convención de buscadores | **60** | |
-| `description` | `app/layout.tsx:27` | 223 | Convención de buscadores | **160** | **Hoy la pasa** (223): Google la corta cerca de los 160 |
+| `description` | `app/layout.tsx:27` | 223 | Convención de buscadores | **240** | El texto actual mide 223 y la migración no cambia textos; Google corta cerca de los 160 (la ayuda del campo lo dice) |
 | `openGraph.title` | `app/layout.tsx:36` | 60 | Convención | **60** | **Al límite**. Repite el `tagline` a mano |
 | `openGraph.description` | `app/layout.tsx:38` | 127 | Convención | **160** | |
 | `description` de `/contacto` | `app/contacto/page.tsx:13` | 124 | Convención | **160** | El `title` sale de la plantilla: "Contacto \| Innercare" (20) |
@@ -186,6 +186,7 @@ Listo para copiar a un esquema. Los nombres siguen `content/` donde el texto ya 
 |---|---|
 | `carga.palabras[]` | 32 |
 | `carga.etiqueta` ("Cargando") y `carga.etiquetaListo` ("Listo") | 20 |
+| `menu.marca` ("Innercare": alt de los logos y copyright del footer) | 20 |
 | `navLinks[].label` | 15 (las cuatro juntas ≤ 52) |
 | `contactLabel` ("Plantear un caso") | 18 |
 | `tagline` | 50 |
@@ -194,6 +195,7 @@ Listo para copiar a un esquema. Los nombres siguen `content/` donde el texto ya 
 | `hero.recorrer` ("Recorrer los implantes") | 23 (con `contactLabel` ≤ 41) |
 | `hero.avisoDeslizar` | 38 |
 | `recorrido.avisoContinuar` | 22 |
+| `recorrido.etiquetas.*` (píldoras «A medida» y «Catálogo», enlace «Ficha técnica (PDF)») | 20 |
 | `paradas[].zona` | 36 |
 | `paradas[].titulo` | 47 |
 | `paradas[].descripcion` | 180 (100 si la parada tiene cuatro specs) |
@@ -221,6 +223,8 @@ Listo para copiar a un esquema. Los nombres siguen `content/` donde el texto ya 
 | `sedes[]`: "{ciudad}, {provincia}" (sin código postal ni "Provincia de ") | 38 |
 | `sedes[].tipo` (cuando se muestra entero como rol) | 23 |
 | `sedes[].tipo` (en la card) | 45 |
+| `sedes[].calle` | 59 |
+| `sedes[].localidad` | 25 |
 | `sedes[]`: "{calle}, {ciudad}" | 61 (tipo mostrado + dirección ≤ 78) |
 | `contacto.kicker` | 40 |
 | `contacto.titularIntro` | 50 |
@@ -230,8 +234,9 @@ Listo para copiar a un esquema. Los nombres siguen `content/` donde el texto ya 
 | `contactoTextos.bajada` | 120 |
 | `motivosContacto[].label` | 26 |
 | `contactoTextos.otrosCanales` | 40 |
+| `contactoTextos.enviar` y `enviando` (botón del formulario) | 24 |
 | `metadata.title` | 60 |
-| `metadata.description` | 160 |
+| `metadata.description` | 240 (el texto actual mide 223; Google corta cerca de 160) |
 | `openGraph.title` | 60 |
 | `openGraph.description` | 160 |
 | `contacto.metadata.description` | 160 |

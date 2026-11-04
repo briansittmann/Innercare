@@ -37,7 +37,7 @@ Códigos de respuesta después del cambio (`next start` sin `NEXT_PUBLIC_KEYSTAT
 | `/opengraph-image-1whei1` | 200, `image/png` |
 | `/fichas/femur/ficha.pdf` | 200, `application/pdf` |
 | `/no-existe` | 404 con `app/global-not-found.tsx` («Página no encontrada \| Innercare») |
-| `/keystatic` | 404 (la misma página) |
+| `/keystatic` | 404, pero con la 404 genérica de Next («404: This page could not be found.»), no la de marca: el `notFound()` estaba en el layout raíz del panel. Corregido en la sección 8 |
 | `/api/keystatic/tree` | 404, `Not found` |
 
 Tabla de rutas del build: `/` ○, `/_not-found` ○, `/(.)contacto` ◐, `/api/keystatic/[...params]` ƒ, `/contacto` ◐, `/keystatic/[[...params]]` ◐, `/opengraph-image-1whei1` ○, `/productos` ○, `/productos/[slug]` ◐ con las dos fichas ○.
@@ -55,9 +55,9 @@ Sobre el contenido real: `Contenido OK: 10 secciones validadas.` Después, cada 
 | Referencia ANMAT sin número, organismo inventado, id repetido, dos palabras en la pantalla de carga | `Habilitaciones: Filas de la tabla › 1 › Disposición o número: Escribí la referencia con su número, como «Disposición 0999/17» o «N° 298-2023-R».` · `Filas de la tabla › 2 › Quién la otorga: no es una de las opciones del desplegable` · `Filas de la tabla: el identificador «anmat-fabricacion» está repetido` · `Pantalla de carga: Etapas del proceso: tiene que tener al menos 3 elementos` |
 | Sin sede principal, id de sede repetido, PDF `.gif`, PDF que no está en `public/` | `Distribución: tiene que haber exactamente una sede principal marcada (hay 0): es la del footer y el contacto` · `Distribución: Sedes: el identificador «planta» está repetido` · `Recorrido de implantes: Fémur proximal › Ficha técnica (PDF): el archivo «/fichas/femur/ficha.gif» no es un PDF` · `Hombro › Ficha técnica (PDF): no está el archivo public/fichas/hombro/ficha.pdf` |
 
-Las comprobaciones propias (sede principal, PDF, ids) corren solo cuando el esquema pasa: Keystatic corta la lectura al primer grupo de errores de esquema. En todos los casos el script termina con código 1 y `npm run build` no llega a `next build`.
+Las comprobaciones propias (sede principal, PDF, ids, combinaciones) corren por sección, sobre las secciones cuyo esquema pasó: Keystatic corta la lectura de una sección al primer grupo de errores de esquema, pero las demás secciones se leen y se comprueban igual. En todos los casos el script termina con código 1 y `npm run build` no llega a `next build`.
 
-La compuerta también atrapó un límite real: la descripción para buscadores mide 237 caracteres y el límite provisional era 220; quedó en 260 (`LIMITES.seoDescripcion`).
+La compuerta también atrapó un límite real: la descripción para buscadores mide 223 caracteres y el límite provisional era 220; quedó en 240 (`LIMITES.seoDescripcion`).
 
 ## 4. Panel en local (`next dev -p 3200`, Chrome sin ventana con patchright)
 
@@ -164,3 +164,46 @@ Por qué sube la página: se instrumentó el clic (`qa/sonda.mjs`). Después de 
 | Consola | Un 404 de un recurso del panel, como en la sección 4; ningún error de JavaScript |
 
 Al final, `git status`: ningún archivo rastreado cambió por estas pruebas (los Markdown modificados en el árbol son de otra sesión). Las PNG de `capturas/nueva/`, `nueva2/`, `diff/` y `diff2/` quedan ignoradas; los `.txt` y `.json` de esas carpetas (y de `base/`) no están en `.gitignore` y aparecen sin seguimiento.
+
+## 8. Correcciones tras la revisión
+
+Fecha: 2026-11-04, sobre `2b69c5e`. Una revisión del código y la comparación visual de la sección 7 dejaron una lista de correcciones; acá quedan las pruebas. Regla: el sitio tiene que seguir idéntico (texto y HTML) con el contenido actual.
+
+### 8.1 Qué cambió
+
+- **Esquema y compuerta** (`keystatic.esquema.ts`, `scripts/contenido.mjs`): `texto()` suma a todo obligatorio el patrón `NO_VACIO` (`/\S/`), porque Keystatic da por lleno un texto con solo espacios (mide el largo sin recortar); lo mismo las palabras de la pantalla de carga. La compuerta mira el JSON crudo y rechaza las listas con mínimo que faltan o son `null` (el lector las da por vacías sin validar: `array.parse(undefined)` devuelve el valor por defecto), con el mensaje «falta la lista»; esa sección queda como fallida para no sumar mensajes de más. Topes nuevos: `paradaDescripcionCuatroSpecs` (100), `sedeTipoPlanta` (23, el mapa muestra el `tipo` entero cuando el rol es planta) y `etiquetaMapa` (38, «{localidad}, {provincia}»). La sede principal tiene que tener al menos un teléfono y dos sedes no pueden compartir coordenadas. El `id` de las filas de Habilitaciones lleva `PATRON.identificador`. `company.ts` lee la provincia con `opcion()` sobre las 24 jurisdicciones (antes, una provincia ausente mostraba «Provincia de [pendiente…]»). Las ayudas del panel van en voseo y sin rutas de código.
+- **Fichas PDF en su singleton** (`fichas`, `content/datos/fichas.json`, un `fields.file` por id de parada, grupo Portada): en Cloud, un documento que mezcla `fields.array` con archivos o imágenes perdió campos hermanos al guardar (issue #1627 de Keystatic). Se verificó en `@keystatic/core` (`serialize` del campo `file`: `suggestedFilenamePrefix + '.' + extension`, con el prefijo igual a la ruta del campo) que con la clave de la parada al primer nivel el archivo queda en `public/fichas/<parada>.pdf`; el PDF del fémur pasó de `public/fichas/femur/ficha.pdf` a `public/fichas/femur.pdf` y el JSON guarda `/fichas/femur.pdf`. El singleton `recorrido` pierde `ficha`. `content/paradas.ts` (`NOMBRES_PARADAS`) da el nombre de cada parada al esquema y a los marcadores «[pendiente: Recorrido de implantes · Cráneo · Título]».
+- **`content/jurisdicciones.ts`**, generado por `npm run mapa` junto con `mapa-argentina.ts`: solo los 24 nombres, para que el esquema del panel no cargue los 50 KB de trazados. Se corrió `npm run mapa` (bajó Natural Earth de nuevo): `mapa-argentina.ts` quedó byte a byte igual y apareció el archivo nuevo.
+- **Componentes:** `locations.tsx` devuelve tramos vacíos con menos de dos sedes y salta los tramos de largo 0 (antes, `puntos[0]!` lanzaba y `largo = 0` daba `NaN`); `contact-parts.tsx` no renderiza el `<li>` de WhatsApp si la sede principal no tiene teléfono; el footer emite «© 2026 Innercare» en un solo nodo de texto (el subpíxel de la sección 7.1); claves por posición en los teléfonos del footer y las partes de la referencia; el botón de la ficha baja el PDF como `<slug>-ficha-tecnica.pdf`, como la tarjeta; comentarios con las rutas de `app/(sitio)/`.
+- **404 de marca** (`components/pagina-no-encontrada.tsx`): `app/(sitio)/not-found.tsx` para los `notFound()` de las fichas (dentro del layout, con header y footer) y `app/(panel)/keystatic/not-found.tsx` para `/keystatic` sin panel. El `notFound()` pasó del layout raíz del panel a `[[...params]]/page.tsx`; el layout renderiza `children` solo con el panel deshabilitado. `not-found.tsx` importa `globals.css` por su cuenta: Next carga el CSS de un `not-found` solo cuando lo renderiza (`create-component-tree.js`, `notFoundStyles`), así que el panel habilitado sigue sin el preflight de Tailwind.
+
+### 8.2 Compuerta
+
+`npm run contenido` con el contenido real: `Contenido OK: 11 secciones validadas.` Cada caso se provocó con una copia alterada del JSON y se restauró byte a byte (`casos-compuerta.mjs`, en el scratchpad de la sesión); al final, `git status` solo muestra los cambios intencionales. Todos terminan con código 1:
+
+| Caso | Mensaje |
+|---|---|
+| `hero.titular = "   "` | `Hero: Titular: No puede quedar vacío ni con solo espacios.` |
+| Palabra de la carga con solo espacios | `Pantalla de carga: Etapas del proceso › 3: No puede quedar vacío ni con solo espacios.` |
+| `habilitaciones` sin `filas` | `Habilitaciones: Filas de la tabla: falta la lista (tiene que tener al menos 1 elemento)` |
+| `habilitaciones.filas = null` | el mismo mensaje |
+| `carga` sin `palabras` | `Pantalla de carga: Etapas del proceso: falta la lista (tiene que tener al menos 3 elementos)` |
+| Parada sin `specs` | `Recorrido de implantes: Cráneo › Datos técnicos: falta la lista (tiene que tener al menos 1 elemento)` |
+| Parada con `specs: null` | `Recorrido de implantes: Maxilar › Datos técnicos: falta la lista (tiene que tener al menos 1 elemento)` |
+| `distribucion` sin `sedes` (antes caía solo por «hay 0 sedes principales») | `Distribución: Sedes: falta la lista (tiene que tener al menos 1 elemento)` |
+| Fémur (cuatro specs) con descripción de 105 | `Recorrido de implantes: Fémur proximal › Descripción: con cuatro datos técnicos no puede pasar de 100 caracteres (mide 105)` |
+| Planta con `tipo` de 41 | `Distribución: Sedes › 2 › Nombre completo: el mapa muestra el nombre entero de la planta bajo su etiqueta, «Planta industrial de implantes de titanio» mide 41 caracteres y ahí no puede pasar de 23` (y la suma de la tarjeta, 100 > 78) |
+| Localidad de 24 con provincia «Santiago del Estero» | `Distribución: Sedes › 4 › Localidad: la etiqueta del mapa «Comodoro Rivadavia Norte, Santiago del Estero» mide 45 caracteres y no puede pasar de 38` |
+| Sede principal con `telefonos: []` | `Distribución: Sedes › 1 › Teléfonos: la sede principal tiene que tener al menos un teléfono (es el WhatsApp del footer y del contacto)` |
+| Dos sedes con las mismas coordenadas | `Distribución: Sedes › 4 › Latitud y Longitud: coinciden con las de la sede 3; dos sedes no pueden ir en el mismo punto del mapa` |
+| `fichas.femur = "/fichas/femur.gif"` y `fichas.hombro = "/fichas/hombro.pdf"` | `Fichas técnicas (PDF): Fémur proximal: ficha técnica: el archivo «/fichas/femur.gif» no es un PDF` · `Hombro: ficha técnica: no está el archivo public/fichas/hombro.pdf` |
+| Id de habilitación «ANMAT bpf» | `Habilitaciones: Filas de la tabla › 2 › Identificador: Solo minúsculas, números y guiones, como «caleta-olivia».` |
+
+### 8.3 Contenido, HTML y rutas
+
+- `node scripts/volcar-contenido.mjs` sobre `2b69c5e` (árbol limpio, antes de tocar nada) y sobre el árbol final: **idénticos salvo `datasheetUrl`**, `/fichas/femur/ficha.pdf` → `/fichas/femur.pdf` en `recorrido.paradas[4]` y `products.getProducts[0]` (el cambio de ruta del PDF).
+- `npm run build` (compuerta y `next build`), `npm run lint` y `npx tsc --noEmit` pasan sin errores; el único aviso es el de `metadataBase`, pendiente de antes. Tabla de rutas sin cambios (`/keystatic/[[...params]]` sigue ◐).
+- `next start -p 3100`, antes (build de `2b69c5e`) y después, texto visible y atributos de `/` (377 líneas), `/contacto` (66) y la ficha del fémur (91) con `qa/texto.mjs`: `/` y `/contacto` difieren solo en el hash de caché de la URL de la imagen OG (cambia con cada build); la ficha, solo en `download=` → `download=endoprotesis-modular-femur-customizable-ficha-tecnica.pdf`. El `href` del PDF (que el extractor no mira) pasa a `/fichas/femur.pdf` en la tarjeta y en la ficha.
+- Códigos después del cambio (producción sin Cloud): `/fichas/femur.pdf` 200 `application/pdf` (438 593 bytes); `/fichas/femur/ficha.pdf` 404; `/keystatic` y `/keystatic/singleton/hero` 404; `/api/keystatic/tree` 404 `Not found`; `/no-existe` 404 con la página de marca entera en el HTML; `/productos/no-existe` 200 la primera vez y 404 después (lo de siempre con Cache Components).
+- En Chrome sin ventana (`k404.mjs`): `/keystatic` y `/keystatic/singleton/hero` responden 404 con `<title>Página no encontrada | Innercare</title>`, h1 «Página no encontrada», Hanken Grotesk, fondo `surface` y «Volver al inicio»; `/productos/no-existe` muestra la misma página dentro del sitio, con header y footer. Como con todo `notFound()` bajo Cache Components, el HTML que manda el servidor es la cáscara de Next (1227 bytes, `__next_error__`, status 404, `noindex`) y el contenido llega por RSC: `curl` no lo ve, el navegador sí. Prerrenderizar `/keystatic` con `generateStaticParams` no lo cambia (la cáscara sale igual con el payload adentro) y rompe `next dev` con el panel habilitado («all generateStaticParams functions must return at least one result»), así que se descartó. El título de la 404 de las fichas sale del `metadata` de `not-found.tsx` en la primera visita (`<title>Página no encontrada | Innercare</title>` en el HTML); en la visita siguiente, ya cacheada como 404 y completada en el cliente, queda el título por defecto del sitio.
+- `next dev -p 3101` (panel habilitado): `/keystatic` 200, `<title>Innercare · Panel de contenidos</title>`, una sola hoja de estilos (la de `next/font`) y sin `globals.css`; `/keystatic/singleton/hero` 200.
