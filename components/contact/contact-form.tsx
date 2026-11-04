@@ -13,7 +13,7 @@ import {
   type ReactNode,
 } from 'react'
 import { CaretDownIcon, CheckCircleIcon } from '@phosphor-icons/react/ssr'
-import { sendContact, type ContactField, type ContactState } from '@/app/contacto/actions'
+import { sendContact, type ContactField, type ContactState } from '@/app/(sitio)/contacto/actions'
 import {
   contactoTextos,
   erroresContacto,

@@ -17,6 +17,8 @@
     "manos": "node scripts/manos.mjs"
   },
   "dependencies": {
+    "@keystatic/core": "0.6.9",
+    "@keystatic/next": "^5.0.5",
     "@phosphor-icons/react": "^2.1.10",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",

@@ -1,20 +1,13 @@
 import type { Metadata, Viewport } from 'next'
-import { Hanken_Grotesk, Source_Sans_3 } from 'next/font/google'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
-import './globals.css'
+import { claseFuentes } from '../fuentes'
+import '../globals.css'
 
-// Fuentes variables auto-hospedadas por next/font: sin peticiones a Google.
-// Las variables CSS las consumen los tokens --font-* de globals.css.
-const hankenGrotesk = Hanken_Grotesk({
-  variable: '--font-hanken-grotesk',
-  subsets: ['latin'],
-})
-
-const sourceSans3 = Source_Sans_3({
-  variable: '--font-source-sans-3',
-  subsets: ['latin'],
-})
+// Raíz del sitio. Es un grupo de rutas, (sitio), porque el panel de edición
+// de contenidos (app/(panel)/keystatic) tiene su propia raíz: sin header,
+// sin pantalla de carga ni globals.css. Pasar de uno a otro es una carga
+// completa de página (route-groups.md de la doc de Next).
 
 // Pendiente: `metadataBase` con el dominio definitivo, para que og:image
 // sea una URL absoluta. La imagen es app/opengraph-image.tsx.
@@ -46,13 +39,13 @@ export const viewport: Viewport = {
   themeColor: '#003c6f',
 }
 
-// `modal`: slot app/@modal. Hoy solo lo usa el panel de contacto.
+// `modal`: slot app/(sitio)/@modal. Hoy solo lo usa el panel de contacto.
 export default function RootLayout({ children, modal }: LayoutProps<'/'>) {
   return (
     <html
       lang="es-AR"
       data-scroll-behavior="smooth"
-      className={`${hankenGrotesk.variable} ${sourceSans3.variable} h-full antialiased`}
+      className={`${claseFuentes} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <SiteHeader />
