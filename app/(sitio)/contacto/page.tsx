@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 }
 
 // Página completa: se ve al entrar directo a /contacto o al recargar. Desde
-// el resto del sitio, la misma ruta se abre como panel (app/@modal).
+// el resto del sitio, la misma ruta se abre como panel (app/(sitio)/@modal).
 export default function ContactoPage(props: PageProps<'/contacto'>) {
   return (
     <section className="page-container py-section">

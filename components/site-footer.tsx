@@ -35,16 +35,19 @@ export function SiteFooter() {
         </address>
         <div>
           <ul className="font-data-mono tabular-nums">
-            {sedePrincipal.phones.map((phone) => (
-              <li key={phone}>
+            {sedePrincipal.phones.map((phone, i) => (
+              <li key={i}>
                 <a href={telHref(phone)} className="text-on-surface transition-colors hover:text-primary">
                   {phone}
                 </a>
               </li>
             ))}
           </ul>
+          {/* El espacio y la marca en un solo nodo de texto: en dos nodos,
+              Chrome les da forma por separado y la «I» se corre un subpíxel */}
           <p>
-            © <CopyrightYear /> {menuTextos.marca}
+            © <CopyrightYear />
+            {` ${menuTextos.marca}`}
           </p>
         </div>
       </div>

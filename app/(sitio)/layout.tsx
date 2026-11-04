@@ -13,7 +13,7 @@ import '../globals.css'
 // completa de página (route-groups.md de la doc de Next).
 
 // Pendiente: `metadataBase` con el dominio definitivo, para que og:image
-// sea una URL absoluta. La imagen es app/opengraph-image.tsx.
+// sea una URL absoluta. La imagen es app/(sitio)/opengraph-image.tsx.
 // Los textos se editan en el panel (content/seo.ts); el título de Open Graph
 // es la marca y el titular del hero.
 export const metadata: Metadata = {

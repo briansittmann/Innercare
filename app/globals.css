@@ -185,7 +185,7 @@
 }
 
 /* Familias tipográficas: las variables --font-hanken-grotesk y
-   --font-source-sans-3 las define next/font en <html> (app/layout.tsx).
+   --font-source-sans-3 las define next/font en <html> (app/(sitio)/layout.tsx).
    `inline` hace que las utilidades usen la variable directamente. */
 @theme inline {
   --font-label-md: var(--font-hanken-grotesk), sans-serif;
@@ -202,7 +202,7 @@
 
 /* Los enlaces a secciones (#id) dejan el destino bajo el header fijo, no
    tapado por él. Next desactiva el scroll suave al cambiar de página gracias
-   a `data-scroll-behavior="smooth"` en <html> (app/layout.tsx). */
+   a `data-scroll-behavior="smooth"` en <html> (app/(sitio)/layout.tsx). */
 html {
   scroll-padding-top: 72px;
   /* El ancho no cambia cuando la pantalla de carga (html[data-cargando]) o
@@ -2090,7 +2090,7 @@ body {
   mask-image: radial-gradient(closest-side, #000 72%, transparent);
 }
 
-/* Escenario de la ficha de producto (app/productos/[slug]/page.tsx): la foto
+/* Escenario de la ficha de producto (app/(sitio)/productos/[slug]/page.tsx): la foto
    de la pieza sobre la luz azul del borrador, en una caja redondeada. La
    imagen va con .mini-imagen (multiply y bordes desvanecidos), así el fondo
    claro de la foto toma el color de la luz. */

@@ -14,7 +14,7 @@ export const navLinks = [
 ] as const
 
 // Contacto: "Plantear un caso" es la única etiqueta en todo el sitio. Abre el
-// panel de contacto (ruta interceptada en app/@modal) con el motivo de caso a
+// panel de contacto (ruta interceptada en app/(sitio)/@modal) con el motivo de caso a
 // medida precargado; en las fichas se usa ?producto=<slug> en su lugar.
 export const contactHref = '/contacto?motivo=caso'
 export const contactLabel = menuTextos.plantearCaso

@@ -52,25 +52,30 @@ export function ContactHeading() {
   )
 }
 
+// El WhatsApp es el primer teléfono de la sede principal; si no tiene ninguno
+// (la compuerta del build lo exige, pero la página no se rompe), el enlace no
+// se muestra en vez de salir con «[pendiente: …]» y un wa.me vacío.
 export function ContactChannels({ index, className = '' }: { index: number; className?: string }) {
   const phones = sedePrincipal.phones.filter((phone) => phone !== whatsappDisplay)
   return (
     <div className={`field-in ${className}`} style={order(index)}>
       <p className="text-body-sm text-on-surface-variant">{contactoTextos.otrosCanales}</p>
       <ul className="mt-sm flex flex-wrap gap-x-lg gap-y-sm text-body-md">
-        <li>
-          <a
-            href={`https://wa.me/${whatsappNumber}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-sm enlace"
-          >
-            <WhatsappLogoIcon size={20} weight="light" aria-hidden />
-            WhatsApp {whatsappDisplay}
-          </a>
-        </li>
-        {phones.map((phone) => (
-          <li key={phone}>
+        {whatsappNumber && (
+          <li>
+            <a
+              href={`https://wa.me/${whatsappNumber}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-sm enlace"
+            >
+              <WhatsappLogoIcon size={20} weight="light" aria-hidden />
+              WhatsApp {whatsappDisplay}
+            </a>
+          </li>
+        )}
+        {phones.map((phone, i) => (
+          <li key={i}>
             <a
               href={telHref(phone)}
               className="inline-flex items-center gap-sm enlace"

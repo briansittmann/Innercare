@@ -93,9 +93,9 @@ export function LecturaHabilitaciones({ habilitaciones }: { habilitaciones: read
             {/* Una referencia puede tener dos partes (GLN y Sub-GLN):
                 una por línea. */}
             <dd className="font-data-mono text-[1.125rem] leading-snug font-semibold tabular-nums text-primary md:text-right">
-              {habilitacion.referencia.split(' · ').map((parte) => (
+              {habilitacion.referencia.split(' · ').map((parte, i) => (
                 <CifraGenerada
-                  key={parte}
+                  key={i}
                   texto={parte}
                   activo={leyendo}
                   retraso={retraso + DEMORA_CIFRA}

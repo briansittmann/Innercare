@@ -16,7 +16,7 @@ import { MapaSedes } from './mapa-sedes'
 // proyectan las sedes, se reparten las etiquetas y se arman los tramos con
 // los tiempos de la entrada; el dibujo es de MapaArgentina (estático) y
 // MapaSedes (interactivo). Sin fondo propio: va dentro de FondoMalla
-// (app/page.tsx), que pinta el de la página y la malla hexagonal.
+// (app/(sitio)/page.tsx), que pinta el de la página y la malla hexagonal.
 
 // Dos sedes a menos de esta fracción del alto comparten grupo: sus etiquetas
 // se reparten a --paso (CSS) de la media del grupo
@@ -81,15 +81,20 @@ function ubicar(ordenadas: readonly Sede[]) {
 // La línea une las sedes de norte a sur, tramo por tramo. Cada tramo es una
 // curva suave que se arquea hacia el oeste (el interior del país), en
 // proporción a su largo. Devuelve los tramos con sus tiempos y el trazado
-// entero, por donde corre la luz.
+// entero, por donde corre la luz. Con menos de dos sedes no hay línea, y dos
+// sedes en el mismo punto no forman tramo (la normal daría NaN); la compuerta
+// del build ya rechaza las coordenadas repetidas.
 function linea(ordenadas: readonly Sede[]) {
   const puntos = ordenadas.map((s) => proyectar(s.latitud, s.longitud, MAPA))
   const n = (v: number) => v.toFixed(1)
-  const curvas = puntos.slice(1).map((b, i) => {
+  const primero = puntos[0]
+  if (puntos.length < 2 || !primero) return { tramos: [], entera: '', inicioLuz: 0 }
+  const curvas = puntos.slice(1).flatMap((b, i) => {
     const a = puntos[i]!
     const dx = b.x - a.x
     const dy = b.y - a.y
     const largo = Math.hypot(dx, dy)
+    if (largo === 0) return []
     // Normal hacia el oeste (x negativa)
     let nx = -dy / largo
     let ny = dx / largo
@@ -98,7 +103,7 @@ function linea(ordenadas: readonly Sede[]) {
       ny = -ny
     }
     const control = { x: (a.x + b.x) / 2 + nx * largo * 0.14, y: (a.y + b.y) / 2 + ny * largo * 0.14 }
-    return { a, b, control, largo }
+    return [{ a, b, control, largo }]
   })
   const total = curvas.reduce((suma, c) => suma + c.largo, 0)
   const inicio = INICIO_PINES + PASO_PINES * ordenadas.length + 150
@@ -113,7 +118,6 @@ function linea(ordenadas: readonly Sede[]) {
     t += duracion
     return tramo
   })
-  const primero = puntos[0]!
   const entera =
     `M${n(primero.x)} ${n(primero.y)}` +
     curvas.map(({ b, control }) => `Q${n(control.x)} ${n(control.y)} ${n(b.x)} ${n(b.y)}`).join('')

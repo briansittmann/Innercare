@@ -12,7 +12,7 @@ import { seo } from '@/content/seo'
 // la tarjeta de la red ya muestra la descripción debajo). Se genera en
 // el build; si cambian el hero o su captura, sale sola en el próximo.
 // Las fichas siguen con la foto de portada de cada producto (generateMetadata
-// de app/productos/[slug]).
+// de app/(sitio)/productos/[slug]).
 
 export const alt = seo.ogImagenAlt
 export const size = { width: 1200, height: 630 }

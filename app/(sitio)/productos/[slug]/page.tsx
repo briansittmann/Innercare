@@ -152,7 +152,11 @@ export default async function ProductPage({ params }: PageProps<'/productos/[slu
                 {contactLabel}
               </ContactLink>
               {product.datasheetUrl && (
-                <a href={product.datasheetUrl} download className="boton boton-claro">
+                <a
+                  href={product.datasheetUrl}
+                  download={`${product.slug}-ficha-tecnica.pdf`}
+                  className="boton boton-claro"
+                >
                   <DownloadSimpleIcon size={20} aria-hidden />
                   Ficha técnica (PDF)
                 </a>

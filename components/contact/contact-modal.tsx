@@ -15,7 +15,7 @@ import {
 import { DotsSixVerticalIcon, XIcon } from '@phosphor-icons/react/ssr'
 import { CloseContactContext } from './close-context'
 
-// Panel lateral de contacto. Lo abre la ruta interceptada app/@modal/(.)contacto
+// Panel lateral de contacto. Lo abre la ruta interceptada app/(sitio)/@modal/(.)contacto
 // al navegar dentro del sitio; con un enlace directo o al recargar, /contacto
 // se ve como página completa.
 //
