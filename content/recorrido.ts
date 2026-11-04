@@ -2,19 +2,22 @@
 // (docs/landing/LANDING_SPEC.md, sección 3, y AJUSTES.md). Los textos de
 // cada parada, el cierre y las etiquetas se editan en el panel
 // (content/datos/recorrido.json, singleton "Recorrido de implantes"); las
-// fotos salen de customCases.ts y products.ts, sin agregar nada que no esté
-// en la fuente.
+// fichas PDF, en su propio singleton (content/datos/fichas.json, "Fichas
+// técnicas (PDF)", por id de parada); las fotos salen de customCases.ts y
+// products.ts, sin agregar nada que no esté en la fuente.
 //
 // La escena 3D se monta sobre estas paradas: el orden, los ids, el tipo
 // (catálogo o a medida) y el producto de cada una son código, los del guion
 // de cámara (k = 1…6, components/recorrido-3d/camara.ts e implantes.ts).
 
 import { customCases, featuredCase } from './customCases'
+import datosFichas from './datos/fichas.json'
 import datos from './datos/recorrido.json'
 import { Lector, avisar } from './leer'
+import { NOMBRES_PARADAS, type ParadaId } from './paradas'
 import type { Image } from './types'
 
-export type ParadaId = 'craneo' | 'maxilar' | 'hombro' | 'acetabulo' | 'femur' | 'intercalar'
+export type { ParadaId }
 
 export type Parada = {
   id: ParadaId
@@ -32,7 +35,7 @@ export type Parada = {
   escena: Image
   // Paradas de catálogo: su ficha
   productoSlug?: string
-  // La ficha técnica en PDF, subida desde el panel (public/fichas/<id>/)
+  // La ficha técnica en PDF, subida desde el panel (public/fichas/<id>.pdf)
   datasheetUrl?: string
 }
 
@@ -113,10 +116,11 @@ const FIJO: readonly {
   },
 ]
 
-const recorrido = new Lector(datos, 'Recorrido')
+const recorrido = new Lector(datos, 'Recorrido de implantes')
+const fichas = new Lector(datosFichas, 'Fichas técnicas (PDF)')
 
 export const paradas: readonly Parada[] = FIJO.map((fijo) => {
-  const textos = recorrido.hijo(fijo.id, fijo.id)
+  const textos = recorrido.hijo(fijo.id, NOMBRES_PARADAS[fijo.id])
   const specs = textos.lista('specs', 'Dato técnico').flatMap((dato) => {
     const label = dato.textoOpcional('etiqueta')
     const valor = dato.textoOpcional('valor')
@@ -126,7 +130,7 @@ export const paradas: readonly Parada[] = FIJO.map((fijo) => {
     }
     return [{ label, valor }]
   })
-  const datasheetUrl = textos.pdf('ficha', 'Ficha técnica (PDF)')
+  const datasheetUrl = fichas.pdf(fijo.id, `${NOMBRES_PARADAS[fijo.id]}: ficha técnica`)
   return {
     id: fijo.id,
     zona: textos.texto('zona', 'Zona anatómica'),

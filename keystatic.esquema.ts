@@ -10,13 +10,15 @@
 // acá queda en código (anclas, ids, cámara, rutas de imágenes, íconos): ver
 // CLAUDE.md, "Textos editables".
 import { fields, singleton } from '@keystatic/core'
-import { provincias } from './content/mapa-argentina.ts'
+import { nombresJurisdicciones } from './content/jurisdicciones.ts'
+import { NOMBRES_PARADAS } from './content/paradas.ts'
 
 // Límites de largo, en caracteres, de los textos que afectan el diseño.
 // Medidos en 1440×900 y 390×844 (90 % del menor con margen): el detalle y
 // las reglas están en docs/landing/textos-editables/LIMITES.md. Las claves
-// `suma*` y `direccionCard` son combinaciones que un tope por campo no
-// cubre; las comprueba scripts/contenido.mjs.
+// `suma*`, `direccionCard`, `etiquetaMapa`, `paradaDescripcionCuatroSpecs` y
+// `sedeTipoPlanta` son combinaciones o casos que un tope por campo no cubre;
+// las comprueba scripts/contenido.mjs.
 export const LIMITES = {
   heroTitular: 50,
   heroBajada: 100,
@@ -35,6 +37,9 @@ export const LIMITES = {
   paradaZona: 36,
   paradaTitulo: 47,
   paradaDescripcion: 180,
+  // Con cuatro datos técnicos la tarjeta ya es la más alta: la descripción
+  // tiene menos lugar
+  paradaDescripcionCuatroSpecs: 100,
   specEtiqueta: 16,
   specValor: 36,
   procesoTitulo: 32,
@@ -57,6 +62,10 @@ export const LIMITES = {
   distribucionTitulo: 35,
   distribucionBajada: 119,
   sedeTipo: 45,
+  // La etiqueta del mapa muestra el nombre entero cuando la sede es la planta
+  sedeTipoPlanta: 23,
+  // La etiqueta del mapa: "{localidad}, {provincia}"
+  etiquetaMapa: 38,
   // La card muestra "{calle}, {localidad}" en hasta 61 caracteres
   // (direccionCard); la dirección de Alberti ya mide 52
   sedeCalle: 59,
@@ -88,7 +97,9 @@ export const LIMITES = {
   largo: 300,
 } as const
 
-// Un texto de una línea, obligatorio salvo que se diga lo contrario
+// Un texto de una línea, obligatorio salvo que se diga lo contrario. Keystatic
+// da por lleno un obligatorio con solo espacios (mide el largo sin recortar):
+// el patrón NO_VACIO exige algo que no sea espacio.
 function texto(
   label: string,
   max: number,
@@ -99,8 +110,17 @@ function texto(
     label,
     description,
     multiline: opciones.multilinea,
-    validation: { isRequired: !opciones.opcional, length: { max } },
+    validation: {
+      isRequired: !opciones.opcional,
+      length: { max },
+      ...(opciones.opcional ? {} : { pattern: NO_VACIO }),
+    },
   })
+}
+
+const NO_VACIO = {
+  regex: /\S/,
+  message: 'No puede quedar vacío ni con solo espacios.',
 }
 
 const PATRON = {
@@ -129,9 +149,9 @@ const PATRON = {
   },
 } as const
 
-// Cada parada del recorrido: los seis objetos van en el primer nivel del
-// singleton para que la ficha PDF se guarde en public/fichas/<parada>/ficha.pdf
-// (Keystatic arma el nombre del archivo con la ruta del campo: <parada>/ficha).
+// Cada parada del recorrido: seis objetos con clave fija en el primer nivel
+// del singleton (la cantidad y el orden son del guion de cámara, no se
+// editan). La ficha PDF va en el singleton `fichas`, aparte: ver abajo.
 function parada(nombre: string, nota?: string) {
   return fields.object(
     {
@@ -166,23 +186,27 @@ function parada(nombre: string, nota?: string) {
       miniaturaAlt: texto(
         'Texto alternativo de la foto',
         LIMITES.alt,
-        'Describe la foto de la pieza que se ve sin WebGL o mientras carga el 3D (lectores de pantalla).',
+        'Describí la foto de la pieza que se ve sin WebGL o mientras carga el 3D (lectores de pantalla).',
       ),
-      ficha: fields.file({
-        label: 'Ficha técnica (PDF)',
-        description:
-          'Opcional. Si hay archivo, la tarjeta muestra el enlace «Ficha técnica (PDF)» y la ficha del producto también lo ofrece. Tiene que ser un PDF.',
-        directory: 'public/fichas',
-        publicPath: '/fichas/',
-      }),
     },
     { label: nombre, description: nota },
   )
 }
 
-const provinciasOrdenadas = [...provincias]
-  .map((p) => ({ label: p.nombre, value: p.nombre }))
-  .sort((a, b) => a.label.localeCompare(b.label, 'es'))
+// La ficha técnica en PDF de una parada. Keystatic nombra el archivo con la
+// ruta del campo: con la clave de la parada al primer nivel del singleton
+// `fichas`, queda en public/fichas/<parada>.pdf y el JSON guarda
+// "/fichas/<parada>.pdf".
+function fichaPdf(id: keyof typeof NOMBRES_PARADAS, nota: string) {
+  return fields.file({
+    label: `${NOMBRES_PARADAS[id]}: ficha técnica`,
+    description: `Opcional. ${nota} Si hay archivo, la tarjeta de la parada muestra el enlace «Ficha técnica (PDF)». Tiene que ser un PDF.`,
+    directory: 'public/fichas',
+    publicPath: '/fichas/',
+  })
+}
+
+const provinciasOrdenadas = nombresJurisdicciones.map((nombre) => ({ label: nombre, value: nombre }))
 
 export const singletons = {
   hero: singleton({
@@ -262,12 +286,30 @@ export const singletons = {
         },
         { label: 'Lectores de pantalla' },
       ),
-      craneo: parada('Cráneo', 'Craneoplastía. Implante a medida: la tarjeta lleva a «Plantear un caso».'),
-      maxilar: parada('Maxilar', 'Implante a medida.'),
-      hombro: parada('Hombro', 'Implante de catálogo: la tarjeta lleva a la ficha de la prótesis de hombro.'),
-      acetabulo: parada('Acetábulo', 'Implante a medida.'),
-      femur: parada('Fémur proximal', 'Implante de catálogo: la tarjeta lleva a la ficha de la endoprótesis de fémur.'),
-      intercalar: parada('Diáfisis femoral', 'Implante intercalar, a medida.'),
+      craneo: parada(NOMBRES_PARADAS.craneo, 'Craneoplastía. Implante a medida: la tarjeta lleva a «Plantear un caso».'),
+      maxilar: parada(NOMBRES_PARADAS.maxilar, 'Implante a medida.'),
+      hombro: parada(NOMBRES_PARADAS.hombro, 'Implante de catálogo: la tarjeta lleva a la ficha de la prótesis de hombro.'),
+      acetabulo: parada(NOMBRES_PARADAS.acetabulo, 'Implante a medida.'),
+      femur: parada(NOMBRES_PARADAS.femur, 'Implante de catálogo: la tarjeta lleva a la ficha de la endoprótesis de fémur.'),
+      intercalar: parada(NOMBRES_PARADAS.intercalar, 'Implante intercalar, a medida.'),
+    },
+  }),
+
+  // Los PDF van en un singleton propio, sin listas al lado: en Keystatic Cloud,
+  // guardar un documento que mezcla `fields.array` con campos de archivo o
+  // imagen llegó a borrar los campos hermanos (issue #1627), y el recorrido
+  // tiene la lista de datos técnicos de cada parada.
+  fichas: singleton({
+    label: 'Fichas técnicas (PDF)',
+    path: 'content/datos/fichas',
+    format: { data: 'json' },
+    schema: {
+      craneo: fichaPdf('craneo', 'La craneoplastía es a medida: hoy no tiene ficha.'),
+      maxilar: fichaPdf('maxilar', 'La reconstrucción maxilar es a medida: hoy no tiene ficha.'),
+      hombro: fichaPdf('hombro', 'La página de la prótesis de hombro también la ofrece.'),
+      acetabulo: fichaPdf('acetabulo', 'La reconstrucción acetabular es a medida: hoy no tiene ficha.'),
+      femur: fichaPdf('femur', 'La página de la endoprótesis de fémur también la ofrece.'),
+      intercalar: fichaPdf('intercalar', 'El implante intercalar es a medida: hoy no tiene ficha.'),
     },
   }),
 
@@ -316,18 +358,18 @@ export const singletons = {
       volverAVer: texto('Botón de repetir', LIMITES.volverAVer, 'Al pie de cada tarjeta, repite la animación.'),
       fotos: fields.object(
         {
-          cnc: fotoTira('Foto 1: centros de mecanizado CNC', 'cnc-planta.webp'),
-          intercalar: fotoTira('Foto 2: implante intercalar con sus guías', 'intercalar-implante.webp'),
-          femur: fotoTira('Foto 3: componentes de la endoprótesis femoral', 'femur-componentes.webp'),
-          mecanizado: fotoTira('Foto 4: sector de mecanizado', 'sector-mecanizado.webp'),
-          hombro: fotoTira('Foto 5: prótesis reversa de hombro', 'hombro-implante.webp'),
-          espaciador: fotoTira('Foto 6: espaciador en PMMA', 'espaciador-pmma.webp'),
-          impresion: fotoTira('Foto 7: impresión 3D en metal', 'impresion-3d.webp'),
-          tomografia: fotoTira('Foto 8: estudio tomográfico', 'intercalar-tc.webp'),
+          cnc: fotoTira('Foto 1: centros de mecanizado CNC'),
+          intercalar: fotoTira('Foto 2: implante intercalar con sus guías'),
+          femur: fotoTira('Foto 3: componentes de la endoprótesis femoral'),
+          mecanizado: fotoTira('Foto 4: sector de mecanizado'),
+          hombro: fotoTira('Foto 5: prótesis reversa de hombro'),
+          espaciador: fotoTira('Foto 6: espaciador en PMMA'),
+          impresion: fotoTira('Foto 7: impresión 3D en metal'),
+          tomografia: fotoTira('Foto 8: estudio tomográfico'),
         },
         {
           label: 'Tira de fotos',
-          description: 'Las ocho fotos reales al cierre de la sección. Las imágenes se cambian reemplazando el archivo en public/img/carrusel/; acá van sus textos.',
+          description: 'Las ocho fotos reales al cierre de la sección. Acá van sus textos; la foto en sí la cambia el equipo de la web.',
         },
       ),
       accesibilidad: fields.object(
@@ -358,7 +400,11 @@ export const singletons = {
       bajada: texto('Bajada', LIMITES.habilitacionesBajada, 'Tres líneas de 56 caracteres. La actual ya está justo en el límite.', { multilinea: true }),
       filas: fields.array(
         fields.object({
-          id: texto('Identificador', 40, 'Clave interna y estable de la fila, como «anmat-bpf». No se muestra.'),
+          id: fields.text({
+            label: 'Identificador',
+            description: 'Clave interna y estable de la fila, como «anmat-bpf». No se muestra.',
+            validation: { isRequired: true, length: { max: 40 }, pattern: PATRON.identificador },
+          }),
           organismo: fields.select({
             label: 'Quién la otorga',
             description: 'Debajo del detalle dice «ANMAT» o «Inscripción» según el organismo.',
@@ -401,7 +447,7 @@ export const singletons = {
         fields.object({
           id: fields.text({
             label: 'Identificador',
-            description: 'Clave interna y estable de la sede, como «caleta-olivia». Elige su foto en public/img/sedes/. No se muestra.',
+            description: 'Clave interna y estable de la sede, como «caleta-olivia». No se muestra: el equipo de la web le asocia la foto por este identificador.',
             validation: { isRequired: true, length: { max: 40 }, pattern: PATRON.identificador },
           }),
           rol: fields.select({
@@ -417,7 +463,7 @@ export const singletons = {
           tipo: texto(
             'Nombre completo',
             LIMITES.sedeTipo,
-            'Primera línea de la tarjeta de la sede, como «Laboratorio de productos de tecnología médica». Las sucursales muestran solo «Sucursal». En la tarjeta, nombre + calle + localidad no pueden pasar de 78 caracteres.',
+            'Primera línea de la tarjeta de la sede, como «Laboratorio de productos de tecnología médica». Las sucursales muestran solo «Sucursal». En la tarjeta, nombre + calle + localidad no pueden pasar de 78 caracteres. Para la planta industrial es además el rótulo bajo la etiqueta del mapa: ahí no puede pasar de 23.',
           ),
           calle: texto('Calle y número', LIMITES.sedeCalle, 'Dato regulado (carpeta institucional). En la tarjeta va «calle, localidad», que no puede pasar de 61 caracteres.'),
           codigoPostal: fields.text({
@@ -425,7 +471,7 @@ export const singletons = {
             description: 'Opcional. Se muestra solo en el footer, delante de la localidad.',
             validation: { length: { max: 8 }, pattern: PATRON.codigoPostal },
           }),
-          localidad: texto('Localidad', LIMITES.sedeLocalidad, 'En la etiqueta del mapa, junto a la provincia. «Comodoro Rivadavia» ya ocupa dos líneas en columnas angostas.'),
+          localidad: texto('Localidad', LIMITES.sedeLocalidad, 'En la etiqueta del mapa, junto a la provincia («localidad, provincia» no puede pasar de 38 caracteres). «Comodoro Rivadavia» ya ocupa dos líneas en columnas angostas.'),
           provincia: fields.select({
             label: 'Provincia',
             description: 'La provincia se tiñe en el mapa al señalar la sede.',
@@ -459,7 +505,7 @@ export const singletons = {
             description: 'Una sola: su dirección y sus teléfonos van al footer y al panel de contacto.',
             defaultValue: false,
           }),
-          fotoAlt: texto('Texto alternativo de la foto', LIMITES.alt, 'Describe la miniatura de la sede en el mapa (lectores de pantalla).'),
+          fotoAlt: texto('Texto alternativo de la foto', LIMITES.alt, 'Describí la miniatura de la sede en el mapa (lectores de pantalla).'),
         }),
         {
           label: 'Sedes',
@@ -553,7 +599,7 @@ export const singletons = {
     format: { data: 'json' },
     schema: {
       palabras: fields.array(
-        fields.text({ label: 'Palabra', validation: { isRequired: true, length: { max: LIMITES.cargaPalabra } } }),
+        fields.text({ label: 'Palabra', validation: { isRequired: true, length: { max: LIMITES.cargaPalabra }, pattern: NO_VACIO } }),
         {
           label: 'Etapas del proceso',
           description:
@@ -635,20 +681,20 @@ function tarjetaFabricacion(nombre: string) {
   )
 }
 
-function fotoTira(nombre: string, archivo: string) {
+function fotoTira(nombre: string) {
   return fields.object(
     {
-      alt: texto('Texto alternativo', LIMITES.alt, 'Describe la foto para lectores de pantalla.'),
+      alt: texto('Texto alternativo', LIMITES.alt, 'Describí la foto para lectores de pantalla.'),
       titulo: texto('Pie de foto', LIMITES.fotoTitulo, 'Debajo de la foto señalada, en una línea.'),
       subtitulo: texto('Segunda línea', LIMITES.fotoSubtitulo, 'Más chica, debajo del pie: la planta, la técnica o la pieza.'),
     },
-    { label: nombre, description: `Archivo: public/img/carrusel/${archivo}` },
+    { label: nombre },
   )
 }
 
 // Agrupación del menú lateral del panel
 export const navegacion = {
-  Portada: ['hero', 'recorrido'],
+  Portada: ['hero', 'recorrido', 'fichas'],
   Secciones: ['proceso', 'fabricacion', 'habilitaciones', 'distribucion', 'contacto'],
   Sitio: ['menu', 'carga', 'seo'],
 } satisfies Record<string, (keyof typeof singletons)[]>

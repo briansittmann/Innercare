@@ -2,18 +2,21 @@
 // antes de `next build`. Lee cada sección con el lector de Keystatic y el
 // mismo esquema del panel (keystatic.esquema.ts), que comprueba obligatorios,
 // largos, patrones, opciones y claves desconocidas, y suma lo que el esquema
-// no puede: una sola sede principal, que cada ficha PDF exista y sea un PDF,
-// identificadores únicos y que ninguna foto quede sin texto alternativo.
+// no puede: las listas que faltan (el lector da por buena una lista ausente o
+// nula aunque el esquema pida un mínimo), una sola sede principal con
+// teléfono, que cada ficha PDF exista y sea un PDF, identificadores únicos,
+// que ninguna foto quede sin texto alternativo y las combinaciones de largo.
 //
 // Si algo falla, imprime cada error en español, con la sección y el campo
 // como los ve el editor, y termina con código 1: en Vercel el build se corta
 // y queda publicada la versión anterior. Se corre con `npm run contenido` y
 // al principio de `npm run build`.
-import { access } from 'node:fs/promises'
+import { access, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { config } from '@keystatic/core'
 import { createReader } from '@keystatic/core/reader'
 import { LIMITES, singletons } from '../keystatic.esquema.ts'
+import { NOMBRES_PARADAS } from '../content/paradas.ts'
 
 const raiz = process.cwd()
 const reader = createReader(raiz, config({ storage: { kind: 'local' }, singletons }))
@@ -49,8 +52,8 @@ function traducir(mensaje, campo) {
     [/^must be at least (\d+) characters long$/, (m) => `tiene que tener al menos ${m[1]} caracteres`],
     [/^must be at least (-?[\d.]+)$/, (m) => `tiene que ser como mínimo ${m[1]}`],
     [/^must be at most (-?[\d.]+)$/, (m) => `tiene que ser como máximo ${m[1]}`],
-    [/^Must have at least (\d+) element/, (m) => `tiene que tener al menos ${m[1]} ${m[1] === '1' ? 'elemento' : 'elementos'}`],
-    [/^Must have at most (\d+) element/, (m) => `tiene que tener como máximo ${m[1]} ${m[1] === '1' ? 'elemento' : 'elementos'}`],
+    [/^Must have at least (\d+) element/, (m) => `tiene que tener al menos ${elementos(m[1])}`],
+    [/^Must have at most (\d+) element/, (m) => `tiene que tener como máximo ${elementos(m[1])}`],
     [/^Key on object value "(.+)" is not allowed$/, (m) => `la clave «${m[1]}» no existe en el esquema (¿quedó de una versión anterior?)`],
     [/^Must be a valid option$/, () => 'no es una de las opciones del desplegable'],
     [/^Must be a string$/, () => 'tiene que ser un texto'],
@@ -66,12 +69,37 @@ function traducir(mensaje, campo) {
   // Los mensajes de los patrones ya están en español (keystatic.esquema.ts)
   return sinEtiqueta
 }
+const elementos = (n) => `${n} ${String(n) === '1' ? 'elemento' : 'elementos'}`
 
 const existe = (ruta) =>
   access(ruta).then(
     () => true,
     () => false,
   )
+
+// Las listas con mínimo que faltan en el JSON crudo. El lector de Keystatic
+// trata una lista ausente o `null` como vacía sin validarla (`array.parse`
+// devuelve el valor por defecto), así que esto se mira antes, sobre el JSON
+// tal cual está en el archivo. Devuelve las rutas ("sedes", "craneo.specs",
+// "sedes.1.telefonos") con su mínimo.
+function listasFaltantes(schema, valor, ruta = []) {
+  const faltas = []
+  for (const [clave, campo] of Object.entries(schema)) {
+    const hijo = valor?.[clave]
+    const rutaHijo = [...ruta, clave]
+    if (campo.kind === 'object') {
+      faltas.push(...listasFaltantes(campo.fields, hijo, rutaHijo))
+    } else if (campo.kind === 'array') {
+      const min = campo.validation?.length?.min
+      if (min !== undefined && !Array.isArray(hijo)) {
+        faltas.push({ ruta: rutaHijo.join('.'), min })
+      } else if (Array.isArray(hijo) && campo.element.kind === 'object') {
+        hijo.forEach((item, i) => faltas.push(...listasFaltantes(campo.element.fields, item, [...rutaHijo, String(i)])))
+      }
+    }
+  }
+  return faltas
+}
 
 const leidos = {}
 for (const [clave, definicion] of Object.entries(singletons)) {
@@ -82,7 +110,15 @@ for (const [clave, definicion] of Object.entries(singletons)) {
       error(definicion.label, `falta el archivo ${archivo}`)
       continue
     }
-    leidos[clave] = datos
+    const crudo = JSON.parse(await readFile(join(raiz, archivo), 'utf8'))
+    const faltas = listasFaltantes(definicion.schema, crudo)
+    for (const { ruta, min } of faltas) {
+      const { etiqueta } = etiquetaDe(definicion.schema, ruta)
+      error(definicion.label, `${etiqueta}: falta la lista (tiene que tener al menos ${elementos(min)})`)
+    }
+    // Con una lista que falta, las comprobaciones de abajo darían mensajes
+    // de más ("hay 0 sedes principales"): la sección queda como fallida
+    if (faltas.length === 0) leidos[clave] = datos
   } catch (causa) {
     if (causa instanceof SyntaxError) {
       error(definicion.label, `${archivo} no es un JSON válido (${causa.message})`)
@@ -99,9 +135,10 @@ for (const [clave, definicion] of Object.entries(singletons)) {
   }
 }
 
-// Lo que el esquema no puede comprobar. Primero, las combinaciones de
-// textos que comparten un espacio (docs/landing/textos-editables/LIMITES.md,
-// "Combinaciones"): un tope por campo no alcanza.
+// Lo que el esquema no puede comprobar, por sección (sobre las secciones cuyo
+// esquema pasó). Primero, las combinaciones de textos que comparten un
+// espacio (docs/landing/textos-editables/LIMITES.md, "Combinaciones"): un
+// tope por campo no alcanza.
 const largo = (...textos) => textos.reduce((suma, texto) => suma + (texto?.length ?? 0), 0)
 const menu = leidos.menu
 if (menu) {
@@ -131,15 +168,37 @@ if (proceso) {
 
 const distribucion = leidos.distribucion
 if (distribucion) {
+  const vistas = new Map()
   distribucion.sedes.forEach((sede, i) => {
+    const fila = `Sedes › ${i + 1}`
     const direccion = `${sede.calle}, ${sede.localidad}`
     if (direccion.length > LIMITES.direccionCard) {
-      error('Distribución', `Sedes › ${i + 1} › Calle y número: «${direccion}» mide ${direccion.length} caracteres y la tarjeta admite hasta ${LIMITES.direccionCard}`)
+      error('Distribución', `${fila} › Calle y número: «${direccion}» mide ${direccion.length} caracteres y la tarjeta admite hasta ${LIMITES.direccionCard}`)
     }
     const tipoMostrado = sede.rol === 'sucursal' ? 'Sucursal' : sede.tipo
     const card = largo(tipoMostrado, sede.calle, sede.localidad)
     if (card > LIMITES.sumaSedeCard) {
-      error('Distribución', `Sedes › ${i + 1}: nombre, calle y localidad suman ${card} caracteres en la tarjeta y no pueden pasar de ${LIMITES.sumaSedeCard}`)
+      error('Distribución', `${fila}: nombre, calle y localidad suman ${card} caracteres en la tarjeta y no pueden pasar de ${LIMITES.sumaSedeCard}`)
+    }
+    // La etiqueta del mapa: "{localidad}, {provincia}" y, debajo, el rol
+    // («Laboratorio», «Sucursal» o, para la planta, el nombre entero)
+    const etiqueta = `${sede.localidad}, ${sede.provincia}`
+    if (etiqueta.length > LIMITES.etiquetaMapa) {
+      error('Distribución', `${fila} › Localidad: la etiqueta del mapa «${etiqueta}» mide ${etiqueta.length} caracteres y no puede pasar de ${LIMITES.etiquetaMapa}`)
+    }
+    if (sede.rol === 'planta' && sede.tipo.length > LIMITES.sedeTipoPlanta) {
+      error('Distribución', `${fila} › Nombre completo: el mapa muestra el nombre entero de la planta bajo su etiqueta, «${sede.tipo}» mide ${sede.tipo.length} caracteres y ahí no puede pasar de ${LIMITES.sedeTipoPlanta}`)
+    }
+    if (sede.principal && sede.telefonos.length === 0) {
+      error('Distribución', `${fila} › Teléfonos: la sede principal tiene que tener al menos un teléfono (es el WhatsApp del footer y del contacto)`)
+    }
+    // Dos pines en el mismo punto: la línea del mapa no tiene por dónde ir
+    const punto = `${sede.latitud},${sede.longitud}`
+    const otra = vistas.get(punto)
+    if (otra !== undefined) {
+      error('Distribución', `${fila} › Latitud y Longitud: coinciden con las de la sede ${otra + 1}; dos sedes no pueden ir en el mismo punto del mapa`)
+    } else {
+      vistas.set(punto, i)
     }
   })
   const principales = distribucion.sedes.filter((sede) => sede.principal)
@@ -165,16 +224,27 @@ if (habilitaciones) {
 
 const recorrido = leidos.recorrido
 if (recorrido) {
-  for (const [clave, campo] of Object.entries(singletons.recorrido.schema)) {
-    if (!('ficha' in (campo.fields ?? {}))) continue
-    const parada = recorrido[clave]
-    const nombre = `${campo.label} › Ficha técnica (PDF)`
-    if (!parada.miniaturaAlt?.trim()) error('Recorrido de implantes', `${campo.label}: la foto no tiene texto alternativo`)
-    if (!parada.ficha) continue
-    if (!/\.pdf$/i.test(parada.ficha)) {
-      error('Recorrido de implantes', `${nombre}: el archivo «${parada.ficha}» no es un PDF`)
-    } else if (!(await existe(join(raiz, 'public', parada.ficha)))) {
-      error('Recorrido de implantes', `${nombre}: no está el archivo public${parada.ficha}`)
+  for (const [id, nombre] of Object.entries(NOMBRES_PARADAS)) {
+    const parada = recorrido[id]
+    if (!parada.miniaturaAlt?.trim()) error('Recorrido de implantes', `${nombre}: la foto no tiene texto alternativo`)
+    // Con cuatro datos técnicos la tarjeta ya es la más alta: la descripción
+    // tiene menos lugar (LIMITES.md, sección 5)
+    if (parada.specs.length === 4 && parada.descripcion.length > LIMITES.paradaDescripcionCuatroSpecs) {
+      error('Recorrido de implantes', `${nombre} › Descripción: con cuatro datos técnicos no puede pasar de ${LIMITES.paradaDescripcionCuatroSpecs} caracteres (mide ${parada.descripcion.length})`)
+    }
+  }
+}
+
+// Cada ficha es opcional; si está, tiene que ser un PDF que exista en public/
+const fichas = leidos.fichas
+if (fichas) {
+  for (const [id, campo] of Object.entries(singletons.fichas.schema)) {
+    const ficha = fichas[id]
+    if (!ficha) continue
+    if (!/\.pdf$/i.test(ficha)) {
+      error('Fichas técnicas (PDF)', `${campo.label}: el archivo «${ficha}» no es un PDF`)
+    } else if (!(await existe(join(raiz, 'public', ficha)))) {
+      error('Fichas técnicas (PDF)', `${campo.label}: no está el archivo public${ficha}`)
     }
   }
 }

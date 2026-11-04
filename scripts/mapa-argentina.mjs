@@ -26,6 +26,9 @@ const URL_FUENTE =
 const CACHE = path.join(os.tmpdir(), 'innercare-natural-earth')
 const ARCHIVO_FUENTE = path.join(CACHE, 'ne_10m_admin_1_states_provinces.json')
 const SALIDA = 'content/mapa-argentina.ts'
+// Solo los nombres de las jurisdicciones, para el desplegable de provincia
+// del panel (keystatic.esquema.ts): así el esquema no carga los trazados.
+const SALIDA_NOMBRES = 'content/jurisdicciones.ts'
 
 // Ancho del viewBox; el alto sale de la proporción del país.
 const ANCHO = 400
@@ -187,6 +190,18 @@ export const contorno = '${contorno}'
 export const limites = '${limites}'
 `
 await writeFile(SALIDA, ts)
+
+const nombres = salidaProvincias.map((p) => p.nombre).sort((a, b) => a.localeCompare(b, 'es'))
+const tsNombres = `// Generado por scripts/mapa-argentina.mjs (\`npm run mapa\`), junto con
+// mapa-argentina.ts. No editar a mano. Los nombres de las ${nombres.length} jurisdicciones
+// del mapa, en orden alfabético, tal como los trae Natural Earth (sin
+// "Provincia de"): son las opciones del desplegable de provincia de las sedes
+// en el panel (keystatic.esquema.ts), que así no carga los trazados.
+export const nombresJurisdicciones = [
+${nombres.map((n) => `  '${n}',`).join('\n')}
+] as const
+`
+await writeFile(SALIDA_NOMBRES, tsNombres)
 const kb = (s) => `${(Buffer.byteLength(s) / 1024).toFixed(1)} KB`
 console.log(
   `${SALIDA}: ${puntos} puntos, viewBox ${encuadre.ancho}×${encuadre.alto}, provincias ${kb(

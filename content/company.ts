@@ -9,6 +9,7 @@ import datosDistribucion from './datos/distribucion.json'
 import datosFabricacion from './datos/fabricacion.json'
 import datosHabilitaciones from './datos/habilitaciones.json'
 import datosHero from './datos/hero.json'
+import { nombresJurisdicciones } from './jurisdicciones'
 import { Lector, avisar, pendiente } from './leer'
 import type { Capacidad, Habilitacion, Manufactura, Sede } from './types'
 
@@ -174,7 +175,7 @@ export const sedes: readonly Sede[] = distribucion.lista('sedes', 'Sede').flatMa
       localidad: codigoPostal ? `${codigoPostal} ${localidad}` : localidad,
       latitud,
       longitud,
-      provincia: provinciaCompleta(sede.texto('provincia', 'Provincia')),
+      provincia: provinciaCompleta(sede.opcion('provincia', 'Provincia', nombresJurisdicciones, 'Buenos Aires')),
       phones: sede.listaTextos('telefonos', 'Teléfonos'),
       ...(sede.booleano('principal') ? { principal: true } : {}),
       foto: { src: FOTOS_SEDES[id] ?? FOTO_PENDIENTE, alt: sede.texto('fotoAlt', 'Texto alternativo de la foto') },
