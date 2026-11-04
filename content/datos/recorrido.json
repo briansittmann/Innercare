@@ -1,0 +1,129 @@
+{
+  "cierre": {
+    "titulo": "Lo que está en el catálogo y lo que no, lo fabricamos nosotros.",
+    "texto": "Sistemas modulares listos para pedir y piezas únicas diseñadas con tu equipo quirúrgico."
+  },
+  "avisoContinuar": "Deslizá para continuar",
+  "etiquetas": {
+    "aMedida": "A medida",
+    "catalogo": "Catálogo",
+    "fichaTecnica": "Ficha técnica (PDF)"
+  },
+  "accesibilidad": {
+    "escena": "Cuerpo de vidrio con el esqueleto a la vista y seis implantes de titanio: craneoplastía, reconstrucción maxilar, prótesis reversa de hombro, reconstrucción acetabular, endoprótesis de fémur proximal e implante intercalar de fémur",
+    "indice": "Implantes del recorrido"
+  },
+  "craneo": {
+    "zona": "Cráneo",
+    "titulo": "Craneoplastía a medida",
+    "descripcion": "A partir de la tomografía reconstruimos el defecto en 3D y fabricamos la pieza en PMMA o en titanio impreso con estructura trabecular.",
+    "specs": [
+      {
+        "etiqueta": "Material",
+        "valor": "PMMA o titanio trabecular"
+      },
+      {
+        "etiqueta": "Técnica",
+        "valor": "Impresión 3D"
+      }
+    ],
+    "miniaturaAlt": "Craneoplastía a medida en titanio trabecular sobre el biomodelo del cráneo"
+  },
+  "maxilar": {
+    "zona": "Maxilar",
+    "titulo": "Reconstrucción para anclaje dentario",
+    "descripcion": "Planificamos la cirugía y fabricamos una estructura de reconstrucción que sirve de base para los implantes dentarios.",
+    "specs": [
+      {
+        "etiqueta": "Planificación",
+        "valor": "Quirúrgica virtual 3D"
+      },
+      {
+        "etiqueta": "Desarrollo",
+        "valor": "A pedido médico"
+      }
+    ],
+    "miniaturaAlt": "Biomodelo maxilofacial con la estructura de anclaje para implantes dentarios"
+  },
+  "hombro": {
+    "zona": "Hombro",
+    "titulo": "Prótesis modular reversa de hombro",
+    "descripcion": "Un implante que no se fabricaba en el país. Da mayor estabilidad articular y suple la falta de hueso con suplementos combinables.",
+    "specs": [
+      {
+        "etiqueta": "Material",
+        "valor": "Titanio biocompatible"
+      },
+      {
+        "etiqueta": "Técnica",
+        "valor": "Mecanizado CNC"
+      },
+      {
+        "etiqueta": "Indicación",
+        "valor": "Reemplazo de hombro con déficit óseo"
+      }
+    ],
+    "miniaturaAlt": "Prótesis modular reversa de hombro fabricada por Innercare"
+  },
+  "acetabulo": {
+    "zona": "Acetábulo",
+    "titulo": "Reconstrucción acetabular en titanio trabecular",
+    "descripcion": "Diseñamos el implante y los alojamientos para tornillos sobre la segmentación 3D de la cadera del paciente. También fabricamos espaciadores en PMMA con alojamiento para cotilo.",
+    "specs": [
+      {
+        "etiqueta": "Material",
+        "valor": "Titanio trabecular"
+      },
+      {
+        "etiqueta": "Técnica",
+        "valor": "Impresión 3D"
+      }
+    ],
+    "miniaturaAlt": "Diseño del implante acetabular con los alojamientos para tornillos"
+  },
+  "femur": {
+    "zona": "Fémur proximal",
+    "titulo": "Endoprótesis modular de fémur",
+    "descripcion": "Sistema modular customizable para pérdida de hueso femoral por trauma o resección.",
+    "specs": [
+      {
+        "etiqueta": "Material",
+        "valor": "Titanio Ti-6Al-4V"
+      },
+      {
+        "etiqueta": "Cuerpo",
+        "valor": "40 y 60 mm × 135°"
+      },
+      {
+        "etiqueta": "Vástagos",
+        "valor": "Ø10 a 12 mm × 120 a 160 mm"
+      },
+      {
+        "etiqueta": "Cabezas",
+        "valor": "Biolox o Cr-Co, cono morse 12-14"
+      }
+    ],
+    "miniaturaAlt": "Componentes modulares de titanio de la endoprótesis femoral",
+    "ficha": "/fichas/femur/ficha.pdf"
+  },
+  "intercalar": {
+    "zona": "Diáfisis femoral",
+    "titulo": "Implante intercalar de fémur",
+    "descripcion": "Reconstrucción de un segmento femoral con implante y guías de resección diseñados desde la tomografía del paciente.",
+    "specs": [
+      {
+        "etiqueta": "Material",
+        "valor": "Titanio Ti-6Al-4V"
+      },
+      {
+        "etiqueta": "Contacto óseo",
+        "valor": "Estructura trabecular porosa"
+      },
+      {
+        "etiqueta": "Clavo",
+        "valor": "Endomedular Ø10 × 360 mm"
+      }
+    ],
+    "miniaturaAlt": "Implante intercalar de fémur junto a las guías de resección fabricadas"
+  }
+}

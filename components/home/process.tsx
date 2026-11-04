@@ -1,12 +1,14 @@
 import Image from 'next/image'
-import { proceso } from '@/content/customCases'
+import { proceso, procesoTextos } from '@/content/customCases'
 import { ProcessScroll } from './process-scroll'
 
-// Leyenda de la pieza (borrador): qué color es cada material
+// Leyenda de la pieza (borrador): qué color es cada material. Los colores
+// son los de la pieza (components/animaciones/proceso.ts); los textos se
+// editan en el panel.
 const LEYENDA = [
-  { color: 'bg-hueso', label: 'Hueso' },
-  { color: 'bg-resecar', label: 'Zona a resecar' },
-  { color: 'bg-metal', label: 'Implante y guías' },
+  { color: 'bg-hueso', label: procesoTextos.leyenda.hueso },
+  { color: 'bg-resecar', label: procesoTextos.leyenda.resecar },
+  { color: 'bg-metal', label: procesoTextos.leyenda.implante },
 ] as const
 
 // Cómo trabajamos cada caso (#proceso). Estructura del borrador: ver
@@ -25,7 +27,7 @@ export function Process() {
             data-entra
             className="max-w-[16ch] text-balance font-display-lg text-[1.875rem] leading-none tracking-[-0.03em] text-on-surface md:text-display-lg"
           >
-            Cómo trabajamos cada caso
+            {procesoTextos.titulo}
           </h2>
         }
         pasos={proceso.map(({ step, title, description }) => ({ step, title, description }))}

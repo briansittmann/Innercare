@@ -1,0 +1,21 @@
+{
+  "kicker": "Planificamos, diseñamos, fabricamos.",
+  "titularIntro": "Todo empieza con una conversación.",
+  "titulo": "¿Tenés un caso para resolver?",
+  "bajada": "Enviános los estudios del paciente y coordinamos la planificación quirúrgica junto a tu equipo.",
+  "panel": {
+    "titulo": "Contacto",
+    "bajada": "Contanos qué necesitás y te respondemos. Para casos a medida, coordinamos la planificación quirúrgica junto a tu equipo.",
+    "enviar": "Enviar consulta",
+    "enviando": "Enviando…",
+    "exitoTitulo": "Consulta enviada",
+    "exitoTexto": "Gracias. Te vamos a responder al email que nos dejaste.",
+    "otrosCanales": "¿Preferís otro canal?",
+    "motivos": {
+      "producto": "Consulta sobre un producto",
+      "caso": "Caso a medida",
+      "compras": "Compras y licitaciones",
+      "otro": "Otra consulta"
+    }
+  }
+}

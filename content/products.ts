@@ -7,8 +7,17 @@
 //
 // Campos opcionales: `compatibility`, `availableSizes` y `datasheetUrl` pueden
 // faltar cuando la fuente no los declara; las vistas los omiten en ese caso.
+// La ficha técnica (PDF) es la que se sube en el panel a la parada del
+// recorrido que apunta a cada producto (content/recorrido.ts), así lo que se
+// publica ahí aparece también en la ficha.
 
+import { paradas } from './recorrido'
 import type { Product } from './types'
+
+const fichaDe = (slug: string) => {
+  const url = paradas.find((parada) => parada.productoSlug === slug)?.datasheetUrl
+  return url ? { datasheetUrl: url } : {}
+}
 
 const products: readonly Product[] = [
   {
@@ -44,7 +53,7 @@ const products: readonly Product[] = [
       'Ø12 x 140mm',
       'Ø12 x 160mm',
     ],
-    datasheetUrl: '/endoprotesis-modular-femur-innercare.pdf',
+    ...fichaDe('endoprotesis-modular-femur-customizable'),
     images: [
       {
         src: '/img/femur-componentes.jpg',
@@ -75,6 +84,7 @@ const products: readonly Product[] = [
       'Permite sustituir la falta de hueso con suplementos combinables',
       'Planificación quirúrgica previa sobre el estudio del paciente',
     ],
+    ...fichaDe('protesis-modular-reversa-hombro'),
     images: [
       {
         src: '/img/hombro-implante.jpg',

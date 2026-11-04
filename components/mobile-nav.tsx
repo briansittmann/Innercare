@@ -7,6 +7,7 @@ import { AnchorLink } from './anchor-link'
 import { ContactLink } from './contact-link'
 import { NavGlass } from './nav-glass'
 import { contactHref, contactLabel, navLinks } from './nav-links'
+import { menuTextos } from '@/content/menu'
 
 // Barra del celular: una píldora de vidrio flotante, como la de escritorio,
 // algo más transparente, y el menú en un panel esmerilado debajo. El panel va
@@ -89,7 +90,7 @@ export function MobileNav({ logo }: { logo: ReactNode }) {
             type="button"
             aria-expanded={expanded}
             aria-controls="menu-movil"
-            aria-label={expanded ? 'Cerrar menú' : 'Abrir menú'}
+            aria-label={expanded ? menuTextos.accesibilidad.cerrarMenu : menuTextos.accesibilidad.abrirMenu}
             onClick={() => {
               if (expanded) close()
               else {
@@ -113,7 +114,7 @@ export function MobileNav({ logo }: { logo: ReactNode }) {
           className="menu-movil pointer-events-auto absolute inset-x-3 top-full mt-2"
         >
           <div className="menu-movil-panel">
-            <nav aria-label="Principal" className="px-lg pt-sm pb-lg">
+            <nav aria-label={menuTextos.accesibilidad.menuPrincipal} className="px-lg pt-sm pb-lg">
               <ul className="flex flex-col">
                 {navLinks.map((link, i) => (
                   <li key={link.href} className="menu-movil-item" style={{ '--i': i } as CSSProperties}>

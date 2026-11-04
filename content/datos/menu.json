@@ -1,0 +1,16 @@
+{
+  "marca": "Innercare",
+  "enlaces": {
+    "implantes": "Implantes",
+    "proceso": "Cómo trabajamos",
+    "fabricacion": "Fabricación",
+    "habilitaciones": "Habilitaciones"
+  },
+  "plantearCaso": "Plantear un caso",
+  "accesibilidad": {
+    "logo": "Innercare, inicio",
+    "abrirMenu": "Abrir menú",
+    "cerrarMenu": "Cerrar menú",
+    "menuPrincipal": "Principal"
+  }
+}

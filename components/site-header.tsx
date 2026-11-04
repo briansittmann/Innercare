@@ -7,6 +7,7 @@ import { MobileNav } from './mobile-nav'
 import { NavIntro } from './nav-intro'
 import { NavGlass } from './nav-glass'
 import { contactHref, contactLabel } from './nav-links'
+import { menuTextos } from '@/content/menu'
 
 // El logo lleva al hero: en la home sube con el scroll suave (aunque #inicio
 // ya esté en la URL); desde las fichas, vuelve a la home arriba de todo.
@@ -26,10 +27,10 @@ import { contactHref, contactLabel } from './nav-links'
 // van en el HTML y el CSS muestra una.
 function Logo({ className, compacto = false }: { className: string; compacto?: boolean }) {
   return (
-    <AnchorLink href="/#inicio" aria-label="Innercare, inicio" className="logo-header shrink-0">
+    <AnchorLink href="/#inicio" aria-label={menuTextos.accesibilidad.logo} className="logo-header shrink-0">
       <Image
         src="/logo-header.png"
-        alt="Innercare"
+        alt={menuTextos.marca}
         width={2145}
         height={733}
         sizes="96px"
@@ -38,7 +39,7 @@ function Logo({ className, compacto = false }: { className: string; compacto?: b
       {compacto && (
         <Image
           src="/favicon.png"
-          alt="Innercare"
+          alt={menuTextos.marca}
           width={256}
           height={256}
           sizes="32px"

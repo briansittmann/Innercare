@@ -1,6 +1,8 @@
 import Image from 'next/image'
 import { ContactLink } from '@/components/contact-link'
 import { contactHref, contactLabel } from '@/components/nav-links'
+import { contactoHome } from '@/content/contact'
+import { menuTextos } from '@/content/menu'
 import { ContactoManos } from './contacto-manos'
 
 // Cierre de contacto de la home (#contacto), con la sección "touch" del
@@ -15,8 +17,8 @@ import { ContactoManos } from './contacto-manos'
 // Entradas (contacto-manos.tsx): la línea chica (data-kicker) aparece, sube
 // y el titular entra palabra por palabra (data-palabra); las piezas de la
 // tarjeta (data-entra) entran de a una cuando la tarjeta aparece, y el botón
-// (data-rebote) llega con un rebote chico, como en el menú del celular.
-const TITULAR_INTRO = 'Todo empieza con una conversación.'
+// (data-rebote) llega con un rebote chico, como en el menú del celular. Los
+// textos se editan en el panel (content/contact.ts, contactoHome).
 //
 // #contacto va en un ancla al final de la sección (.contacto-ancla): un
 // enlace a /#contacto llega con la tarjeta ya armada.
@@ -24,7 +26,7 @@ const TITULAR_INTRO = 'Todo empieza con una conversación.'
 // data-fondo-oscuro: mientras la sección pasa por detrás de la barra, el
 // vidrio del header se vuelve opaco (components/header-fondo.tsx).
 export function Contacto() {
-  const palabras = TITULAR_INTRO.split(' ')
+  const palabras = contactoHome.titularIntro.split(' ')
   return (
     <section
       aria-labelledby="contacto-cierre-titulo"
@@ -39,13 +41,13 @@ export function Contacto() {
               data-kicker
               className="mb-[0.875rem] block text-[0.9375rem] leading-normal font-semibold tracking-normal text-on-primary-container"
             >
-              Planificamos, diseñamos, fabricamos.
+              {contactoHome.kicker}
             </span>
             {/* La clave es la posición: una palabra repetida no puede romper la entrada */}
             {palabras.map((palabra, i) => (
               <span key={i} data-palabra className="inline-block">
                 {palabra}
-                {i < palabras.length - 1 ? ' ' : ''}
+                {i < palabras.length - 1 ? '\u00a0' : ''}
               </span>
             ))}
           </p>
@@ -53,19 +55,15 @@ export function Contacto() {
         tarjeta={
           <div className="cta-luz grid w-[min(80rem,calc(100vw-2rem))] items-end gap-xl rounded-xl p-[clamp(2.25rem,6vw,5rem)] text-on-primary md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
             <div>
-              {/* contacto-cierre-titulo y no contacto-titulo: ese id es el del
-                  encabezado del panel de contacto (contact-parts.tsx), que se
-                  abre sobre la home */}
               <h2
                 data-entra
                 id="contacto-cierre-titulo"
                 className="max-w-[16ch] text-balance font-display-lg text-[clamp(2.25rem,1.4rem+3.2vw,4.25rem)] leading-none tracking-[-0.04em]"
               >
-                ¿Tenés un caso para resolver?
+                {contactoHome.titulo}
               </h2>
               <p data-entra className="mt-[1.125rem] max-w-[44ch] text-body-lg text-on-primary/85">
-                Enviános los estudios del paciente y coordinamos la planificación quirúrgica junto a
-                tu equipo.
+                {contactoHome.bajada}
               </p>
             </div>
             <div className="flex flex-col items-start gap-lg md:items-end">
@@ -75,7 +73,7 @@ export function Contacto() {
               <div data-entra>
                 <Image
                   src="/logo.png"
-                  alt="Innercare"
+                  alt={menuTextos.marca}
                   width={1200}
                   height={466}
                   sizes="12rem"

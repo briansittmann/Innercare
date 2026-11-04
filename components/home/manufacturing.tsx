@@ -1,6 +1,6 @@
 import AnimatedContent from '@/components/animated-content'
 import { PlantPhoto } from '@/components/plant-photo'
-import { manufactura, textosHome } from '@/content/company'
+import { fabricacionTextos, manufactura, textosHome } from '@/content/company'
 import { fotosPlanta } from '@/content/planta'
 import { AnimacionFabricacion } from './animacion-fabricacion'
 import { CarruselPlanta } from './carrusel-planta'
@@ -13,12 +13,12 @@ const fotos = {
   sustractiva: {
     pieza: '/img/fabricacion/femur.webp',
     src: '/img/fabricacion-cnc-maquina.jpg',
-    alt: 'Centro de mecanizado CNC en la planta de Innercare',
+    alt: fabricacionTextos.fotoCncAlt,
   },
   aditiva: {
     pieza: '/img/fabricacion/acetabulo.webp',
     src: '/img/fabricacion-impresion-3d.jpg',
-    alt: 'Equipo de impresión 3D en metal para implantes de titanio',
+    alt: fabricacionTextos.fotoImpresionAlt,
   },
 } as const
 
@@ -70,6 +70,7 @@ export function Manufacturing() {
               <AnimacionFabricacion
                 modo={tecnica.id}
                 pieza={fotos[tecnica.id].pieza}
+                etiquetaVolver={fabricacionTextos.volverAVer}
                 respaldo={
                   <PlantPhoto
                     src={fotos[tecnica.id].src}
@@ -94,7 +95,7 @@ export function Manufacturing() {
         </div>
       </div>
       <div className="mt-[clamp(3rem,8vh,5.5rem)]">
-        <CarruselPlanta fotos={fotosPlanta} />
+        <CarruselPlanta fotos={fotosPlanta} nombre={fabricacionTextos.tiraFotos} />
       </div>
     </section>
   )

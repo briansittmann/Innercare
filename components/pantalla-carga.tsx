@@ -7,6 +7,7 @@ import { completar, estaCompleta, fallar, getProgreso, huboFallo } from '@/compo
 import { skipIntro, startIntro } from '@/components/intro'
 import { LatticeLoader } from '@/components/lattice-loader'
 import { ANCHO_CELULAR } from '@/components/recorrido-3d/camara'
+import { PALABRAS, cargaTextos } from '@/content/carga'
 
 // Pantalla de carga de la home. Tapa la página hasta que el 3D entero (el
 // cuerpo, los seis implantes, las miniaturas y su primer cuadro: las tareas
@@ -36,17 +37,8 @@ import { ANCHO_CELULAR } from '@/components/recorrido-3d/camara'
 // Con movimiento reducido, la pieza quieta armada hasta el progreso y una
 // salida corta.
 
-// Las etapas del proceso real (content/customCases.ts, company.ts), en orden
-const PALABRAS = [
-  'Estudio del paciente',
-  'Segmentación 3D',
-  'Planificación quirúrgica',
-  'Diseño del implante',
-  'Titanio biocompatible',
-  'Mecanizado CNC',
-  'Impresión 3D',
-  'Trazabilidad',
-] as const
+// Las palabras (las etapas del proceso real) y las etiquetas del cargador se
+// editan en el panel (content/carga.ts).
 
 const PIEZA = '/img/fabricacion/femur.webp'
 const DURACION_MINIMA = 1600
@@ -212,8 +204,8 @@ export function PantallaCarga() {
       </div>
       <div className="pantalla-carga-pie page-container">
         <LatticeLoader
-          label="Cargando"
-          doneLabel="Listo"
+          label={cargaTextos.cargando}
+          doneLabel={cargaTextos.listo}
           status={listoLattice ? 'done' : 'working'}
           pattern="sweep"
           className="text-body-sm text-primary"

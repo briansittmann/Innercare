@@ -2,43 +2,64 @@
 // Los textos son los de la carpeta: no agregar indicaciones, resultados ni
 // cifras clínicas que no estén en la fuente.
 
+import datosProceso from './datos/proceso.json'
+import { Lector } from './leer'
 import type { CustomCase, FeaturedCase, ProcesoStep } from './types'
 
-// Cómo trabajamos cada caso: textos del guion de la landing
-// (docs/landing/landing-borrador.html). La imagen de cada paso ocupa el lugar
-// de la pieza animada (cortes de TC, hueso con zona a resecar, implante y
-// guías) hasta que exista.
-export const proceso: readonly ProcesoStep[] = [
+// Cómo trabajamos cada caso: título, pasos y leyenda se editan en el panel
+// (content/datos/proceso.json, singleton "Cómo trabajamos"). El número de
+// orden y la imagen de cada paso quedan acá: son tres porque la pieza de
+// partículas tiene tres formas (components/animaciones/proceso.ts). La imagen
+// de cada paso ocupa el lugar de la pieza animada sin JS.
+const procesoDatos = new Lector(datosProceso, 'Cómo trabajamos')
+const pasos = procesoDatos.hijo('pasos', 'Los tres pasos')
+const leyenda = procesoDatos.hijo('leyenda', 'Leyenda de la pieza')
+
+const PASOS = [
   {
+    clave: 'uno',
     step: '01',
-    title: 'Estudio del paciente',
-    description: 'Sobre la tomografía segmentamos la anatomía en 3D.',
     image: {
       src: '/img/caso-intercalar-tc.jpg',
       alt: 'Estudio tomográfico de los miembros inferiores del paciente',
     },
   },
   {
+    clave: 'dos',
     step: '02',
-    title: 'Planificación quirúrgica virtual',
-    description:
-      'Definimos con el equipo quirúrgico el plano de resección y la estrategia.',
     image: {
       src: '/img/hombro-planificacion-reseccion.jpg',
       alt: 'Segmentación de la escápula con el plano de resección sugerido',
     },
   },
   {
+    clave: 'tres',
     step: '03',
-    title: 'Diseño y fabricación',
-    description:
-      'Diseñamos el implante y las guías de resección, y los fabricamos en titanio biocompatible.',
     image: {
       src: '/img/caso-porosa-implante.jpg',
       alt: 'Implante a medida en titanio con estructura porosa',
     },
   },
-]
+] as const
+
+export const proceso: readonly ProcesoStep[] = PASOS.map(({ clave, step, image }) => {
+  const paso = pasos.hijo(clave, `Paso ${step}`)
+  return {
+    step,
+    title: paso.texto('titulo', 'Título'),
+    description: paso.texto('descripcion', 'Descripción'),
+    image,
+  }
+})
+
+export const procesoTextos = {
+  titulo: procesoDatos.texto('titulo', 'Título'),
+  leyenda: {
+    hueso: leyenda.texto('hueso', 'Hueso'),
+    resecar: leyenda.texto('resecar', 'Zona a resecar'),
+    implante: leyenda.texto('implante', 'Implante y guías'),
+  },
+}
 
 // Caso destacado: la carpeta lo desarrolla en dos páginas con detalle de diseño.
 export const featuredCase: FeaturedCase = {

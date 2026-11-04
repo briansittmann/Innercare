@@ -1,0 +1,65 @@
+{
+  "titulo": "Distribución a todo el país",
+  "bajada": "Proveemos a hospitales y clínicas mediante licitaciones y concursos en todo el país, desde nuestra planta y sucursales.",
+  "accesibilidad": {
+    "mapa": "Sedes en el mapa de Argentina"
+  },
+  "sedes": [
+    {
+      "id": "laboratorio",
+      "rol": "laboratorio",
+      "tipo": "Laboratorio de productos de tecnología médica",
+      "calle": "Aráoz de Lamadrid 2741",
+      "codigoPostal": "B1678EEC",
+      "localidad": "Caseros",
+      "provincia": "Buenos Aires",
+      "latitud": -34.61,
+      "longitud": -58.56,
+      "telefonos": [
+        "+54 9 11 2066-5434",
+        "+54 9 11 2063-5071"
+      ],
+      "principal": true,
+      "fotoAlt": "Laboratorio de Innercare en Caseros"
+    },
+    {
+      "id": "planta",
+      "rol": "planta",
+      "tipo": "Planta industrial",
+      "calle": "Av. Arquímedes Hernández 192, Parque Industrial N° 1",
+      "localidad": "Alberti",
+      "provincia": "Buenos Aires",
+      "latitud": -35.03,
+      "longitud": -60.28,
+      "telefonos": [],
+      "principal": false,
+      "fotoAlt": "Centros de mecanizado CNC en la planta industrial de Alberti"
+    },
+    {
+      "id": "caleta-olivia",
+      "rol": "sucursal",
+      "tipo": "Sucursal Caleta Olivia",
+      "calle": "Av. Eva Perón 665",
+      "localidad": "Caleta Olivia",
+      "provincia": "Santa Cruz",
+      "latitud": -46.44,
+      "longitud": -67.52,
+      "telefonos": [],
+      "principal": false,
+      "fotoAlt": "Sucursal de Innercare en Caleta Olivia"
+    },
+    {
+      "id": "comodoro",
+      "rol": "sucursal",
+      "tipo": "Sucursal Comodoro Rivadavia",
+      "calle": "Viamonte 275",
+      "localidad": "Comodoro Rivadavia",
+      "provincia": "Chubut",
+      "latitud": -45.86,
+      "longitud": -67.48,
+      "telefonos": [],
+      "principal": false,
+      "fotoAlt": "Sucursal de Innercare en Comodoro Rivadavia"
+    }
+  ]
+}

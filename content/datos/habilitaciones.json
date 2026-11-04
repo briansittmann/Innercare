@@ -1,0 +1,30 @@
+{
+  "titulo": "Habilitados por ANMAT",
+  "bajada": "Fabricamos, importamos y distribuimos productos médicos bajo habilitación de la ANMAT, y registramos cada unidad en el Sistema Nacional de Trazabilidad.",
+  "filas": [
+    {
+      "id": "anmat-fabricacion",
+      "organismo": "ANMAT",
+      "detalle": "Importación y fabricación de productos médicos",
+      "referencia": "Disposición 0999/17"
+    },
+    {
+      "id": "anmat-bpf",
+      "organismo": "ANMAT",
+      "detalle": "Certificado de Buenas Prácticas de Fabricación",
+      "referencia": "N° 298-2023-R"
+    },
+    {
+      "id": "anmat-distribucion",
+      "organismo": "ANMAT",
+      "detalle": "Habilitación de empresa distribuidora de productos médicos",
+      "referencia": "Disposición 9682/16"
+    },
+    {
+      "id": "trazabilidad",
+      "organismo": "Trazabilidad",
+      "detalle": "Inscripción en el Sistema Nacional de Trazabilidad",
+      "referencia": "GLN 7798276610001 · Sub-GLN 7798276610018"
+    }
+  ]
+}

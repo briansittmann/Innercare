@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { sedePrincipal, tagline } from '@/content/company'
+import { menuTextos } from '@/content/menu'
 
 // Con Cache Components, `new Date()` no puede ir en el shell estático sin
 // decidir cuándo se calcula: 'use cache' lo fija y lo renueva según cacheLife.
@@ -19,7 +20,7 @@ export function SiteFooter() {
         <div>
           <Image
             src="/logo.png"
-            alt="Innercare"
+            alt={menuTextos.marca}
             width={1200}
             height={466}
             sizes="96px"
@@ -43,7 +44,7 @@ export function SiteFooter() {
             ))}
           </ul>
           <p>
-            © <CopyrightYear /> Innercare
+            © <CopyrightYear /> {menuTextos.marca}
           </p>
         </div>
       </div>

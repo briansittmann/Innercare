@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { ImageResponse } from 'next/og'
 import sharp from 'sharp'
 import { habilitacionesResumen, tagline } from '@/content/company'
+import { seo } from '@/content/seo'
 
 // Miniatura para compartir en redes (og:image; X y WhatsApp la toman de ahí).
 // Es el primer pantallazo de la home: el degradé del hero, el busto de vidrio
@@ -13,7 +14,7 @@ import { habilitacionesResumen, tagline } from '@/content/company'
 // Las fichas siguen con la foto de portada de cada producto (generateMetadata
 // de app/productos/[slug]).
 
-export const alt = `Innercare. ${tagline}: cabeza de vidrio con una craneoplastía de titanio.`
+export const alt = seo.ogImagenAlt
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 

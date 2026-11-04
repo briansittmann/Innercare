@@ -1,0 +1,22 @@
+{
+  "titulo": "Cómo trabajamos cada caso",
+  "pasos": {
+    "uno": {
+      "titulo": "Estudio del paciente",
+      "descripcion": "Sobre la tomografía segmentamos la anatomía en 3D."
+    },
+    "dos": {
+      "titulo": "Planificación quirúrgica virtual",
+      "descripcion": "Definimos con el equipo quirúrgico el plano de resección y la estrategia."
+    },
+    "tres": {
+      "titulo": "Diseño y fabricación",
+      "descripcion": "Diseñamos el implante y las guías de resección, y los fabricamos en titanio biocompatible."
+    }
+  },
+  "leyenda": {
+    "hueso": "Hueso",
+    "resecar": "Zona a resecar",
+    "implante": "Implante y guías"
+  }
+}

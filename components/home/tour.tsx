@@ -2,7 +2,7 @@ import Image, { getImageProps } from 'next/image'
 import Link from 'next/link'
 import { ContactLink } from '@/components/contact-link'
 import { contactHref, contactLabel } from '@/components/nav-links'
-import { cierreRecorrido, paradas, type Parada } from '@/content/recorrido'
+import { cierreRecorrido, paradas, recorridoTextos, type Parada } from '@/content/recorrido'
 import { HeroFondo, HeroTexto } from './hero'
 import { IntroSection } from './hero-intro'
 import { TourScroll } from './tour-scroll'
@@ -35,6 +35,7 @@ export function Tour() {
     >
       <TourScroll
         paradas={paradas.map((parada) => ({ ancla: ancla(parada), zona: parada.zona }))}
+        textos={{ ...recorridoTextos.accesibilidad, avisoContinuar: recorridoTextos.avisoContinuar }}
         vistas={vistas}
         fondo={<HeroFondo />}
         entrada={<HeroTexto />}
@@ -82,7 +83,7 @@ function TarjetaParada({ parada, indice }: { parada: Parada; indice: number }) {
               : 'bg-primary text-on-primary'
           }`}
         >
-          {aMedida ? 'A medida' : 'Catálogo'}
+          {aMedida ? recorridoTextos.etiquetas.aMedida : recorridoTextos.etiquetas.catalogo}
         </span>
         <span className="text-body-sm text-on-surface-variant">{parada.zona}</span>
       </div>
@@ -139,9 +140,15 @@ function TarjetaParada({ parada, indice }: { parada: Parada; indice: number }) {
             {contactLabel}
           </ContactLink>
         )}
+        {/* El archivo se llama ficha.pdf en public/fichas/<parada>/ (lo nombra
+            el panel): la descarga lleva un nombre que diga qué es */}
         {parada.datasheetUrl && (
-          <a href={parada.datasheetUrl} download className="enlace-marca">
-            Ficha técnica (PDF)
+          <a
+            href={parada.datasheetUrl}
+            download={`${parada.productoSlug ?? parada.id}-ficha-tecnica.pdf`}
+            className="enlace-marca"
+          >
+            {recorridoTextos.etiquetas.fichaTecnica}
           </a>
         )}
       </div>

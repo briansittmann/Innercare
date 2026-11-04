@@ -1,5 +1,5 @@
 import AnimatedContent from '@/components/animated-content'
-import { sedes, textosHome } from '@/content/company'
+import { distribucionTextos, sedes, textosHome } from '@/content/company'
 import { MAPA, provincias } from '@/content/mapa-argentina'
 import type { Sede } from '@/content/types'
 import { proyectar } from './mapa-proyeccion'
@@ -33,14 +33,15 @@ const PAUSA_LUZ = 250
 
 const ciudad = (sede: Sede) => sede.localidad.replace(/^[A-Z]\d{4}[A-Z]{3}\s+/, '')
 const provincia = (sede: Sede) => sede.provincia.replace(/^Provincia de\s+/, '')
-// Rol corto para la etiqueta; el globo lleva el tipo, sin repetir la ciudad
-// ("Sucursal Comodoro Rivadavia" ya la dice la dirección)
+// Rol corto para la etiqueta, según el tipo de sede elegido en el panel; el
+// globo lleva el nombre completo, sin repetir la ciudad ("Sucursal Comodoro
+// Rivadavia" ya la dice la dirección)
 const rol = (sede: Sede) => {
-  if (sede.tipo.startsWith('Sucursal')) return 'Sucursal'
-  if (sede.tipo.startsWith('Laboratorio')) return 'Laboratorio'
+  if (sede.rol === 'sucursal') return 'Sucursal'
+  if (sede.rol === 'laboratorio') return 'Laboratorio'
   return sede.tipo
 }
-const tipo = (sede: Sede) => (sede.tipo.startsWith('Sucursal') ? 'Sucursal' : sede.tipo)
+const tipo = (sede: Sede) => (sede.rol === 'sucursal' ? 'Sucursal' : sede.tipo)
 
 // La provincia de la sede en el mapa, por nombre (Natural Earth los trae en
 // castellano, sin "Provincia de")
@@ -188,6 +189,7 @@ export function Locations() {
         </div>
 
         <MapaSedes
+          nombre={distribucionTextos.mapaAria}
           sedes={enMapa}
           provinciasConSede={provinciasConSede}
           tramos={tramos}

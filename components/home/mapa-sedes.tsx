@@ -47,6 +47,7 @@ type Guia = { id: string; d: string; retraso: number }
 const pct = (fraccion: number) => `${(fraccion * 100).toFixed(2)}%`
 
 export function MapaSedes({
+  nombre,
   sedes,
   provinciasConSede,
   tramos,
@@ -55,6 +56,8 @@ export function MapaSedes({
   viewBox,
   children,
 }: {
+  // Lo que anuncia el mapa a los lectores de pantalla
+  nombre: string
   sedes: readonly SedeEnMapa[]
   provinciasConSede: readonly { id: string; d: string }[]
   tramos: readonly Tramo[]
@@ -164,7 +167,7 @@ export function MapaSedes({
       ref={raiz}
       data-mapa={estado}
       role="group"
-      aria-label="Sedes en el mapa de Argentina"
+      aria-label={nombre}
       className="mapa relative isolate"
     >
       <div

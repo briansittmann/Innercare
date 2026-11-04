@@ -6,11 +6,11 @@ import {
   ContactFormSkeleton,
 } from '@/components/contact/contact-parts'
 import { contactoTextos } from '@/content/contact'
+import { seo } from '@/content/seo'
 
 export const metadata: Metadata = {
-  title: 'Contacto',
-  description:
-    'Consultas sobre implantes ortopédicos, casos a medida y compras institucionales. Respondemos por email, WhatsApp o teléfono.',
+  title: seo.contacto.titulo,
+  description: seo.contacto.descripcion,
 }
 
 // Página completa: se ve al entrar directo a /contacto o al recargar. Desde

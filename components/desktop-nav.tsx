@@ -7,6 +7,7 @@ import { scrollToAnchor } from './anchor-link'
 import PillNav from './pill-nav'
 import { navLinks, sectionIdOf } from './nav-links'
 import { useActiveSection } from './use-active-section'
+import { menuTextos } from '@/content/menu'
 
 // Texto a 16 px como el resto del cuerpo (PillNav trae 14 px).
 const pillVars = { '--pn-font': 'var(--text-body-md)' } as CSSProperties
@@ -29,7 +30,7 @@ export function DesktopNav({ className }: { className?: string }) {
       onItemClick={(item, _index, event) => {
         if (item.href) scrollToAnchor(event, item.href)
       }}
-      ariaLabel="Principal"
+      ariaLabel={menuTextos.accesibilidad.menuPrincipal}
       theme="light"
       layout="joined"
       surface="none"

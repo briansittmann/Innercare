@@ -57,6 +57,7 @@ import { useProximidad } from './use-proximidad'
 // vista de planificación por parada (`vistas`).
 export function TourScroll({
   paradas,
+  textos,
   vistas,
   fondo,
   entrada,
@@ -65,6 +66,9 @@ export function TourScroll({
 }: {
   // Índice anatómico: id del ancla de cada parada y su nombre
   paradas: readonly { ancla: string; zona: string }[]
+  // Textos editables del armazón: la descripción del cuerpo y el nombre del
+  // índice para lectores de pantalla, y el aviso del cierre
+  textos: { escena: string; indice: string; avisoContinuar: string }
   // Lugar reservado: una vista por parada, más la del cuerpo entero al final
   // (y, si hay, la de la toma del hero)
   vistas: readonly ReactNode[]
@@ -401,7 +405,7 @@ export function TourScroll({
 
         <div
           role="img"
-          aria-label="Cuerpo de vidrio con el esqueleto a la vista y seis implantes de titanio: craneoplastía, reconstrucción maxilar, prótesis reversa de hombro, reconstrucción acetabular, endoprótesis de fémur proximal e implante intercalar de fémur"
+          aria-label={textos.escena}
           className="recorrido-lienzo"
         >
           <div className="intro-3d recorrido-intro-3d">
@@ -418,7 +422,7 @@ export function TourScroll({
           {entrada}
         </div>
 
-        <nav ref={indice} aria-label="Implantes del recorrido" className="recorrido-indice">
+        <nav ref={indice} aria-label={textos.indice} className="recorrido-indice">
           <ol ref={riel} className="indice-riel relative flex flex-col gap-[2px]">
             {paradas.map((parada, i) => (
               <li key={parada.ancla}>
@@ -447,7 +451,7 @@ export function TourScroll({
             del cierre. */}
         <div ref={capaAviso} aria-hidden className="recorrido-aviso-cierre">
           <p data-entra className="aviso-deslizar flex max-w-[6rem] flex-row-reverse items-center gap-md text-balance text-left text-body-sm text-on-surface-variant md:max-w-none min-[820px]:flex-row">
-            Deslizá para continuar
+            {textos.avisoContinuar}
           </p>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { INTRO_AT } from '@/components/intro-timeline'
 import { contactHref, contactLabel } from '@/components/nav-links'
 import { CUELLO_BAJO_ANCLA } from '@/components/recorrido-3d/camara'
 import { habilitacionesResumen, tagline } from '@/content/company'
+import { heroTextos } from '@/content/hero'
 import { FibrasEscena } from './fibras-escena'
 import { HeroTitle } from './hero-intro'
 
@@ -56,8 +57,7 @@ export function HeroTexto() {
           className="intro-in mt-md max-w-[36ch] text-body-lg text-on-surface-variant md:mt-lg"
           style={introAt(INTRO_AT.subtitle)}
         >
-          Implantes ortopédicos modulares y a medida del paciente, fabricados en
-          titanio en planta propia.
+          {heroTextos.bajada}
         </p>
         <div className="mt-lg flex flex-wrap items-center gap-sm md:mt-xl md:gap-md">
           {/* Más grandes que los botones del resto del sitio, para acompañar
@@ -77,7 +77,7 @@ export function HeroTexto() {
             style={introAt(INTRO_AT.actions + 100)}
             className="intro-in px-4 text-[15px] font-semibold md:min-h-[3.5rem] md:px-[1.75rem] md:text-body-lg"
           >
-            Recorrer los implantes
+            {heroTextos.botonRecorrer}
           </BotonVidrio>
         </div>
         {/* Credencial, no eslogan: chica y con el sello en el primario, para
@@ -117,7 +117,7 @@ function ScrollCue() {
       className="intro-in aviso-deslizar absolute top-[calc(var(--ancla-hero,77dvh)+var(--cuello)-1.25rem)] left-[clamp(1rem,4vw,1.5rem)] flex max-w-[10rem] flex-row-reverse items-center gap-md text-balance text-body-sm text-on-surface-variant md:top-auto md:bottom-lg md:left-0 md:max-w-none"
       style={{ ...introAt(INTRO_AT.scrollCue), '--cuello': `${(CUELLO_BAJO_ANCLA * 100).toFixed(2)}dvh` } as CSSProperties}
     >
-      Deslizá para recorrer el cuerpo
+      {heroTextos.avisoDeslizar}
     </p>
   )
 }

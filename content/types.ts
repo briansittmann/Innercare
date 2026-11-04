@@ -42,8 +42,13 @@ export type Manufactura = {
   imageAlt: string
 }
 
+// Tipo de sede: decide el rótulo corto de la etiqueta del mapa ("Laboratorio",
+// "Sucursal" o, para la planta, el nombre completo) y el de la tarjeta.
+export type RolSede = 'laboratorio' | 'planta' | 'sucursal'
+
 export type Sede = {
   id: string
+  rol: RolSede
   // Latitud y longitud de la localidad (dato geográfico público, no de la
   // carpeta): ubican la sede en el mapa de "Distribución a todo el país".
   latitud: number

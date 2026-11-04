@@ -22,11 +22,14 @@ import { ajustar, clamp } from '@/components/animaciones/lienzo'
 export function AnimacionFabricacion({
   modo,
   pieza,
+  etiquetaVolver,
   respaldo,
   children,
 }: {
   modo: ModoFabricacion
   pieza: string
+  // Texto del botón que repite la animación
+  etiquetaVolver: string
   respaldo: ReactNode
   // Título y texto de la tarjeta, entre la animación y el botón
   children: ReactNode
@@ -134,7 +137,7 @@ export function AnimacionFabricacion({
           className="boton boton-claro mt-[1.125rem] motion-reduce:hidden"
         >
           <ArrowCounterClockwiseIcon aria-hidden size={20} />
-          Volver a ver
+          {etiquetaVolver}
         </button>
       </div>
     </div>

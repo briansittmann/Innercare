@@ -76,7 +76,8 @@ function medirEstiramiento(raiz: HTMLElement): Estiramiento | null {
   }
 }
 
-export function CarruselPlanta({ fotos }: { fotos: readonly FotoPlanta[] }) {
+// `nombre`: lo que anuncia la tira a los lectores de pantalla
+export function CarruselPlanta({ fotos, nombre }: { fotos: readonly FotoPlanta[]; nombre: string }) {
   const nodo = useRef<HTMLDivElement>(null)
   const [cerca, setCerca] = useState(false)
   const [respaldo, setRespaldo] = useState(false)
@@ -176,7 +177,7 @@ export function CarruselPlanta({ fotos }: { fotos: readonly FotoPlanta[] }) {
           autoplay={false}
           veil
           veilColor={VELO}
-          ariaLabel="Fotos de la planta y de los implantes"
+          ariaLabel={nombre}
           onUnsupported={() => setRespaldo(true)}
         />
       )}

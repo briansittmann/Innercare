@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from 'next'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
+import { tagline } from '@/content/company'
+import { menuTextos } from '@/content/menu'
+import { seo } from '@/content/seo'
 import { claseFuentes } from '../fuentes'
 import '../globals.css'
 
@@ -11,24 +14,24 @@ import '../globals.css'
 
 // Pendiente: `metadataBase` con el dominio definitivo, para que og:image
 // sea una URL absoluta. La imagen es app/opengraph-image.tsx.
+// Los textos se editan en el panel (content/seo.ts); el título de Open Graph
+// es la marca y el titular del hero.
 export const metadata: Metadata = {
   title: {
-    default: 'Innercare | Implantes ortopédicos a medida del paciente',
-    template: '%s | Innercare',
+    default: seo.titulo,
+    template: seo.plantillaTitulo,
   },
-  description:
-    'Innercare fabrica implantes ortopédicos modulares y a medida del paciente en titanio biocompatible, con planificación quirúrgica 3D. Habilitados por ANMAT para fabricar, importar y distribuir productos médicos en Argentina.',
+  description: seo.descripcion,
   icons: {
     icon: '/favicon.png',
     apple: '/favicon.png',
   },
   openGraph: {
     type: 'website',
-    siteName: 'Innercare',
+    siteName: menuTextos.marca,
     locale: 'es_AR',
-    title: 'Innercare | Innovación tecnológica en beneficio del paciente',
-    description:
-      'Implantes ortopédicos modulares y a medida del paciente, fabricados en titanio biocompatible por mecanizado CNC e impresión 3D.',
+    title: `${menuTextos.marca} | ${tagline}`,
+    description: seo.ogDescripcion,
   },
   twitter: {
     card: 'summary_large_image',

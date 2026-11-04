@@ -1,13 +1,17 @@
 // Recorrido por el cuerpo de la home: seis paradas, de la cabeza al fémur
-// (docs/landing/LANDING_SPEC.md, sección 3, y AJUSTES.md). Textos del guion
-// (docs/landing/landing-borrador.html), que cuentan cada caso con los datos
-// de customCases.ts; las fotos y sus textos alternativos salen de ahí y de
-// products.ts, sin agregar nada que no esté en la fuente.
+// (docs/landing/LANDING_SPEC.md, sección 3, y AJUSTES.md). Los textos de
+// cada parada, el cierre y las etiquetas se editan en el panel
+// (content/datos/recorrido.json, singleton "Recorrido de implantes"); las
+// fotos salen de customCases.ts y products.ts, sin agregar nada que no esté
+// en la fuente.
 //
-// La fase 3 de la landing monta acá la escena 3D: el orden y los ids de las
-// paradas son los del guion de cámara (k = 1…6).
+// La escena 3D se monta sobre estas paradas: el orden, los ids, el tipo
+// (catálogo o a medida) y el producto de cada una son código, los del guion
+// de cámara (k = 1…6, components/recorrido-3d/camara.ts e implantes.ts).
 
 import { customCases, featuredCase } from './customCases'
+import datos from './datos/recorrido.json'
+import { Lector, avisar } from './leer'
 import type { Image } from './types'
 
 export type ParadaId = 'craneo' | 'maxilar' | 'hombro' | 'acetabulo' | 'femur' | 'intercalar'
@@ -28,6 +32,7 @@ export type Parada = {
   escena: Image
   // Paradas de catálogo: su ficha
   productoSlug?: string
+  // La ficha técnica en PDF, subida desde el panel (public/fichas/<id>/)
   datasheetUrl?: string
 }
 
@@ -47,36 +52,25 @@ const imagenIntercalar = (i: number): Image => {
   return { src: found.src, alt: found.alt }
 }
 
-export const paradas: readonly Parada[] = [
+// Lo que es código de cada parada: tipo, fotos, producto. El orden es el del
+// guion de cámara.
+const FIJO: readonly {
+  id: ParadaId
+  tipo: Parada['tipo']
+  miniatura: string
+  escena: Image
+  productoSlug?: string
+}[] = [
   {
     id: 'craneo',
-    zona: 'Cráneo',
     tipo: 'a-medida',
-    titulo: 'Craneoplastía a medida',
-    descripcion:
-      'A partir de la tomografía reconstruimos el defecto en 3D y fabricamos la pieza en PMMA o en titanio impreso con estructura trabecular.',
-    specs: [
-      { label: 'Material', valor: 'PMMA o titanio trabecular' },
-      { label: 'Técnica', valor: 'Impresión 3D' },
-    ],
-    miniatura: { src: craneo.image, alt: craneo.imageAlt },
-    escena: {
-      src: '/img/caso-craneo-3d.jpg',
-      alt: 'Reconstrucción 3D del cráneo con el defecto a cubrir',
-    },
+    miniatura: craneo.image,
+    escena: { src: '/img/caso-craneo-3d.jpg', alt: 'Reconstrucción 3D del cráneo con el defecto a cubrir' },
   },
   {
     id: 'maxilar',
-    zona: 'Maxilar',
     tipo: 'a-medida',
-    titulo: 'Reconstrucción para anclaje dentario',
-    descripcion:
-      'Planificamos la cirugía y fabricamos una estructura de reconstrucción que sirve de base para los implantes dentarios.',
-    specs: [
-      { label: 'Planificación', valor: 'Quirúrgica virtual 3D' },
-      { label: 'Desarrollo', valor: 'A pedido médico' },
-    ],
-    miniatura: { src: maxilar.image, alt: maxilar.imageAlt },
+    miniatura: maxilar.image,
     escena: {
       src: '/img/caso-anclaje-planificacion.jpg',
       alt: 'Planificación 3D de la estructura de anclaje sobre el cráneo del paciente',
@@ -84,20 +78,8 @@ export const paradas: readonly Parada[] = [
   },
   {
     id: 'hombro',
-    zona: 'Hombro',
     tipo: 'catalogo',
-    titulo: 'Prótesis modular reversa de hombro',
-    descripcion:
-      'Un implante que no se fabricaba en el país. Da mayor estabilidad articular y suple la falta de hueso con suplementos combinables.',
-    specs: [
-      { label: 'Material', valor: 'Titanio biocompatible' },
-      { label: 'Técnica', valor: 'Mecanizado CNC' },
-      { label: 'Indicación', valor: 'Reemplazo de hombro con déficit óseo' },
-    ],
-    miniatura: {
-      src: '/img/hombro-implante.jpg',
-      alt: 'Prótesis modular reversa de hombro fabricada por Innercare',
-    },
+    miniatura: '/img/hombro-implante.jpg',
     escena: {
       src: '/img/hombro-planificacion-implante.jpg',
       alt: 'Implante de hombro posicionado sobre el modelo 3D del paciente',
@@ -106,16 +88,8 @@ export const paradas: readonly Parada[] = [
   },
   {
     id: 'acetabulo',
-    zona: 'Acetábulo',
     tipo: 'a-medida',
-    titulo: 'Reconstrucción acetabular en titanio trabecular',
-    descripcion:
-      'Diseñamos el implante y los alojamientos para tornillos sobre la segmentación 3D de la cadera del paciente. También fabricamos espaciadores en PMMA con alojamiento para cotilo.',
-    specs: [
-      { label: 'Material', valor: 'Titanio trabecular' },
-      { label: 'Técnica', valor: 'Impresión 3D' },
-    ],
-    miniatura: { src: acetabulo.image, alt: acetabulo.imageAlt },
+    miniatura: acetabulo.image,
     escena: {
       src: '/img/caso-acetabular-segmentacion.jpg',
       alt: 'Segmentación 3D de la cadera con la prótesis primaria',
@@ -123,47 +97,70 @@ export const paradas: readonly Parada[] = [
   },
   {
     id: 'femur',
-    zona: 'Fémur proximal',
     tipo: 'catalogo',
-    titulo: 'Endoprótesis modular de fémur',
-    descripcion:
-      'Sistema modular customizable para pérdida de hueso femoral por trauma o resección.',
-    specs: [
-      { label: 'Material', valor: 'Titanio Ti-6Al-4V' },
-      { label: 'Cuerpo', valor: '40 y 60 mm × 135°' },
-      { label: 'Vástagos', valor: 'Ø10 a 12 mm × 120 a 160 mm' },
-      { label: 'Cabezas', valor: 'Biolox o Cr-Co, cono morse 12-14' },
-    ],
-    miniatura: {
-      src: '/img/femur-componentes.jpg',
-      alt: 'Componentes modulares de titanio de la endoprótesis femoral',
-    },
+    miniatura: '/img/femur-componentes.jpg',
     escena: {
       src: '/img/femur-planificacion.jpg',
       alt: 'Planificación quirúrgica 3D con el plano de resección femoral sugerido',
     },
     productoSlug: 'endoprotesis-modular-femur-customizable',
-    datasheetUrl: '/endoprotesis-modular-femur-innercare.pdf',
   },
   {
     id: 'intercalar',
-    zona: 'Diáfisis femoral',
     tipo: 'a-medida',
-    titulo: 'Implante intercalar de fémur',
-    descripcion:
-      'Reconstrucción de un segmento femoral con implante y guías de resección diseñados desde la tomografía del paciente.',
-    specs: [
-      { label: 'Material', valor: 'Titanio Ti-6Al-4V' },
-      { label: 'Contacto óseo', valor: 'Estructura trabecular porosa' },
-      { label: 'Clavo', valor: 'Endomedular Ø10 × 360 mm' },
-    ],
-    miniatura: imagenIntercalar(2),
+    miniatura: imagenIntercalar(2).src,
     escena: imagenIntercalar(1),
   },
 ]
 
+const recorrido = new Lector(datos, 'Recorrido')
+
+export const paradas: readonly Parada[] = FIJO.map((fijo) => {
+  const textos = recorrido.hijo(fijo.id, fijo.id)
+  const specs = textos.lista('specs', 'Dato técnico').flatMap((dato) => {
+    const label = dato.textoOpcional('etiqueta')
+    const valor = dato.textoOpcional('valor')
+    if (!label || !valor) {
+      avisar(`${dato.nombre}: le falta el dato o el valor; se omite`)
+      return []
+    }
+    return [{ label, valor }]
+  })
+  const datasheetUrl = textos.pdf('ficha', 'Ficha técnica (PDF)')
+  return {
+    id: fijo.id,
+    zona: textos.texto('zona', 'Zona anatómica'),
+    tipo: fijo.tipo,
+    titulo: textos.texto('titulo', 'Título'),
+    descripcion: textos.texto('descripcion', 'Descripción'),
+    specs,
+    miniatura: { src: fijo.miniatura, alt: textos.texto('miniaturaAlt', 'Texto alternativo de la foto') },
+    escena: fijo.escena,
+    ...(fijo.productoSlug ? { productoSlug: fijo.productoSlug } : {}),
+    ...(datasheetUrl ? { datasheetUrl } : {}),
+  }
+})
+
 // Cierre del recorrido (k = 7 del guion: el cuerpo entero)
+const cierre = recorrido.hijo('cierre', 'Cierre del recorrido')
 export const cierreRecorrido = {
-  titulo: 'Lo que está en el catálogo y lo que no, lo fabricamos nosotros.',
-  texto: 'Sistemas modulares listos para pedir y piezas únicas diseñadas con tu equipo quirúrgico.',
+  titulo: cierre.texto('titulo', 'Título'),
+  texto: cierre.texto('texto', 'Bajada'),
+}
+
+const etiquetas = recorrido.hijo('etiquetas', 'Etiquetas de las tarjetas')
+const accesibilidad = recorrido.hijo('accesibilidad', 'Lectores de pantalla')
+
+// Etiquetas y avisos del recorrido (components/home/tour.tsx y tour-scroll.tsx)
+export const recorridoTextos = {
+  avisoContinuar: recorrido.texto('avisoContinuar', 'Aviso de continuar'),
+  etiquetas: {
+    aMedida: etiquetas.texto('aMedida', 'Implante a medida'),
+    catalogo: etiquetas.texto('catalogo', 'Implante de catálogo'),
+    fichaTecnica: etiquetas.texto('fichaTecnica', 'Enlace a la ficha PDF'),
+  },
+  accesibilidad: {
+    escena: accesibilidad.texto('escena', 'Descripción del cuerpo 3D'),
+    indice: accesibilidad.texto('indice', 'Nombre del índice'),
+  },
 }

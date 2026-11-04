@@ -1,0 +1,11 @@
+{
+  "titulo": "Innercare | Implantes ortopédicos a medida del paciente",
+  "plantillaTitulo": "%s | Innercare",
+  "descripcion": "Innercare fabrica implantes ortopédicos modulares y a medida del paciente en titanio biocompatible, con planificación quirúrgica 3D. Habilitados por ANMAT para fabricar, importar y distribuir productos médicos en Argentina.",
+  "ogDescripcion": "Implantes ortopédicos modulares y a medida del paciente, fabricados en titanio biocompatible por mecanizado CNC e impresión 3D.",
+  "ogImagenAlt": "Innercare. Innovación tecnológica en beneficio del paciente: cabeza de vidrio con una craneoplastía de titanio.",
+  "contacto": {
+    "titulo": "Contacto",
+    "descripcion": "Consultas sobre implantes ortopédicos, casos a medida y compras institucionales. Respondemos por email, WhatsApp o teléfono."
+  }
+}
