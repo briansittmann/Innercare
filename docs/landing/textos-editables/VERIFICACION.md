@@ -85,3 +85,82 @@ Los límites provisionales de `LIMITES` (`keystatic.esquema.ts`) se reemplazaron
 - Las ayudas de los campos que hoy están justo en el límite lo dicen: línea ANMAT, etiquetas del menú (en conjunto), botones del hero, «Deslizá para continuar», título y bajada del cierre, título del acetábulo (en la ayuda genérica del título de parada), descripción del paso 03, título de Fabricación, bajada de Habilitaciones, bajada de Distribución y bajada del contacto. La descripción de parada avisa que con cuatro datos técnicos conviene no pasar de 100.
 
 Con el contenido real: `Contenido OK: 10 secciones validadas.` Provocados y restaurados: titular de 51 → «no puede tener más de 50 caracteres»; título para redes de 62 → «mide 62 caracteres y no puede pasar de 60»; leyendas de 48 en total → «entre las tres suman 48 … no pueden pasar de 40»; las cuatro etiquetas del menú en 55 → «suman 55 … no pueden pasar de 52»; calle de Alberti con «bis» → «mide 65 caracteres y la tarjeta admite hasta 61» y «suman 80 … no pueden pasar de 78»; parte de referencia de 26 → el mensaje del patrón.
+
+## 7. Comparación visual y navegación
+
+Fecha: 2026-11-04, sobre `d8aaeb7` (`npm run build` con la compuerta: `Contenido OK`, y `next start -p 3100` sin `NEXT_PUBLIC_KEYSTATIC_PROYECTO`). Chrome sin ventana con patchright; scripts de esta pasada en el scratchpad de la sesión (`qa/comparar.mjs`, `qa/navegacion.mjs`, `qa/panel.mjs`, `qa/sonda.mjs`).
+
+### 7.1 Capturas
+
+`capturar.mjs --out capturas/nueva` (prefijo `nueva`, mismos tamaños y esperas que `base/`) y una segunda corrida completa en `capturas/nueva2/` para medir cuánto cambia el sitio entre dos corridas iguales. Comparación con `sharp`: mismo tamaño en los 30 pares, píxel distinto si algún canal difiere más de 24/255; imágenes de diferencia (rojo sobre la base en gris) en `capturas/diff/` (base contra nueva) y `capturas/diff2/` (base contra nueva2), con `resultado.json` en cada una. La columna «entre corridas» compara nueva con nueva2: es el ruido propio del sitio.
+
+| Vista | Tamaño | Base vs nueva | Base vs nueva2 | Entre corridas | Veredicto |
+|---|---|---|---|---|---|
+| hero | escritorio | 0,837 % | 0,732 % | 0,105 % | Ruido: fibras, craneoplastía y contorno del vidrio; el texto, los botones y la línea ANMAT coinciden. En la barra, «Habilitaciones» y «trabajamos» caen medio píxel corridos según la corrida (también entre nueva y nueva2) |
+| hero | celular | 0,162 % | 0,015 % | 0,124 % | Ruido (fibras) |
+| parada-craneo | escritorio | 0,784 % | 0,658 % | 0,345 % | Ruido: miniatura de partículas y vidrio |
+| parada-craneo | celular | 0,173 % | 0,603 % | 0,604 % | Ruido: miniatura |
+| parada-maxilar | escritorio | 0,629 % | 0,611 % | 0,184 % | Ruido: miniatura, vidrio y el texto de la tarjeta con otro antialiasing (ver abajo) |
+| parada-maxilar | celular | 0,226 % | 0,114 % | 0,118 % | Ruido |
+| parada-hombro | escritorio | 0,888 % | 0,749 % | 0,476 % | Ruido, como el maxilar |
+| parada-hombro | celular | 0,440 % | 0,221 % | 0,190 % | Ruido: miniatura y contorno |
+| parada-acetabulo | escritorio | 1,161 % | 0,405 % | 1,053 % | Ruido, como el maxilar |
+| parada-acetabulo | celular | 0,181 % | 0,245 % | 0,245 % | Ruido |
+| parada-femur | escritorio | 0,751 % | 0,376 % | 0,684 % | Ruido, como el maxilar |
+| parada-femur | celular | 0,132 % | 0,020 % | 0,126 % | Ruido |
+| parada-intercalar | escritorio | 0,350 % | 0,548 % | 0,129 % | Ruido |
+| parada-intercalar | celular | 0,256 % | 0,115 % | 0,059 % | Ruido |
+| cierre | escritorio | 0,526 % | 0,567 % | 0,043 % | Ruido: la cinta de fibras (otro momento de su entrada), el contorno del cuerpo y el riel del aviso; título, bajada, botón y aviso idénticos |
+| cierre | celular | 0,602 % | 0,005 % | 0,441 % | Ruido: fibras |
+| proceso | escritorio | 0,965 % | 1,017 % | 0,967 % | Ruido: las partículas del fémur; título, pasos y leyenda idénticos |
+| proceso | celular | 0,680 % | 0,648 % | 0,659 % | Ruido: partículas |
+| fabricacion | escritorio | 0 | 0,032 % | 0,032 % | Idéntica (en nueva2, «Habilitaciones» de la barra a mitad de su transición de color) |
+| fabricacion | celular | 0 | 0 | 0 | Idéntica |
+| habilitaciones | escritorio y celular | 0 | 0 | 0 | Idénticas |
+| sedes | escritorio | 0,098 % | 0,093 % | 0,098 % | Ruido: la luz que recorre la línea del mapa |
+| sedes | celular | 0 | 0 | 0 | Idéntica |
+| contacto | escritorio y celular | 0 | 0 | 0 | Idénticas |
+| footer | escritorio | 0 | 0 | 0 | Idéntica |
+| footer | celular | 0,003 % | 0,003 % | 0 | **Cambio real, imperceptible** (ver abajo) |
+| contacto-pagina | escritorio | 0,047 % | 0,007 % | 0,054 % | Ruido: el logo de la barra (nueva) y el del footer (nueva2) con otro remuestreo; no se repite entre corridas |
+| contacto-pagina | celular | 0,001 % | 0,001 % | 0 | **El mismo cambio real del footer** |
+
+- **Tarjetas del recorrido en escritorio:** todo el texto de la tarjeta sale en rojo en la diferencia, pero la mejor alineación entre base y nueva es (0, 0) píxeles: la tarjeta está en el mismo lugar y con el mismo tamaño, solo que en una posición vertical fraccionaria distinta, y el antialiasing cambia. Pasa igual entre nueva y nueva2, así que es del sitio y no de la migración.
+- **Cambio real (footer, celular):** en «© 2026 Innercare», la «I» se corre menos de un píxel (19 filas de un solo glifo a 2x; en escritorio, a 1x, no cambia ningún píxel). Es determinista: no cambia entre corridas. Motivo: `site-footer.tsx` pasó de `© <CopyrightYear /> Innercare` a `© <CopyrightYear /> {menuTextos.marca}`, y React emite el espacio y la marca como dos nodos de texto (`<!-- --> <!-- -->Innercare`), donde antes era uno (` Innercare`). Chrome da forma a cada nodo por separado y pierde el ajuste entre el espacio y la «I». Arreglo, si se quiere el píxel exacto: ``© <CopyrightYear />{` ${menuTextos.marca}`}`` (un solo nodo, como antes). No se tocó el código.
+
+Fuera de eso no hay ningún cambio de texto ni de maquetación: titulares, bajadas, tarjetas, botones, tablas, mapa y pies coinciden en lugar y tamaño.
+
+### 7.2 Texto
+
+`capturar.mjs` sacó el `body.innerText` con el JS apagado, igual que la base. `diff` de `nueva-texto-*.txt` contra `base-texto-*.txt`: **sin diferencias** en las tres rutas (`/`, 223 líneas; `/contacto`, 26; la ficha del fémur, 75).
+
+### 7.3 Navegación (`next start -p 3100`, escritorio 1440 × 900 y celular 390 × 844)
+
+Para separar lo que trae la migración de lo que ya estaba, las mismas pruebas se corrieron también contra un build de `d4b24eb` (copia en el scratchpad, `next start -p 3102`): **dieron los mismos números en todo** salvo el PDF, que antes estaba en otra ruta.
+
+| Prueba | Resultado |
+|---|---|
+| «Plantear un caso» de la barra, con la página en Cómo trabajamos (en el celular, desde el menú) | **Falla, igual que antes de la migración.** El panel se abre en `/contacto?motivo=caso`, pero la página sube al hero: `scrollY` 7758 → 0 (celular 7271 → 0) y el hero se ve detrás del fondo desenfocado. Al cerrar, con Escape y con la X, la URL vuelve a `/` y no queda ningún `dialog[open]` (el elemento sigue en el DOM, cerrado, por `<Activity>`), pero la página queda unos 600 px más arriba: 7166 y 7198 (celular 6818 y 6845). En `d4b24eb`: 7758 → 0 → 7207 |
+| «Plantear un caso» de la tarjeta de la craneoplastía | **Falla a medias, igual que antes.** Abierto, `scrollY` 0 (el hero detrás del panel); al cerrar vuelve exacto (943 → 943, 902 → 902; celular 881 y 846) |
+| «Plantear un caso» del cierre del contacto | **Falla, igual que antes.** Abierto, 0; al cerrar, 15426 → 14151 y 15583 → 14295 (celular 15525 → 14327 y 15606 → 14402): queda 1,3 pantallas más arriba, con la tarjeta todavía sin armar. En `d4b24eb`, 14062 y 14319 |
+| Miga «Implantes» de la ficha del fémur | Pasó: va a `/#recorrido`, la pantalla de carga se va y `#recorrido` queda a 72 px del borde (el `scroll-padding-top` de la barra) |
+| «Plantear un caso» de la ficha | Pasó: `/contacto?producto=endoprotesis-modular-femur-customizable`, el formulario trae el producto elegido y al cerrar (Escape y X) vuelve a la ficha. En el celular, con el botón a 664 px, la página detrás del panel también sube a 0 y vuelve a 664 al cerrar (no se ve: el panel ocupa la pantalla) |
+| PDF de la parada del fémur | Pasó: «Ficha técnica (PDF)», `href="/fichas/femur/ficha.pdf"`, `download="endoprotesis-modular-femur-customizable-ficha-tecnica.pdf"`; la URL responde 200 `application/pdf` (438 593 bytes). El botón de la ficha apunta a la misma URL, con `download` |
+| `/keystatic` y `/api/keystatic/tree` | Pasó: 404 los dos (`Not found` en la API). Ojo: `/keystatic` muestra la 404 genérica de Next («404: This page could not be found.», `noindex, nofollow`), no la de marca: el layout del grupo `(panel)` llama a `notFound()` y no hay `not-found` propio ahí. La sección 2 dice «la misma página»: no es así, aunque el código es el correcto |
+| `/no-existe` | Pasó: 404 con la página de marca, `<title>Página no encontrada \| Innercare</title>` y h1 «Página no encontrada» |
+| Imagen OG | Pasó: el `og:image` del HTML es `/opengraph-image-1whei1?2bfe9298bbc443a4`; responde 200 `image/png`, 281 676 bytes |
+| Errores de JavaScript en la home | Ninguno en los dos tamaños |
+
+Por qué sube la página: se instrumentó el clic (`qa/sonda.mjs`). Después de `showModal()` y `focus()` del panel, el `InnerScrollHandler` del layout-router de Next hace `document.documentElement.scrollTop = 0` y luego `dialog.scrollIntoView()` (la pila pasa por `disableSmoothScrollDuringRouteTransition`), a pesar del `scroll={false}` de `ContactLink`, que sí llega al `Link` (está en el payload RSC). Con `html[data-contact-open] { overflow: hidden }` solo, la posición no cambia (se probó aparte). El comentario de `ContactLink` describe justo este síntoma como resuelto: con Next 16.4.3 no lo está, y no es de esta rama.
+
+### 7.4 Panel en local (`next dev -p 3101`)
+
+| Prueba | Resultado |
+|---|---|
+| Tablero (`capturas/panel-tablero-final.png`) | Pasó: carga, 200, `<title>Innercare · Panel de contenidos</title>` y `<meta name="robots" content="noindex, nofollow">` |
+| Navegación | Pasó: PORTADA (Hero, Recorrido de implantes), SECCIONES (Cómo trabajamos, Fabricación, Habilitaciones, Distribución, Contacto), SITIO (Menú y footer, Pantalla de carga, SEO y redes): 10 secciones |
+| Recorrido de implantes | Pasó: las seis paradas (Cráneo, Maxilar, Hombro, Acetábulo, Fémur proximal, Diáfisis femoral). El campo «Ficha técnica (PDF)» del fémur muestra el archivo cargado (botones «Remove» y «Download»); los otros cinco, solo «Choose file» |
+| Hero, titular de 51 caracteres | Pasó: «Save» no guarda y muestra «Titular must be no longer than 50 characters» (el `next dev` registra `Field validation failed`); ninguna petición de escritura a `/api/keystatic` (además se bloquearon por las dudas). Se volvió al valor original sin guardar |
+| Consola | Un 404 de un recurso del panel, como en la sección 4; ningún error de JavaScript |
+
+Al final, `git status`: ningún archivo rastreado cambió por estas pruebas (los Markdown modificados en el árbol son de otra sesión). Las PNG de `capturas/nueva/`, `nueva2/`, `diff/` y `diff2/` quedan ignoradas; los `.txt` y `.json` de esas carpetas (y de `base/`) no están en `.gitignore` y aparecen sin seguimiento.

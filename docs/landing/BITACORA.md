@@ -783,3 +783,44 @@ El verificador dio "no pasa" por una diferencia grave. Commit: el de este aparta
 
 - **Qué se hizo** (pedido del usuario, `docs/DECISIONES.md`). Capturas de `docs/landing/cuerpo-unico/` fuera de git (`.gitignore` y `git rm --cached`; quedan en local); cuatro imágenes sin uso de `public/img/` borradas; `manos-original.png` a `imagenes/` (local), con `scripts/manos.mjs` apuntando ahí. Se corrigió el commit de la pantalla de carga antes de subirlo para que el original no entrara al historial. `CLAUDE.md` y `ESTADO.md` al día.
 - **Verificado.** `npm run manos` lee el original desde `imagenes/` y genera el mismo `manos.webp` (960 × 640, 12 KB). Las capturas siguen en disco y `git check-ignore` las da por ignoradas.
+
+## Textos editables · Keystatic para los textos de la landing (2026-11-04)
+
+Rama `textos-editables`, que sale de `main`. Decisión y motivos en `docs/DECISIONES.md` ("Textos de la landing editables con Keystatic"); el material de la fase, en `docs/landing/textos-editables/`.
+
+**Commits:** `dc8e598` (inventario e investigación de Keystatic), `d4b24eb` (capturas fuera de git), `5f630a2` (arreglos del contacto), `b3e57c7` (Keystatic y los grupos de rutas), `f097258` (los textos a `content/datos/`), `a5dab47` (compuerta y volcado), `35d14d6` (verificación), `04c5d22` (límites medidos y combinaciones), `d8aaeb7` (límites y scripts de medición) y el de esta entrada (documentación).
+
+**Qué se hizo.**
+- **Inventario e investigación.** `INVENTARIO.md`: los 235 textos que ve o escucha quien entra a la home y al panel de contacto, dónde estaban, si afectan el diseño y las dependencias entre datos (68 estaban escritos en componentes). `INVESTIGACION-KEYSTATIC.md`: versiones, montaje en App Router con dos raíces, lector, campos, Cloud y a qué rama van los commits, con lo verificado en prueba separado de lo supuesto.
+- **Rutas.** El sitio pasa a `app/(sitio)/` (layout raíz con fuentes, header, footer y `globals.css`; `page.tsx`, `opengraph-image.tsx`, `contacto/`, `productos/` y el slot `@modal`, con `default.tsx` y una página `null` por ruta en vez del `[...catchAll]`). El panel, a `app/(panel)/keystatic/` (layout raíz propio, `lang="es"`, `robots` noindex, `notFound()` si no está habilitado; `[[...params]]/page.tsx` con `export const instant = false`) y su API a `app/api/keystatic/[...params]/route.ts`. `app/global-not-found.tsx` (con `experimental.globalNotFound`) es la 404 de marca y `app/fuentes.ts` comparte las fuentes entre las dos raíces.
+- **Esquema y configuración.** `keystatic.esquema.ts` (sin JSX): `LIMITES`, patrones, los diez singletons con etiquetas y ayudas en rioplatense y la navegación (Portada, Secciones, Sitio). `keystatic.config.tsx`: `storage` `cloud` con `cloud.project` si existe `NEXT_PUBLIC_KEYSTATIC_PROYECTO` (en `.env.example`) y `local` si no, `panelHabilitado`, `locale: 'es-ES'` y la marca. `next.config.ts`: `127.0.0.1` en `allowedDevOrigins` (sin eso, el panel de Cloud queda en blanco en `next dev`). `eslint.config.mjs` ignora `.claude/worktrees/**`; `tsconfig.json` suma `allowImportingTsExtensions`.
+- **Contenido.** Los textos pasan a `content/datos/*.json` y los `content/*.ts` los leen con `Lector` (`content/leer.ts`). Módulos nuevos `hero.ts`, `menu.ts`, `carga.ts` y `seo.ts` para los textos que estaban en componentes; exports nuevos `fabricacionTextos`, `distribucionTextos`, `contactoHome`, `procesoTextos` y `recorridoTextos`. El PDF del fémur pasa a `public/fichas/femur/ficha.pdf` y `products.ts` toma la ficha de la parada con su `productoSlug`; el enlace de la tarjeta lo descarga como `<producto>-ficha-tecnica.pdf`. Las sedes suman `rol`.
+- **Compuerta.** `scripts/contenido.mjs` (`npm run contenido`, al principio de `npm run build`): lector de Keystatic con el mismo esquema, errores traducidos y con la ruta del campo como la ve el editor ("Sedes › 2 › Latitud"), y comprobaciones propias (sede principal, ids, PDF, `alt`, combinaciones de largo). `scripts/volcar-contenido.mjs` (con `scripts/cargador-ts.mjs`) vuelca `content/*` para comparar antes y después.
+- **Límites.** Medidos en el build servido a 1440×900 y 390×844 con `capturas/medir-limites.mjs` (seis secuencias de palabras por texto, mediana y peor caso; límite al 90 % del menor máximo, o el largo de hoy si ya estaba al límite) y aplicados en `LIMITES` y en las combinaciones de la compuerta (`LIMITES.md`).
+- **Arreglos de paso.** Las palabras del titular de la intro del contacto llevan `key` por posición (una palabra repetida rompía la entrada) y el título de la tarjeta de la home pasa a `contacto-cierre-titulo` (con el panel abierto sobre la home había dos `contacto-titulo`).
+- **Documentación.** `CLAUDE.md` (estructura, comandos, "Textos editables (Keystatic)", problemas conocidos, estado y pendientes), `docs/DECISIONES.md`, esta entrada y `docs/EDITORES.md`, la guía para los editores de Innercare.
+
+**Verificado** (`VERIFICACION.md`).
+- Volcado de `content/*` antes (`d4b24eb`) y después: todos los valores idénticos salvo la ruta del PDF del fémur y la clave nueva `rol` de las sedes.
+- HTML servido (`next build` y `next start`) de `/`, `/contacto` y la ficha del fémur: idéntico salvo el `download` del PDF y la URL de la imagen OG, que por el grupo de rutas pasa a `/opengraph-image-1whei1`; la imagen es la misma byte a byte. En producción sin la variable, `/keystatic` y `/api/keystatic/tree` responden 404 y una URL inexistente da la 404 de marca.
+- Compuerta: con el contenido real, "Contenido OK: 10 secciones validadas."; quince casos de contenido roto provocados a mano (JSON roto, clave desconocida, vacíos, rangos, formatos, opciones, ids repetidos, sin sede principal, PDF que no es PDF o que no está) y vueltos atrás: cada uno con su mensaje, código 1 y sin `next build`. Las combinaciones de largo, también provocadas una por una.
+- Panel en local (`next dev`, Chrome sin ventana): guardar un texto cambia el JSON y la home servida; el archivo que escribe Keystatic sale byte a byte igual al escrito a mano; un obligatorio vacío no se guarda; subir un PDF a una parada lo deja en `public/fichas/<parada>/ficha.pdf`.
+- `npm run build`, `npm run lint` y `npx tsc --noEmit` en verde.
+
+**Decidido.**
+- Del usuario (2026-11-04): Keystatic Cloud en un equipo nuevo "Innercare" (plan gratis, tres usuarios); commits directos a `main` con las compuertas como red, sin PR; fuera de alcance las fichas, `/productos`, el catálogo como colección, las etiquetas y errores del formulario y "Ver ficha del producto"; entran los textos de `content/contact.ts`.
+- Lectura por import estático del JSON, sin `'use cache'` ni `createReader` en ejecución; las fotos de las sedes, en código por id (sin `fields.image`, issue #1627).
+- `metadata.description` con tope 240 (mide 223) y la ayuda del campo avisa que Google corta cerca de 160. La calle de las sedes tiene tope por campo de 59 (la de Alberti mide 52) y la tarjeta se controla con las combinaciones (61 y 78).
+
+**Ojo.**
+- Después de mover las rutas, `next build` falló por tipos generados viejos en `.next/dev/types/validator.ts`: borrar `.next/dev/types`.
+- Node 24 saca los tipos de los `.ts`, pero no admite propiedades de parámetro en los constructores ni resuelve imports sin extensión ni JSON sin atributo: por eso `Lector` asigna a mano, `keystatic.esquema.ts` importa `mapa-argentina.ts` con la extensión y el volcado usa `cargador-ts.mjs`.
+- Con el layout dentro de `(sitio)`, el `[...catchAll]` de `@modal` hacía 404 a `/keystatic` en `next dev` (en `next start`, 200).
+- Los mensajes de validación del panel salen en inglés con `locale: 'es-ES'` (issue #1578).
+- `fields.file` no se puede limitar a PDF: lo frenan la compuerta y `Lector.pdf`.
+
+**Pendiente.**
+1. Crear en Keystatic Cloud el equipo "Innercare" y el proyecto conectado al repositorio, poner `NEXT_PUBLIC_KEYSTATIC_PROYECTO` en Vercel e invitar a los editores; revisar qué orígenes admite el inicio de sesión.
+2. Probar el modo Cloud en `next dev`: iniciar sesión, guardar, subir y quitar un PDF, y seguir el commit hasta el despliegue.
+3. Integrar `textos-editables` en `main`; los editores empiezan recién ahí (antes, en `main` no existen los JSON ni el panel).
+4. `metadataBase` con el dominio definitivo, para que `og:image` salga con URL absoluta.

@@ -936,3 +936,44 @@ Pedido del usuario: al irse la pantalla de carga, cuando la barra del header se 
 **Motivo.** Pedido del usuario: el repositorio pesaba por resultados descartables, no por código. No cambia la velocidad de la página (el visitante descarga solo lo que la página pide, y las imágenes pasan por `next/image`); sí aliviana los clones y los builds. El original de las manos tiene los derechos sin confirmar y el repositorio es público.
 
 **Descartado.** Reescribir el historial para sacar también las capturas viejas (`git filter-repo`): obliga a hacer force push en `main`, `rediseno` y `cuerpo-unico`, que comparten historia, y no cambia nada para el visitante.
+
+## 2026-11-04 · Textos de la landing editables con Keystatic
+
+Rama `textos-editables`. Decisiones del usuario del 2026-11-04 y el diseño de lectura que salió de la investigación (`docs/landing/textos-editables/INVESTIGACION-KEYSTATIC.md`).
+
+**Decisión.**
+- Los dos editores de Innercare cambian todos los textos de la landing con Keystatic (`@keystatic/core` fijo en 0.6.9 y `@keystatic/next`), en `/keystatic`. Diez singletons con `format: { data: 'json' }`, uno por sección, en `content/datos/<nombre>.json`: `hero`, `recorrido`, `proceso`, `fabricacion`, `habilitaciones`, `distribucion`, `contacto`, `menu`, `carga` y `seo`.
+- Alcance: la home, el menú, el footer, la pantalla de carga, los metadatos y la imagen para redes, y los textos de `content/contact.ts` (el panel de `/contacto`). Fuera: las fichas, `/productos`, el catálogo como colección, las etiquetas y los errores del formulario y el botón "Ver ficha del producto".
+- Lectura: cada `content/*.ts` importa su JSON de forma estática y lo lee con `Lector` (`content/leer.ts`), que nunca lanza (texto faltante o vacío: "[pendiente: Sección · Campo]" visible; PDF que no es PDF: sin enlace; fila inválida: omitida con aviso). `content/` sigue siendo la única fuente para las vistas, con los mismos tipos: los componentes no cambian de forma de leer.
+- Keystatic Cloud en un equipo nuevo, "Innercare" (plan gratis, tres usuarios: los dos editores y Brian). Los commits de Cloud van a la rama por defecto, `main`, y publican directo en Vercel.
+- La red es una compuerta en el build (`npm run build` = `npm run contenido && next build`): `scripts/contenido.mjs` lee cada singleton con el lector de Keystatic y el mismo esquema, y suma una sola sede principal, ids únicos, PDF existente y `.pdf`, `alt` presentes y las combinaciones de largo. Si falla, el despliegue no sale y queda publicada la versión anterior.
+- Límites de largo medidos en la página servida, en escritorio (1440×900) y celular (390×844), en `LIMITES` (`keystatic.esquema.ts`). `metadata.description` va con tope 240 porque la de hoy mide 223 y la migración no cambia textos.
+- El panel tiene su propia raíz (`app/(panel)/keystatic/`) y el sitio pasa a `app/(sitio)/`; la 404 es `app/global-not-found.tsx`. `storage` es `cloud` si existe `NEXT_PUBLIC_KEYSTATIC_PROYECTO` y `local` si no; en producción sin esa variable, el panel y su API responden 404.
+- Ficha técnica en PDF por parada (`fields.file`): las seis paradas son objetos al primer nivel del singleton para que cada archivo quede en `public/fichas/<parada>/ficha.pdf`. La ficha del producto toma el PDF de la parada que apunta a ella (`productoSlug`), así se sube una sola vez.
+- Las fotos de las sedes quedan en código, por id (`FOTOS_SEDES` en `content/company.ts`); el tipo de sede pasa a un selector (`rol`) y la provincia a un selector de las 24 jurisdicciones del mapa.
+
+**Motivo.**
+- Pedido del usuario: el lanzamiento es la landing, y Innercare tiene que poder corregir sus textos sin pasar por el desarrollador. Keystatic guarda en el mismo repositorio (git hace de historial y de vuelta atrás), no suma base de datos ni servicio pago, y Cloud deja editar sin cuenta de GitHub.
+- Importar el JSON es lo más simple con Cache Components: el contenido es un módulo más, se prerenderiza solo, cada publicación llega con el build que dispara su commit y en `next dev` Turbopack recarga al guardar desde el panel. Con JSON no hace falta cargador (YAML, el formato por defecto de Keystatic, lo pedía).
+- Compuerta más lector tolerante: Keystatic no valida el esquema en el servidor al guardar (ni en local ni en Cloud) y las combinaciones de largo no son de un solo campo. La compuerta frena el despliegue con mensajes en español; si algo se escapara, la página no se rompe y lo que falta se ve, como pide la regla de contenido.
+- Commits directos a `main`: los editores no tienen GitHub, y un PR por cada corrección dejaría todo esperando a Brian. La compuerta y el despliegue atómico de Vercel cubren el riesgo de publicar algo roto.
+- Raíz propia del panel: el `globals.css` del sitio (el preflight de Tailwind) pisaba la interfaz de Keystatic, y el header lee `usePathname`, que con los parámetros dinámicos de `/keystatic/[[...params]]` obliga a sumar `Suspense`. Sin layout raíz común no hay del que colgar un `not-found.tsx`: de ahí `global-not-found.tsx`.
+- Modo local solo en desarrollo: su API no autentica (en `next start` devolvió el árbol de archivos y aceptó escrituras).
+
+**Descartado.**
+- `'use cache'` con `createReader` en ejecución (el patrón de la documentación): obligaba a pasar los textos como props desde el servidor a todos los componentes cliente, que hoy importan `content/` directo; sumaba `outputFileTracingIncludes` para que los archivos llegaran a las funciones de Vercel cuando la caché se regenera; y en `next dev` la caché quedaba vieja después de guardar (solo una recarga forzada mostraba el cambio).
+- Exigir PR (una regla de rama en GitHub, que Keystatic respeta creando una rama aparte): los editores no tienen GitHub y cada cambio quedaría esperando.
+- `fields.image` para las fotos de las sedes: en Cloud, los arrays con imágenes pierden campos al guardar (issue #1627 de Keystatic). Las fotos de la tira y de los pasos tampoco se suben desde el panel: van tratadas (`npm run fotos`, `PlantPhoto`).
+- Las paradas como lista: Keystatic nombra el archivo con la ruta del campo, así que el PDF quedaría en `public/fichas/paradas/0/ficha.pdf`, atado a la posición, y un array con archivos en Cloud corre el riesgo del issue #1627. Además, el orden y la cantidad de paradas son los del guion de cámara: no se editan.
+- El panel bajo el layout del sitio, como la guía de Keystatic: hereda el header, la pantalla de carga y `globals.css`.
+- Las fichas y el catálogo como colección: no entran al lanzamiento.
+
+**Costo.**
+- Cada edición es un despliegue entero: tarda unos minutos y consume minutos de build en Vercel.
+- Los textos de los componentes cliente van en el bundle (los diez JSON suman unos 13 KB, sin comprimir).
+- El panel, al guardar, controla cada campo suelto; las combinaciones, la sede principal y el tipo de archivo del PDF los ve recién la compuerta, así que el editor se entera porque la publicación no llega. Los mensajes del panel salen en inglés (issue #1578) y su cromo, en tuteo (`es-ES` es el único español).
+- Dos raíces: ir del sitio al panel es una carga completa, el slot `@modal` necesita una página `null` por ruta en vez del `[...catchAll]` (que hacía 404 a `/keystatic` en `next dev`) y la imagen OG se sirve con sufijo (`/opengraph-image-<hash>`).
+- Sumar un texto toca cuatro lugares (esquema, límite, lectura, JSON), más la combinación si comparte espacio.
+- El plan gratis de Cloud queda justo en su tope de tres usuarios.
+
+**Pendiente.** Crear el equipo y el proyecto en Keystatic Cloud y poner `NEXT_PUBLIC_KEYSTATIC_PROYECTO` en Vercel; probar el modo Cloud en `next dev`; integrar la rama en `main` antes de que los editores empiecen (`CLAUDE.md`, "Pendiente").
