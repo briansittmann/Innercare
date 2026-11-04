@@ -7,9 +7,10 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run contenido && next build",
     "start": "next start",
     "lint": "eslint",
+    "contenido": "node --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/contenido.mjs",
     "modelos": "sh 3d/scripts/modelos.sh",
     "fotos": "node scripts/fotos-carrusel.mjs",
     "mapa": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/mapa-argentina.mjs",
