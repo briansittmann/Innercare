@@ -58,3 +58,8 @@ imagenes
 # scripts, las mediciones (.json) y los textos.
 /docs/landing/cuerpo-unico/**/*.webp
 /docs/landing/cuerpo-unico/**/*.png
+
+# Capturas de comparación de los textos editables (docs/landing/textos-editables/):
+# se regeneran con los scripts de esa carpeta; en git van los scripts y los textos.
+/docs/landing/textos-editables/**/*.webp
+/docs/landing/textos-editables/**/*.png
