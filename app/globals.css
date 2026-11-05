@@ -2735,6 +2735,42 @@ html[data-contact-open] {
   }
 }
 
+/* Barra de desplazamiento del panel: invisible salvo mientras se desplaza
+   (data-desplazando, que pone y quita contact-form.tsx). Fina y sin riel;
+   ocupa siempre su lugar, así el contenido no se corre al aparecer. Safari
+   sin scrollbar-color usa los pseudoelementos de WebKit. */
+.panel-desplazable {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 400ms var(--ease-out);
+}
+
+.panel-desplazable[data-desplazando] {
+  scrollbar-color: color-mix(in oklab, var(--color-outline) 70%, transparent) transparent;
+  transition-duration: 120ms;
+}
+
+@supports not (scrollbar-color: auto) {
+  .panel-desplazable::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .panel-desplazable::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .panel-desplazable::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background: transparent;
+    background-clip: padding-box;
+  }
+
+  .panel-desplazable[data-desplazando]::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklab, var(--color-outline) 70%, transparent);
+  }
+}
+
 /* Ancho ajustable en escritorio, con el tirador del borde izquierdo
    (contact-modal.tsx): --panel-ancho va de 0 (36rem, el de siempre) a 1 (el
    60 % de la pantalla). Es una fracción y no px para que acompañe a la

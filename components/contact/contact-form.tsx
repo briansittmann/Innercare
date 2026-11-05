@@ -5,12 +5,15 @@ import {
   useActionState,
   useCallback,
   useContext,
+  useEffect,
   useLayoutEffect,
+  useRef,
   useState,
   type CSSProperties,
   type FocusEvent,
   type FormEvent,
   type ReactNode,
+  type UIEvent,
 } from 'react'
 import { CaretDownIcon, CheckCircleIcon } from '@phosphor-icons/react/ssr'
 import { sendContact, type ContactField, type ContactState } from '@/app/(sitio)/contacto/actions'
@@ -155,6 +158,18 @@ function ContactFormBody({
     setErrors({})
   }
 
+  // La barra de desplazamiento del panel se ve solo mientras se desplaza
+  // (.panel-desplazable en globals.css). El atributo va directo al DOM para
+  // no volver a renderizar en cada evento de scroll.
+  const desplazando = useRef<ReturnType<typeof setTimeout>>(undefined)
+  useEffect(() => () => clearTimeout(desplazando.current), [])
+  const onScroll = (event: UIEvent<HTMLDivElement>) => {
+    const caja = event.currentTarget
+    caja.dataset.desplazando = ''
+    clearTimeout(desplazando.current)
+    desplazando.current = setTimeout(() => delete caja.dataset.desplazando, 700)
+  }
+
   const panel = layout === 'panel'
   const remaining = REQUIRED.length - done
 
@@ -207,9 +222,10 @@ function ContactFormBody({
       </div>
 
       <div
+        onScroll={panel ? onScroll : undefined}
         className={
           panel
-            ? 'min-h-0 flex-1 overflow-y-auto overscroll-contain px-lg pb-lg md:px-xl'
+            ? 'panel-desplazable min-h-0 flex-1 overflow-y-auto overscroll-contain px-lg pb-lg md:px-xl'
             : 'p-lg md:p-xl'
         }
       >
