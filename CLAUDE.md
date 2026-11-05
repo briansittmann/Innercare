@@ -12,7 +12,7 @@ Web institucional de Innercare, fabricante argentino de implantes ortopédicos m
   - `main`: proyecto Next.js, donde se trabaja.
   - `rediseno`: la dirección visual elegida y la landing de una sola página; se integra a `main` cuando esté lista.
   - `cuerpo-unico`: salió de `rediseno` y unió el busto del hero y el cuerpo del recorrido en un solo modelo. Ya está integrada: `main` y `cuerpo-unico` apuntan al mismo commit (f94c39f, 2026-11-04).
-  - `textos-editables`: sale de `main` y pasa los textos de la landing a Keystatic (ver "Textos editables (Keystatic)"); se integra a `main` cuando el usuario lo apruebe. Hasta entonces, en `main` no existen `content/datos/` ni el panel.
+  - `textos-editables`: pasó los textos de la landing a Keystatic (ver "Textos editables (Keystatic)"). Ya está integrada: `main` y `textos-editables` apuntan al mismo commit (27846f5, 2026-11-05), y el panel está publicado en `/keystatic`.
   - `legacy`: web Vite + React Router anterior, solo como referencia. No se modifica.
   - `master`: igual que `legacy`. Se borra cuando Vercel y GitHub apunten a `main`.
 
@@ -239,7 +239,7 @@ En el orden del borrador: hero y recorrido (una sola sección, `#inicio`), `#pro
 - [x] 4 · Fundido del maxilar, fibras pausadas, desliz del hero en el celular y vidrio opaco fuera del hero (recorrido otra vez a 60 fps).
 - [x] 5 · Limpieza (sin `components/hero-3d/`, `cabeza.glb` ni los parámetros de prototipo) y documentación.
 
-### Textos editables (rama `textos-editables`)
+### Textos editables (rama `textos-editables`, integrada en `main`)
 
 - [x] Inventario de los textos de la landing e investigación de Keystatic con Next 16.4 (`docs/landing/textos-editables/`).
 - [x] Keystatic instalado; el sitio y el panel en grupos de rutas con raíces propias, la 404 global y las fuentes compartidas.
@@ -251,9 +251,8 @@ En el orden del borrador: hero y recorrido (una sola sección, `#inicio`), `#pro
 
 ### Pendiente
 
-- **Keystatic Cloud:** crear el equipo "Innercare" (plan gratis, tres usuarios: los dos editores y Brian) y el proyecto conectado al repositorio, poner `NEXT_PUBLIC_KEYSTATIC_PROYECTO` en Vercel e invitar a los editores. Revisar en los ajustes del proyecto si el inicio de sesión admite el dominio de Vercel y el definitivo.
-- **Probar el modo Cloud en `next dev`** (la variable en `.env.local`): iniciar sesión, guardar un texto, subir y quitar un PDF, y ver el commit en GitHub y el despliegue en Vercel.
-- **Los editores empiezan recién con `textos-editables` integrada en `main`:** hasta entonces, en `main` no existen `content/datos/` ni el panel, y Cloud escribe en `main`.
+- **Keystatic Cloud** (hecho el 2026-11-05): equipo `innercare` (plan gratis, tres usuarios), proyecto `innercare/web-main` conectado a `briansittmann/Innercare`, y `NEXT_PUBLIC_KEYSTATIC_PROYECTO=innercare/web-main` en Vercel, solo en Production. Falta: confirmar la Primary URL del proyecto (`https://innercare-web.vercel.app`; cambiarla con el dominio definitivo) e invitar a los dos editores cuando estén sus correos.
+- **Probar Cloud en producción:** en `/keystatic`, iniciar sesión, guardar un texto, subir y quitar un PDF, y ver el commit en `main` y el despliegue en Vercel.
 
 - **Radiografía con datos de paciente:** `public/img/hombro-radiografia.jpg` (ficha del hombro, `content/products.ts`) muestra nombre e identificación de una paciente en el visor PACS. Sacarla o pixelarla antes del lanzamiento. Quedó fuera de la tira de Fabricación.
 - **Foto de las manos del contacto** (`imagenes/manos-original.png`, solo local: no está en git ni en `public/`; en GitHub va solo `manos.webp`, que la página necesita): confirmar su origen y derechos con Innercare antes del lanzamiento; se reemplaza sobrescribiendo el archivo y corriendo `npm run manos` (si cambian las yemas, remedir `PUNTA_*` y `CONTACTO` en `manos.ts`).
@@ -268,7 +267,6 @@ En el orden del borrador: hero y recorrido (una sola sección, `#inicio`), `#pro
 - **Detalles del cuerpo único:** en escritorio, el hombro y su implante asoman bajo el corte desde seg 0,33; en el cierre, el degradé se oscurece antes de fundirse al gris; la luz de las paradas gira con la cámara (cambió respecto del recorrido original), falta revisarla a ojo.
 - **Miniaturas del recorrido:** costura de 1 px posible a algunos zooms y un marco visible durante los fundidos de la tarjeta (arreglarlo pide que el canvas no pinte fondo).
 - **Aviso de deslizar** no centrado en escritorio (centrado pisa el busto): confirmar con el usuario o mover el busto.
-- **Integrar `textos-editables`** a `main` cuando el usuario lo apruebe (`cuerpo-unico` ya está en `main`).
 - Detalles del 3D: ala acetabular algo separada del hueso de frente; unos 222 000 triángulos en el recorrido (11 % arriba del objetivo); respaldos por parada (`cuerpo-<parada>.webp`) sin hacer.
 - Envío real del formulario: `sendContact` (`app/(sitio)/contacto/actions.ts`) valida pero no manda nada. Envío de casos con estudios adjuntos: antes, definir con Innercare cómo recibir datos de salud.
 - `metadataBase` con el dominio definitivo (el build avisa; va en `app/(sitio)/layout.tsx`), para que `og:image` (`/opengraph-image-<hash>`) salga con URL absoluta; metadatos por página, `sitemap` y `robots` (sin listar `/keystatic`).
