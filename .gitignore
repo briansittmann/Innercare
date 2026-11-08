@@ -69,3 +69,13 @@ imagenes
 /docs/landing/textos-editables/capturas/nueva*/
 /docs/landing/textos-editables/capturas/diff*/
 /docs/landing/textos-editables/capturas/base/*.json
+
+# Tutorial de los editores (docs/tutorial-editores/): las capturas, el perfil de
+# Chrome con la sesión de Keystatic Cloud y el PDF se regeneran; en git van el
+# guion, los prompts y los scripts.
+/docs/tutorial-editores/capturas/
+/docs/tutorial-editores/.perfil/
+/docs/tutorial-editores/salida/
+
+# Onboarding de Innercare (docs/onboarding/): el PDF se regenera.
+/docs/onboarding/salida/

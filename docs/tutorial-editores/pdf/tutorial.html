@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Innercare · Cómo editar los textos de la web</title>
+<!-- Guía en PDF para los editores de Innercare (tanda 2 de PROMPT-CAPTURAS.md).
+     La genera generar-pdf.mjs. Las capturas salen de ../capturas/ (tanda 1) y las
+     cajas de los resaltados, de ../capturas/escenas.json, en píxeles de la imagen.
+     Los tiempos del video salen de capitulos.json y de las duraciones de la voz. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&family=Source+Sans+3:wght@400;600&display=block" rel="stylesheet">
+<style>
+  :root {
+    --primario: #003c6f;
+    --primario-fijo: #d4e3ff;
+    --superficie: #f5f7f9;
+    --superficie-baja: #eef2f5;
+    --texto: #0d1b2a;
+    --texto-2: #4b5866;
+    --borde: #d3d9df;
+    --error: #ba1a1a;
+  }
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #fff; }
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 11.5pt;
+    line-height: 1.5;
+    color: var(--texto);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  a { color: var(--primario); }
+  h1, h2, h3 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; margin: 0; letter-spacing: -0.01em; }
+  p { margin: 0 0 3mm; }
+  strong { font-weight: 600; }
+  code, .dato { font-family: 'Source Sans 3', sans-serif; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* Hojas A4 fijas: cada una es una página. generar-pdf.mjs avisa si el
+     contenido de alguna se pasa de su alto. */
+  .hoja {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    padding: 18mm 18mm 20mm;
+    overflow: hidden;
+    break-after: page;
+    display: flex;
+    flex-direction: column;
+  }
+  .hoja:last-child { break-after: auto; }
+  .pie {
+    position: absolute;
+    left: 18mm; right: 18mm; bottom: 9mm;
+    display: flex; justify-content: space-between;
+    font-size: 8.5pt; color: var(--texto-2);
+    border-top: 1px solid var(--borde);
+    padding-top: 2.5mm;
+  }
+
+  /* Tapa */
+  .tapa { padding-top: 20mm; }
+  .tapa .logo { width: 46mm; height: auto; }
+  .tapa h1 { font-size: 38pt; line-height: 1.04; margin: 30mm 0 6mm; max-width: 150mm; }
+  .tapa .bajada { font-size: 13.5pt; color: var(--texto-2); max-width: 140mm; line-height: 1.45; }
+  .tapa-video { display: block; margin-top: 14mm; border-radius: 12px; overflow: hidden; border: 1px solid var(--borde); }
+  .tapa-video img { display: block; width: 100%; height: auto; }
+  .tapa-enlace { margin-top: 5mm; display: flex; justify-content: space-between; align-items: baseline; gap: 6mm; }
+  .tapa-enlace a { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: 12pt; text-decoration: none; }
+  .tapa-enlace span { color: var(--texto-2); font-size: 10pt; }
+  .tapa-final { margin-top: auto; color: var(--texto-2); font-size: 9.5pt; }
+
+  /* Encabezado de capítulo */
+  .capitulo { display: flex; align-items: flex-start; justify-content: space-between; gap: 8mm; margin-bottom: 6mm; }
+  .capitulo h2 { font-size: 24pt; line-height: 1.1; }
+  .capitulo h2 .num { color: var(--primario); margin-right: 3mm; font-variant-numeric: tabular-nums; }
+  .titulo-ref { font-size: 24pt; line-height: 1.1; margin-bottom: 6mm; }
+  h3 { font-size: 13pt; margin: 2mm 0 3mm; }
+  .segundo { margin-top: 8mm; }
+
+  /* Enlace al minuto del video */
+  .video {
+    flex: none;
+    display: inline-flex; align-items: center; gap: 2.2mm;
+    border: 1px solid var(--primario);
+    border-radius: 999px;
+    padding: 1.6mm 4mm 1.6mm 3.4mm;
+    font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: 9pt;
+    text-decoration: none; white-space: nowrap;
+    margin-top: 1.5mm;
+  }
+  .video::before {
+    content: '';
+    width: 0; height: 0;
+    border-style: solid; border-width: 4px 0 4px 7px;
+    border-color: transparent transparent transparent var(--primario);
+  }
+  .video .t { font-variant-numeric: tabular-nums; color: var(--texto-2); }
+
+  /* Pasos numerados */
+  ol.pasos { list-style: none; counter-reset: paso; margin: 0 0 5mm; padding: 0; }
+  ol.pasos > li { counter-increment: paso; position: relative; padding-left: 10mm; margin-bottom: 3mm; }
+  ol.pasos > li::before {
+    content: counter(paso);
+    position: absolute; left: 0; top: 0.2mm;
+    width: 6.2mm; height: 6.2mm; border-radius: 50%;
+    background: var(--primario); color: #fff;
+    font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 9pt;
+    display: flex; align-items: center; justify-content: center;
+  }
+  ul.lista { margin: 0 0 4mm; padding-left: 5mm; }
+  ul.lista li { margin-bottom: 1.6mm; }
+  ul.lista li::marker { color: var(--primario); }
+
+  .direccion {
+    display: inline-block; margin-top: 1.5mm;
+    background: var(--superficie-baja); border-radius: 999px;
+    padding: 1mm 4mm; font-weight: 600; text-decoration: none;
+  }
+
+  /* Capturas: recorte y resaltados en píxeles de la imagen (data-*), que el
+     script de abajo pasa a porcentajes. */
+  figure { margin: 0 0 5mm; }
+  .marco {
+    position: relative; overflow: hidden; width: 100%;
+    border-radius: 10px; border: 1px solid var(--borde); background: #fafafa;
+  }
+  .marco img { position: absolute; display: block; height: auto; max-width: none; }
+  .resalte {
+    position: absolute;
+    border: 2px solid var(--primario);
+    border-radius: 6px;
+    box-shadow: 0 0 0 3px rgba(0, 60, 111, 0.14);
+  }
+  figcaption { margin-top: 2mm; font-size: 9.5pt; color: var(--texto-2); line-height: 1.4; }
+  .doble { display: grid; grid-template-columns: 1fr 0.42fr; gap: 6mm; align-items: start; }
+  .lado { display: grid; grid-template-columns: 1.15fr 1fr; gap: 7mm; align-items: start; }
+  .celular .marco { border-radius: 16px; }
+
+  /* Recuadros */
+  .nota {
+    background: var(--superficie-baja);
+    border-radius: 10px;
+    padding: 4.5mm 5mm;
+    margin: 0 0 5mm;
+  }
+  .nota p:last-child, .nota ul:last-child { margin-bottom: 0; }
+  .nota h3 { margin-top: 0; font-size: 11.5pt; }
+  .aviso { border-left: 3px solid var(--primario); border-radius: 0 10px 10px 0; }
+  .glosario { display: grid; grid-template-columns: auto 1fr; gap: 1.4mm 6mm; margin: 0; }
+  .glosario dt { font-weight: 600; }
+  .glosario dd { margin: 0; color: var(--texto-2); }
+
+  /* Índice */
+  .indice { list-style: none; margin: 0 0 8mm; padding: 0; border-top: 1px solid var(--borde); }
+  .indice li {
+    display: grid; grid-template-columns: 9mm 1fr auto; align-items: center;
+    padding: 3mm 0; border-bottom: 1px solid var(--borde);
+  }
+  .indice .n { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; color: var(--primario); font-variant-numeric: tabular-nums; }
+  .indice .titulo { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: 12pt; text-decoration: none; color: var(--texto); }
+  .indice .video { margin-top: 0; }
+  .ref { columns: 2; column-gap: 10mm; padding-left: 5mm; margin: 0 0 6mm; }
+  .ref li { margin-bottom: 1.6mm; }
+
+  /* Tablas */
+  table { width: 100%; border-collapse: collapse; font-size: 10.5pt; line-height: 1.4; }
+  th { text-align: left; font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 9pt; color: var(--texto-2); padding: 0 4mm 2mm 0; border-bottom: 1px solid var(--texto); }
+  td { padding: 2.6mm 4mm 2.6mm 0; vertical-align: top; border-bottom: 1px solid var(--borde); }
+  td:first-child { width: 52mm; font-weight: 600; }
+  td .grupo { display: block; font-weight: 400; color: var(--texto-2); font-size: 8.5pt; }
+
+  /* Preguntas */
+  .preguntas { margin: 0; padding: 0; list-style: none; }
+  .preguntas li { padding: 4mm 0; border-bottom: 1px solid var(--borde); display: grid; grid-template-columns: 1fr auto; gap: 1mm 8mm; }
+  .preguntas li:first-child { border-top: 1px solid var(--borde); }
+  .preguntas h3 { margin: 0; font-size: 12pt; }
+  .preguntas p { margin: 0; grid-column: 1; color: var(--texto-2); }
+  .preguntas .video { grid-column: 2; grid-row: 1 / span 2; align-self: center; margin: 0; }
+
+  .limites { display: grid; grid-template-columns: auto 1fr; gap: 2mm 6mm; margin: 0 0 5mm; }
+  .limites dt { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--primario); text-align: right; }
+  .limites dd { margin: 0; }
+  .cierre { margin-top: auto; padding-top: 6mm; font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: 13pt; }
+</style>
+</head>
+<body>
+
+<!-- 1 · Tapa -->
+<section class="hoja tapa">
+  <img class="logo" src="../../../public/logo.png" alt="Innercare">
+  <h1>Cómo editar los textos de la web</h1>
+  <p class="bajada">Guía para el equipo de Innercare: cómo cambiar los textos de la página desde el panel, sin programar ni instalar nada.</p>
+  <a class="tapa-video" href="https://youtu.be/30xwIKv05i8"><img src="miniatura-pdf.png" alt="Video: cómo editar los textos de tu web"></a>
+  <div class="tapa-enlace">
+    <a href="https://youtu.be/30xwIKv05i8">Mirá primero el video: dura dos minutos y medio.</a>
+    <span>youtu.be/30xwIKv05i8</span>
+  </div>
+  <p class="tapa-final">Noviembre de 2026. Cada capítulo de esta guía tiene un enlace a su minuto del video.</p>
+</section>
+
+<!-- 2 · Índice -->
+<section class="hoja">
+  <h2 class="titulo-ref">Qué hay en esta guía</h2>
+  <ol class="indice">
+    <li><span class="n">1</span><a class="titulo" href="#cap-1">Entrar al panel</a><a class="video" href="https://youtu.be/30xwIKv05i8?t=0">Video <span class="t">0:00</span></a></li>
+    <li><span class="n">2</span><a class="titulo" href="#cap-2">El panel</a><a class="video" href="https://youtu.be/30xwIKv05i8?t=22">Video <span class="t">0:22</span></a></li>
+    <li><span class="n">3</span><a class="titulo" href="#cap-3">Cambiar un texto</a><a class="video" href="https://youtu.be/30xwIKv05i8?t=28">Video <span class="t">0:28</span></a></li>
+    <li><span class="n">4</span><a class="titulo" href="#cap-4">Guardar es publicar</a><a class="video" href="https://youtu.be/30xwIKv05i8?t=47">Video <span class="t">0:47</span></a></li>
+    <li><span class="n">5</span><a class="titulo" href="#cap-5">Cuando un texto no entra</a><a class="video" href="https://youtu.be/30xwIKv05i8?t=67">Video <span class="t">1:07</span></a></li>
+    <li><span class="n">6</span><a class="titulo" href="#cap-6">Listas</a><a class="video" href="https://youtu.be/30xwIKv05i8?t=86">Video <span class="t">1:26</span></a></li>
+    <li><span class="n">7</span><a class="titulo" href="#cap-7">Archivos</a><a class="video" href="https://youtu.be/30xwIKv05i8?t=98">Video <span class="t">1:38</span></a></li>
+    <li><span class="n">8</span><a class="titulo" href="#cap-8">Lo que no se toca</a><a class="video" href="https://youtu.be/30xwIKv05i8?t=112">Video <span class="t">1:52</span></a></li>
+    <li><span class="n">9</span><a class="titulo" href="#cap-9">Si te equivocás</a><a class="video" href="https://youtu.be/30xwIKv05i8?t=126">Video <span class="t">2:06</span></a></li>
+  </ol>
+  <h3>Para consultar</h3>
+  <ul class="lista ref">
+    <li><a href="#preguntas">Preguntas rápidas</a></li>
+    <li><a href="#donde">Dónde se ve cada sección</a></li>
+    <li><a href="#limites">Los límites de largo</a></li>
+    <li><a href="#consejos">Consejos</a></li>
+  </ul>
+  <div class="nota">
+    <h3>Antes de empezar</h3>
+    <p>Necesitás dos cosas: la invitación de Keystatic Cloud en tu correo y la dirección del panel, que es la de la web con <code>/keystatic</code> al final:</p>
+    <a class="direccion" href="https://innercare-web.vercel.app/keystatic">innercare-web.vercel.app/keystatic</a>
+  </div>
+</section>
+
+<!-- 3 · Entrar al panel -->
+<section class="hoja" id="cap-1">
+  <header class="capitulo">
+    <h2><span class="num">1</span>Entrar al panel</h2>
+    <a class="video" href="https://youtu.be/30xwIKv05i8?t=0">Ver en el video <span class="t">0:00</span></a>
+  </header>
+  <ol class="pasos">
+    <li>Te llega por mail una invitación de <strong>Keystatic Cloud</strong> al equipo de Innercare. Aceptala y creá tu cuenta con tu correo. No hace falta cuenta de GitHub.</li>
+    <li>Abrí la dirección de la web y agregale <code>/keystatic</code> al final:<br>
+      <a class="direccion" href="https://innercare-web.vercel.app/keystatic">innercare-web.vercel.app/keystatic</a><br>
+      Cuando la web tenga su dominio definitivo, va a ser ese dominio seguido de <code>/keystatic</code>.</li>
+    <li>Tocá <strong>Log in with Keystatic Cloud</strong> (iniciar sesión con Keystatic Cloud) y entrá con tu cuenta. No hace falta ningún otro programa.</li>
+  </ol>
+  <figure class="captura" data-tam="2880,1620" data-recorte="760,600,1360,420">
+    <div class="marco">
+      <img src="../capturas/login.png" alt="La pantalla de inicio de sesión del panel">
+      <span class="resalte" data-caja="1206,770,470,82"></span>
+    </div>
+    <figcaption>La pantalla de inicio de sesión del panel.</figcaption>
+  </figure>
+  <div class="nota aviso">
+    <p>Si la dirección dice <strong>Página no encontrada</strong>, el panel todavía no está habilitado: avisale a Brian.</p>
+  </div>
+  <div class="pie"><span>Cómo editar los textos de la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 4 · El panel -->
+<section class="hoja" id="cap-2">
+  <header class="capitulo">
+    <h2><span class="num">2</span>El panel</h2>
+    <a class="video" href="https://youtu.be/30xwIKv05i8?t=22">Ver en el video <span class="t">0:22</span></a>
+  </header>
+  <p>A la izquierda está el menú, en tres grupos: <strong>Portada</strong>, <strong>Secciones</strong> y <strong>Sitio</strong>. Cada entrada es una parte de la web. La tabla <a href="#donde">Dónde se ve cada sección</a>, al final de esta guía, dice qué cambia cada una.</p>
+  <figure class="captura" data-tam="2880,1620" data-recorte="0,0,2880,1400">
+    <div class="marco">
+      <img src="../capturas/tablero.png" alt="El tablero del panel, con el menú a la izquierda">
+      <span class="resalte" data-caja="6,162,490,1214"></span>
+    </div>
+    <figcaption>El tablero. El menú de la izquierda está siempre a la vista.</figcaption>
+  </figure>
+  <div class="nota">
+    <h3>Algunos botones del panel salen en inglés</h3>
+    <dl class="glosario">
+      <dt>Save</dt><dd>Guardar (y publicar: ver el capítulo 4)</dd>
+      <dt>Unsaved</dt><dd>Sin guardar: hay cambios que todavía no guardaste</dd>
+      <dt>Edit item</dt><dd>Editar elemento</dd>
+      <dt>Done</dt><dd>Listo</dd>
+      <dt>Choose file</dt><dd>Elegir archivo</dd>
+      <dt>Remove</dt><dd>Quitar</dd>
+      <dt>Download</dt><dd>Descargar</dd>
+    </dl>
+  </div>
+  <div class="pie"><span>Cómo editar los textos de la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 5 · Cambiar un texto -->
+<section class="hoja" id="cap-3">
+  <header class="capitulo">
+    <h2><span class="num">3</span>Cambiar un texto</h2>
+    <a class="video" href="https://youtu.be/30xwIKv05i8?t=28">Ver en el video <span class="t">0:28</span></a>
+  </header>
+  <ol class="pasos">
+    <li>Entrá a la sección donde está el texto. Por ejemplo, la bajada de la primera pantalla de la web está en <strong>Portada › Hero</strong>.</li>
+    <li>Leé la ayuda que hay debajo del nombre del campo: dice dónde se ve ese texto y cuánto entra.</li>
+    <li>Hacé clic en el campo y escribí, como en cualquier documento.</li>
+  </ol>
+  <figure class="captura" data-tam="2880,1620" data-recorte="540,160,1840,520">
+    <div class="marco">
+      <img src="../capturas/hero.png" alt="La sección Hero, con la ayuda del campo Bajada">
+      <span class="resalte" data-caja="574,450,1318,54"></span>
+    </div>
+    <figcaption>La ayuda de la Bajada: dónde se ve y cuántos caracteres entran.</figcaption>
+  </figure>
+  <figure class="captura" data-tam="2880,1620" data-recorte="540,160,1840,520">
+    <div class="marco">
+      <img src="../capturas/escribir-despues.png" alt="El campo Bajada con el texto nuevo">
+      <span class="resalte" data-caja="574,499,1776,174"></span>
+    </div>
+    <figcaption>El texto nuevo, escrito en el campo. Todavía no está guardado.</figcaption>
+  </figure>
+  <div class="pie"><span>Cómo editar los textos de la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 6 · Guardar es publicar -->
+<section class="hoja" id="cap-4">
+  <header class="capitulo">
+    <h2><span class="num">4</span>Guardar es publicar</h2>
+    <a class="video" href="https://youtu.be/30xwIKv05i8?t=47">Ver en el video <span class="t">0:47</span></a>
+  </header>
+  <ul class="lista">
+    <li>Cuando terminás, tocá <strong>Save</strong>, arriba a la derecha. Mientras haya cambios sin guardar, junto al nombre de la sección dice <strong>Unsaved</strong>.</li>
+    <li><strong>Guardar es publicar.</strong> No hay borrador ni aprobación: al guardar, la web se vuelve a armar con el texto nuevo.</li>
+    <li><strong>Tarda unos minutos en verse.</strong> Después, recargá la página o abrila en una ventana nueva.</li>
+    <li><strong>Revisalo en la computadora y en el celular.</strong> Lo que entra en una pantalla puede no entrar en la otra.</li>
+  </ul>
+  <figure class="captura" data-tam="2880,1620" data-recorte="540,0,2340,600">
+    <div class="marco">
+      <img src="../capturas/guardar.png" alt="La sección Hero con el cambio sin guardar y el botón Save">
+      <span class="resalte" data-caja="2658,26,168,82"></span>
+    </div>
+    <figcaption>El cambio hecho, todavía sin guardar (Unsaved), y el botón Save.</figcaption>
+  </figure>
+  <div class="doble">
+    <figure class="captura" data-tam="2880,1620" data-recorte="0,0,2880,1620">
+      <div class="marco">
+        <img src="../capturas/web-escritorio.png" alt="La primera pantalla de la web en la computadora, con la bajada nueva">
+        <span class="resalte" data-caja="121,798,692,216"></span>
+      </div>
+      <figcaption>Unos minutos después, en la computadora.</figcaption>
+    </figure>
+    <figure class="captura celular" data-tam="1206,2610" data-recorte="0,0,1206,1560">
+      <div class="marco">
+        <img src="../capturas/web-celular.png" alt="La primera pantalla de la web en el celular, con la bajada nueva">
+        <span class="resalte" data-caja="24,636,1026,324"></span>
+      </div>
+      <figcaption>Y en el celular.</figcaption>
+    </figure>
+  </div>
+  <div class="pie"><span>Cómo editar los textos de la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 7 · Cuando un texto no entra -->
+<section class="hoja" id="cap-5">
+  <header class="capitulo">
+    <h2><span class="num">5</span>Cuando un texto no entra</h2>
+    <a class="video" href="https://youtu.be/30xwIKv05i8?t=67">Ver en el video <span class="t">1:07</span></a>
+  </header>
+  <p>Cada texto se midió en la computadora y en el celular: el límite es lo que entra sin romper el diseño. Los caracteres se cuentan con espacios y signos incluidos.</p>
+  <p><strong>Si te pasás, el panel no guarda</strong> y marca el campo con un mensaje en inglés:</p>
+  <ul class="lista">
+    <li><strong>must be no longer than 100 characters</strong>: no puede tener más de 100 caracteres.</li>
+    <li><strong>must not be empty</strong>: no puede quedar vacío.</li>
+    <li>En los campos con formato (teléfonos, referencias ANMAT, código postal), el mensaje está en castellano y dice cómo escribirlo.</li>
+  </ul>
+  <figure class="captura" data-tam="2880,1620" data-recorte="540,395,1840,360">
+    <div class="marco">
+      <img src="../capturas/limite.png" alt="El campo Bajada con un texto demasiado largo y el mensaje de error">
+      <span class="resalte" data-caja="574,646,610,86"></span>
+    </div>
+    <figcaption>La Bajada admite hasta 100 caracteres. Con uno más, el panel no guarda.</figcaption>
+  </figure>
+  <div class="nota aviso">
+    <h3>¿No ves tu cambio a los diez minutos?</h3>
+    <p>Avisale a Brian y decile qué sección cambiaste. Algunos límites son de varios textos juntos y esos el panel no los controla al guardar: si uno no se cumple, el cambio se guarda pero no se publica. La web sigue como estaba y nada se rompe. Hasta que se corrija, lo que se guarde después tampoco se publica.</p>
+    <p>Esos límites están en <a href="#limites">Los límites de largo</a>.</p>
+  </div>
+  <div class="pie"><span>Cómo editar los textos de la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 8 · Listas -->
+<section class="hoja" id="cap-6">
+  <header class="capitulo">
+    <h2><span class="num">6</span>Listas</h2>
+    <a class="video" href="https://youtu.be/30xwIKv05i8?t=86">Ver en el video <span class="t">1:26</span></a>
+  </header>
+  <p>Algunas secciones tienen listas: las filas de Habilitaciones, las sedes de Distribución, los datos técnicos de cada parada del recorrido y las etapas de la pantalla de carga.</p>
+  <ul class="lista">
+    <li><strong>Agregar:</strong> tocá <strong>Agregar</strong>, arriba de la lista.</li>
+    <li><strong>Editar:</strong> hacé clic en el elemento. Se abre <strong>Edit item</strong>; al terminar, tocá <strong>Done</strong> y después <strong>Save</strong> para guardar la sección.</li>
+    <li><strong>Quitar:</strong> el tacho a la derecha de cada elemento.</li>
+    <li><strong>Reordenar:</strong> arrastrá los puntos de la izquierda.</li>
+  </ul>
+  <figure class="captura" data-tam="2880,1620" data-recorte="540,640,1840,660">
+    <div class="marco">
+      <img src="../capturas/habilitaciones.png" alt="La sección Habilitaciones con las filas de la tabla">
+      <span class="resalte" data-caja="578,748,172,74"></span>
+    </div>
+    <figcaption>Secciones › Habilitaciones: el botón Agregar y las filas de la tabla.</figcaption>
+  </figure>
+  <div class="lado">
+    <figure class="captura" data-tam="2880,1620" data-recorte="802,228,1276,1166">
+      <div class="marco">
+        <img src="../capturas/fila.png" alt="Una fila de Habilitaciones abierta para editar">
+        <span class="resalte" data-caja="852,1139,1176,88"></span>
+      </div>
+      <figcaption>Una fila abierta para editar.</figcaption>
+    </figure>
+    <div class="nota">
+      <h3>Los identificadores no se cambian</h3>
+      <p>Las filas y las sedes tienen un <strong>Identificador</strong>. No se ve en la página, pero el sistema lo usa (el de cada sede elige su foto). No lo cambies una vez creado.</p>
+      <p>Habilitaciones y Distribución admiten hasta ocho elementos.</p>
+    </div>
+  </div>
+  <div class="pie"><span>Cómo editar los textos de la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 9 · Archivos -->
+<section class="hoja" id="cap-7">
+  <header class="capitulo">
+    <h2><span class="num">7</span>Archivos</h2>
+    <a class="video" href="https://youtu.be/30xwIKv05i8?t=98">Ver en el video <span class="t">1:38</span></a>
+  </header>
+  <p>Las fichas técnicas en PDF tienen su propia sección, <strong>Portada › Fichas técnicas (PDF)</strong>, con un campo por parada del recorrido. Si una parada tiene archivo, su tarjeta muestra el enlace «Ficha técnica (PDF)», que lo descarga. En Hombro y Fémur proximal es el único enlace de la tarjeta: si les quitás el PDF, muestran «Plantear un caso».</p>
+  <ul class="lista">
+    <li><strong>Subir:</strong> tocá <strong>Choose file</strong> en el campo de la parada, elegí el PDF y guardá.</li>
+    <li><strong>Reemplazar:</strong> elegí el archivo nuevo en el mismo campo y guardá. Se guarda siempre con el mismo nombre, así que el enlace no cambia.</li>
+    <li><strong>Quitar:</strong> tocá <strong>Remove</strong> y guardá. El enlace desaparece de la tarjeta.</li>
+  </ul>
+  <figure class="captura" data-tam="2880,1620" data-recorte="540,860,1840,700">
+    <div class="marco">
+      <img src="../capturas/fichas.png" alt="La sección Fichas técnicas con el PDF del Fémur proximal cargado">
+      <span class="resalte" data-caja="570,1108,638,207"></span>
+    </div>
+    <figcaption>El Fémur proximal tiene su PDF cargado: por eso muestra Remove y Download.</figcaption>
+  </figure>
+  <div class="nota">
+    <p><strong>Tiene que ser un PDF.</strong> El panel deja elegir cualquier archivo, pero si no es PDF la publicación se frena. No importa cómo se llame tu archivo: quien lo descarga lo recibe con un nombre que dice de qué parada o producto es. Cuanto más liviano, más rápido se descarga en el celular.</p>
+  </div>
+  <div class="pie"><span>Cómo editar los textos de la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 10 · Lo que no se toca y Si te equivocás -->
+<section class="hoja">
+  <header class="capitulo" id="cap-8">
+    <h2><span class="num">8</span>Lo que no se toca</h2>
+    <a class="video" href="https://youtu.be/30xwIKv05i8?t=112">Ver en el video <span class="t">1:52</span></a>
+  </header>
+  <div class="nota aviso">
+    <p><strong>No cambies de rama.</strong> El panel tiene un menú de ramas: dejalo siempre en <code>main</code>, la que viene. Lo que se guarda en otra rama no se publica.</p>
+  </div>
+  <p>Lo que no aparece en el panel no se cambia desde ahí. Para eso, escribile a Brian y mandale lo nuevo:</p>
+  <ul class="lista">
+    <li><strong>Las fotos e imágenes:</strong> la tira de Fabricación, las sedes, las paradas, los pasos. La única excepción son las fichas PDF.</li>
+    <li><strong>El cuerpo 3D, los implantes y las animaciones,</strong> el orden de las paradas y cuáles son a medida o de catálogo.</li>
+    <li><strong>La cantidad de pasos, tarjetas y fotos:</strong> Cómo trabajamos tiene tres pasos y Fabricación, dos tarjetas y ocho fotos. Cada animación está hecha para esa cantidad.</li>
+    <li><strong>Los enlaces del menú,</strong> el formulario de contacto, las páginas de producto, el mapa, los colores y las tipografías.</li>
+  </ul>
+
+  <header class="capitulo segundo" id="cap-9">
+    <h2><span class="num">9</span>Si te equivocás</h2>
+    <a class="video" href="https://youtu.be/30xwIKv05i8?t=126">Ver en el video <span class="t">2:06</span></a>
+  </header>
+  <ul class="lista">
+    <li><strong>Nada se pierde.</strong> Cada guardado queda registrado: quién cambió qué y cuándo. Cualquier texto anterior se puede recuperar.</li>
+    <li>Si te equivocaste y no te acordás cómo estaba, <strong>avisale a Brian</strong>.</li>
+    <li>Si van a editar dos personas el mismo día, repártanse las secciones: mejor que no cambien la misma a la vez.</li>
+    <li>No hace falta tocar GitHub ni ningún otro programa.</li>
+  </ul>
+  <div class="pie"><span>Cómo editar los textos de la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 11 · Preguntas rápidas -->
+<section class="hoja" id="preguntas">
+  <h2 class="titulo-ref">Preguntas rápidas</h2>
+  <ul class="preguntas">
+    <li>
+      <h3>¿Cómo entro?</h3>
+      <p>Con la invitación de Keystatic Cloud aceptada, abrí innercare-web.vercel.app/keystatic e iniciá sesión.</p>
+      <a class="video" href="https://youtu.be/30xwIKv05i8?t=0">Video <span class="t">0:00</span></a>
+    </li>
+    <li>
+      <h3>¿Cómo cambio un texto?</h3>
+      <p>Entrá a su sección, leé la ayuda del campo, escribí y tocá Save.</p>
+      <a class="video" href="https://youtu.be/30xwIKv05i8?t=28">Video <span class="t">0:28</span></a>
+    </li>
+    <li>
+      <h3>¿Cuánto tarda en verse?</h3>
+      <p>Unos minutos. Después, recargá la página. Si a los diez minutos no está, avisale a Brian.</p>
+      <a class="video" href="https://youtu.be/30xwIKv05i8?t=54">Video <span class="t">0:54</span></a>
+    </li>
+    <li>
+      <h3>¿Qué hago si no entra?</h3>
+      <p>Acortalo hasta que el panel deje guardar. Si el texto ya está justo en el límite, la ayuda del campo lo dice: para alargarlo hay que acortar otra cosa o hablarlo con Brian.</p>
+      <a class="video" href="https://youtu.be/30xwIKv05i8?t=67">Video <span class="t">1:07</span></a>
+    </li>
+    <li>
+      <h3>¿Cómo subo una ficha PDF?</h3>
+      <p>En Portada › Fichas técnicas (PDF), Choose file en el campo de la parada, y guardá.</p>
+      <a class="video" href="https://youtu.be/30xwIKv05i8?t=98">Video <span class="t">1:38</span></a>
+    </li>
+    <li>
+      <h3>¿Qué pasa si me equivoco?</h3>
+      <p>Nada se pierde: cada versión queda registrada. Avisale a Brian y la recupera.</p>
+      <a class="video" href="https://youtu.be/30xwIKv05i8?t=126">Video <span class="t">2:06</span></a>
+    </li>
+  </ul>
+  <div class="pie"><span>Cómo editar los textos de la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 12 · Dónde se ve cada sección -->
+<section class="hoja" id="donde">
+  <h2 class="titulo-ref">Dónde se ve cada sección</h2>
+  <table>
+    <thead><tr><th>Sección del panel</th><th>Dónde se ve en la web</th></tr></thead>
+    <tbody>
+      <tr><td><span class="grupo">Portada</span>Hero</td><td>La primera pantalla: titular, bajada, el botón «Recorrer los implantes», la línea de habilitaciones y el aviso para deslizar. El titular también va en el footer y en la tarjeta que aparece al compartir el enlace.</td></tr>
+      <tr><td><span class="grupo">Portada</span>Recorrido de implantes</td><td>El recorrido por el cuerpo: la tarjeta de cada una de las seis paradas, el índice de la izquierda y el cierre con el cuerpo entero.</td></tr>
+      <tr><td><span class="grupo">Portada</span>Fichas técnicas (PDF)</td><td>El PDF de cada parada: el enlace «Ficha técnica (PDF)» de su tarjeta. En Hombro y Fémur proximal es el único enlace de la tarjeta; si no tienen PDF, muestran «Plantear un caso».</td></tr>
+      <tr><td><span class="grupo">Secciones</span>Cómo trabajamos</td><td>El título, los tres pasos y la leyenda de colores debajo de la pieza.</td></tr>
+      <tr><td><span class="grupo">Secciones</span>Fabricación</td><td>Las dos tarjetas animadas y la tira de fotos de la planta.</td></tr>
+      <tr><td><span class="grupo">Secciones</span>Habilitaciones</td><td>La tabla de habilitaciones ANMAT y del Sistema Nacional de Trazabilidad.</td></tr>
+      <tr><td><span class="grupo">Secciones</span>Distribución</td><td>El mapa de Argentina con las sedes. La sede principal también va en el footer y en el panel de contacto.</td></tr>
+      <tr><td><span class="grupo">Secciones</span>Contacto</td><td>El final de la página (las manos y la tarjeta «¿Tenés un caso para resolver?») y el panel que se abre con «Plantear un caso».</td></tr>
+      <tr><td><span class="grupo">Sitio</span>Menú y footer</td><td>La barra de arriba, el menú del celular, el botón «Plantear un caso» en todo el sitio y el nombre de la marca en el footer.</td></tr>
+      <tr><td><span class="grupo">Sitio</span>Pantalla de carga</td><td>La pantalla que aparece mientras carga la página principal.</td></tr>
+      <tr><td><span class="grupo">Sitio</span>SEO y redes</td><td>El título de la pestaña del navegador, lo que muestra Google y la tarjeta al compartir el enlace por WhatsApp, LinkedIn o X.</td></tr>
+    </tbody>
+  </table>
+  <div class="nota" style="margin-top: 6mm">
+    <p>Los campos de <strong>texto alternativo</strong> y los grupos <strong>Lectores de pantalla</strong> no se ven en la página: los leen en voz alta los lectores de pantalla que usan las personas ciegas, y también los buscadores. Describí lo que muestra la foto o qué hace el botón, en una oración.</p>
+  </div>
+  <div class="pie"><span>Cómo editar los textos de la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 13 · Los límites de largo -->
+<section class="hoja" id="limites">
+  <h2 class="titulo-ref">Los límites de largo</h2>
+  <p>El límite de cada campo está en su ayuda y el panel lo controla al guardar. Cuando un texto ya está justo en el límite, la ayuda lo dice: para alargarlo hay que acortar otra cosa o hablarlo con Brian.</p>
+  <h3>Límites de varios textos juntos</h3>
+  <p>Estos el panel <strong>no</strong> los controla al guardar. Si alguno no se cumple, el cambio se guarda pero no se publica y la web sigue como estaba.</p>
+  <dl class="limites">
+    <dt>52</dt><dd>Las cuatro etiquetas del menú, entre todas.</dd>
+    <dt>41</dt><dd>«Plantear un caso» más el botón de vidrio del hero: van en la misma fila en el celular.</dd>
+    <dt>40</dt><dd>Las tres etiquetas de la leyenda de Cómo trabajamos.</dd>
+    <dt>61</dt><dd>En cada sede, «calle, localidad».</dd>
+    <dt>78</dt><dd>En cada sede, el nombre que muestra la tarjeta (las sucursales dicen solo «Sucursal») más la calle y la localidad.</dd>
+    <dt>38</dt><dd>En cada sede, «localidad, provincia»: la etiqueta del mapa.</dd>
+    <dt>23</dt><dd>El nombre completo de la planta industrial, que va entero bajo su etiqueta.</dd>
+    <dt>100</dt><dd>La descripción de una parada que tiene cuatro datos técnicos.</dd>
+    <dt>60</dt><dd>«Innercare | » más el titular del hero: es el título de la tarjeta al compartir el enlace.</dd>
+  </dl>
+  <h3>Y además</h3>
+  <ul class="lista">
+    <li>Tiene que haber exactamente una sede principal, con al menos un teléfono: es el WhatsApp del footer y del contacto.</li>
+    <li>Dos sedes no pueden tener las mismas coordenadas.</li>
+    <li>Una lista no puede quedar vacía: las filas de la tabla, las sedes, los datos técnicos de una parada y las etapas de la carga.</li>
+  </ul>
+  <div class="pie"><span>Cómo editar los textos de la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 14 · Consejos -->
+<section class="hoja" id="consejos">
+  <h2 class="titulo-ref">Consejos</h2>
+  <ul class="lista">
+    <li><strong>El tono de la web:</strong> voseo («Contactanos», «Enviános»), frases directas, sin guiones largos y con rangos en palabras («10 a 12 mm», no «10-12 mm»).</li>
+    <li><strong>No agregues datos que no estén en la documentación de Innercare:</strong> cifras, indicaciones, resultados clínicos y certificaciones salen de la carpeta institucional, el brochure y las disposiciones.</li>
+    <li><strong>Referencias ANMAT:</strong> copialas tal cual figuran en la disposición o el certificado y con el formato de las que ya están: «Disposición 0999/17», «N° 298-2023-R». Dos números van separados por « · » (espacio, punto medio, espacio), como «GLN 7798276610001 · Sub-GLN 7798276610018», y cada parte va en su propia línea. El punto medio es más fácil de copiar de una fila existente que de escribir.</li>
+    <li><strong>Teléfonos:</strong> con el código de país, espacios y guion, como <span class="dato">+54 9 11 2066-5434</span>. El primer teléfono de la sede principal es el de WhatsApp.</li>
+    <li><strong>Coordenadas de una sede:</strong> en Google Maps, hacé clic derecho sobre el lugar y copiá los dos números que aparecen arriba: el primero es la latitud y el segundo, la longitud. En Argentina, los dos son negativos.</li>
+    <li><strong>Sede nueva:</strong> su foto la agrega Brian; mientras tanto, el mapa muestra «Foto pendiente».</li>
+    <li><strong>«Plantear un caso»</strong> cambia en todos los botones de contacto del sitio. Mantenelo corto.</li>
+    <li><strong>Titular de la intro del contacto:</strong> una oración corta; entra palabra por palabra mientras se arman las manos.</li>
+    <li><strong>Pantalla de carga:</strong> las etapas son pasos del proceso real de Innercare, entre tres y diez. Cada una se ve al menos medio segundo; con más etapas, cada una dura menos en pantalla.</li>
+  </ul>
+  <p class="cierre">¿Dudas? Escribile a Brian.</p>
+  <div class="pie"><span>Cómo editar los textos de la web</span><span class="pagina"></span></div>
+</section>
+
+<script>
+  // Recortes y resaltados: de píxeles de la imagen a porcentajes del marco.
+  for (const f of document.querySelectorAll('figure.captura')) {
+    const [W] = f.dataset.tam.split(',').map(Number)
+    const [rx, ry, rw, rh] = f.dataset.recorte.split(',').map(Number)
+    const marco = f.querySelector('.marco')
+    marco.style.aspectRatio = `${rw} / ${rh}`
+    const img = marco.querySelector('img')
+    img.style.width = `${(W / rw) * 100}%`
+    img.style.left = `${(-rx / rw) * 100}%`
+    img.style.top = `${(-ry / rh) * 100}%`
+    for (const c of marco.querySelectorAll('[data-caja]')) {
+      const [x, y, w, h] = c.dataset.caja.split(',').map(Number)
+      c.style.left = `${((x - rx) / rw) * 100}%`
+      c.style.top = `${((y - ry) / rh) * 100}%`
+      c.style.width = `${(w / rw) * 100}%`
+      c.style.height = `${(h / rh) * 100}%`
+    }
+  }
+  // Número de página al pie (la tapa no lleva).
+  document.querySelectorAll('.hoja').forEach((h, i) => {
+    const p = h.querySelector('.pagina')
+    if (p) p.textContent = String(i + 1)
+  })
+</script>
+</body>
+</html>

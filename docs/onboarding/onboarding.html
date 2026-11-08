@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Innercare · Qué sigue con la web</title>
+<!-- Onboarding de Innercare: los pasos hasta la publicación, lo que hace falta de
+     ellos y lo que viene después. Lo genera
+       node docs/tutorial-editores/pdf/generar-pdf.mjs docs/onboarding/onboarding.html "docs/onboarding/salida/Innercare - Qué sigue con la web.pdf"
+     Lo marcado con .pendiente lo completa Brian antes de mandarlo (se ve en
+     amarillo a propósito, para que no se escape ninguno). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&family=Source+Sans+3:wght@400;600&display=block" rel="stylesheet">
+<style>
+  :root {
+    --primario: #003c6f;
+    --primario-2: #0b5394;
+    --primario-fijo: #d4e3ff;
+    --primario-suave: #eaf1fb;
+    --superficie-baja: #eef2f5;
+    --texto: #0d1b2a;
+    --texto-2: #4b5866;
+    --borde: #d3d9df;
+  }
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #fff; }
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 11.5pt;
+    line-height: 1.5;
+    color: var(--texto);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  a { color: var(--primario); }
+  h1, h2, h3 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; margin: 0; letter-spacing: -0.01em; }
+  p { margin: 0 0 3mm; }
+  strong { font-weight: 600; }
+  code, .dato { font-family: 'Source Sans 3', sans-serif; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .hoja {
+    position: relative;
+    width: 210mm; height: 297mm;
+    padding: 18mm 18mm 20mm;
+    overflow: hidden;
+    break-after: page;
+    display: flex; flex-direction: column;
+  }
+  .hoja:last-child { break-after: auto; }
+  .pie {
+    position: absolute; left: 18mm; right: 18mm; bottom: 9mm;
+    display: flex; justify-content: space-between;
+    font-size: 8.5pt; color: var(--texto-2);
+    border-top: 1px solid var(--borde); padding-top: 2.5mm;
+  }
+
+  /* Lo que completa Brian antes de mandar el documento. */
+  .pendiente {
+    background: #fff1b8;
+    border: 1px dashed #b38600;
+    border-radius: 4px;
+    padding: 0 1.2mm;
+    color: #5c4500;
+    font-weight: 600;
+  }
+
+  /* Tapa */
+  .tapa { padding-top: 20mm; }
+  .tapa .logo { width: 44mm; height: auto; }
+  .tapa h1 { font-size: 40pt; line-height: 1.03; margin: 22mm 0 6mm; }
+  .tapa .bajada { font-size: 14pt; color: var(--texto-2); max-width: 150mm; line-height: 1.45; }
+  .vitrina { position: relative; margin-top: 14mm; height: 104mm; }
+  .vitrina .escritorio {
+    position: absolute; left: 0; top: 0; width: 150mm;
+    border-radius: 12px; overflow: hidden; border: 1px solid var(--borde);
+  }
+  .vitrina .celular {
+    position: absolute; right: 0; top: 18mm; width: 40mm;
+    border-radius: 18px; overflow: hidden; border: 3px solid #fff;
+    outline: 1px solid var(--borde);
+  }
+  .marco { position: relative; overflow: hidden; width: 100%; }
+  .marco img { position: absolute; display: block; height: auto; max-width: none; }
+  .tapa-enlace { margin-top: 6mm; font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: 12pt; }
+  .tapa-enlace a { text-decoration: none; }
+  .tapa-final { margin-top: auto; display: flex; justify-content: space-between; color: var(--texto-2); font-size: 9.5pt; }
+
+  /* Encabezados */
+  .marca-paso { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 9.5pt; color: var(--primario); margin-bottom: 2.5mm; }
+  .titulo { font-size: 26pt; line-height: 1.1; margin-bottom: 4mm; }
+  .entrada { font-size: 13pt; color: var(--texto-2); line-height: 1.45; margin-bottom: 7mm; max-width: 160mm; }
+  h3 { font-size: 13pt; margin: 5mm 0 2.5mm; }
+  .quien { display: inline-block; font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 8.5pt; border-radius: 999px; padding: 0.6mm 3mm; margin-left: 2mm; vertical-align: 0.3em; }
+  .quien.yo { background: var(--superficie-baja); color: var(--texto-2); }
+  .quien.ustedes { background: var(--primario); color: #fff; }
+
+  ul.lista { margin: 0 0 4mm; padding-left: 5mm; }
+  ul.lista li { margin-bottom: 1.8mm; }
+  ul.lista li::marker { color: var(--primario); }
+
+  .nota { background: var(--superficie-baja); border-radius: 10px; padding: 4.5mm 5mm; margin: 0 0 5mm; }
+  .nota p:last-child, .nota ul:last-child { margin-bottom: 0; }
+  .nota h3 { margin-top: 0; font-size: 12pt; }
+
+  /* Lo que se les pide: el recuadro que más tiene que verse. */
+  .pedido {
+    background: var(--primario-suave);
+    border: 1px solid var(--primario-fijo);
+    border-left: 4px solid var(--primario);
+    border-radius: 4px 10px 10px 4px;
+    padding: 4.5mm 5.5mm;
+    margin: 0 0 5mm;
+  }
+  .pedido h3 { margin: 0 0 2.5mm; font-size: 12pt; color: var(--primario); }
+  .pedido p:last-child, .pedido ul:last-child { margin-bottom: 0; }
+
+  /* Resumen: los cuatro pasos */
+  .pasos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin: 0 0 7mm; }
+  .paso { border: 1px solid var(--borde); border-radius: 12px; padding: 4.5mm 4mm 4mm; display: flex; flex-direction: column; }
+  .paso .n { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: 26pt; line-height: 1; color: var(--primario); margin-bottom: 3mm; }
+  .paso h3 { margin: 0 0 1.5mm; font-size: 12pt; }
+  .paso p { font-size: 10pt; color: var(--texto-2); margin: 0; line-height: 1.4; }
+  .paso .cuando { margin-top: auto; padding-top: 3mm; font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 9pt; color: var(--primario); }
+
+  .fecha {
+    background: var(--primario); color: #fff;
+    border-radius: 12px; padding: 6mm 7mm;
+    display: grid; grid-template-columns: 1fr auto; gap: 2mm 8mm; align-items: center;
+    margin: 0 0 7mm;
+  }
+  .fecha .etiqueta { font-size: 10pt; color: var(--primario-fijo); }
+  .fecha .dia { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: 22pt; line-height: 1.1; }
+  .fecha .aclaracion { grid-column: 2; grid-row: 1 / span 2; max-width: 62mm; font-size: 10pt; color: var(--primario-fijo); line-height: 1.4; }
+  .fecha .pendiente { color: #5c4500; }
+
+  /* Calendario */
+  .calendario { list-style: none; margin: 0; padding: 0; position: relative; }
+  .calendario::before { content: ''; position: absolute; left: 31mm; top: 2mm; bottom: 4mm; width: 2px; background: var(--primario-fijo); }
+  .calendario li { display: grid; grid-template-columns: 27mm 1fr; gap: 9mm; padding-bottom: 5.5mm; position: relative; }
+  .calendario li::before {
+    content: ''; position: absolute; left: calc(31mm - 4px); top: 1.6mm;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #fff; border: 2px solid var(--primario);
+  }
+  .calendario li.hito::before { background: var(--primario); }
+  .calendario .cuando { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 10.5pt; text-align: right; color: var(--primario); line-height: 1.3; }
+  .calendario .cuando span { display: block; font-weight: 400; color: var(--texto-2); font-size: 9pt; }
+  .calendario h3 { margin: 0 0 1mm; font-size: 12.5pt; }
+  .calendario p { margin: 0; color: var(--texto-2); font-size: 10.5pt; }
+
+  /* Dominio */
+  .opciones { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; margin: 0 0 6mm; }
+  .opcion { border: 1px solid var(--borde); border-radius: 12px; padding: 4.5mm; }
+  .opcion.elegida { border: 2px solid var(--primario); background: var(--primario-suave); }
+  .opcion .nombre { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 13pt; margin-bottom: 1.5mm; word-break: break-all; }
+  .opcion .estado { font-size: 9.5pt; font-weight: 600; margin-bottom: 2mm; }
+  .opcion .estado.libre { color: var(--primario); }
+  .opcion .estado.tomado { color: var(--texto-2); }
+  .opcion p { font-size: 10pt; color: var(--texto-2); margin: 0; line-height: 1.4; }
+  .recomendado { display: inline-block; font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 8pt; background: var(--primario); color: #fff; border-radius: 999px; padding: 0.4mm 2.5mm; margin-bottom: 2.5mm; }
+
+  /* Tabla de material */
+  table { width: 100%; border-collapse: collapse; font-size: 10.5pt; line-height: 1.4; margin-bottom: 5mm; }
+  th { text-align: left; font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 9pt; color: var(--texto-2); padding: 0 4mm 2mm 0; border-bottom: 1px solid var(--texto); }
+  td { padding: 2.6mm 4mm 2.6mm 0; vertical-align: top; border-bottom: 1px solid var(--borde); }
+  td:first-child { width: 36mm; font-weight: 600; }
+  td .carpeta { display: block; font-weight: 400; color: var(--texto-2); font-size: 9pt; }
+
+  .carpetas { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3mm; margin: 0 0 5mm; }
+  .carpetas div { background: #fff; border: 1px solid var(--primario-fijo); border-radius: 8px; padding: 2.5mm 3mm; font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: 10pt; }
+  .carpetas span { display: block; color: var(--primario); font-size: 8.5pt; font-weight: 600; }
+
+  /* Implantes */
+  .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; margin: 0 0 5mm; }
+  .eleccion { border: 1px solid var(--borde); border-radius: 12px; padding: 5mm; }
+  .eleccion .letra { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: 22pt; color: var(--primario); line-height: 1; margin-bottom: 2.5mm; }
+  .eleccion h3 { margin: 0 0 2mm; font-size: 12.5pt; }
+  .eleccion p { font-size: 10.5pt; color: var(--texto-2); margin: 0 0 2mm; }
+  .eleccion p:last-child { margin: 0; }
+  .zonas { display: flex; flex-wrap: wrap; gap: 2mm; margin: 0 0 5mm; padding: 0; list-style: none; }
+  .zonas li { background: var(--superficie-baja); border-radius: 999px; padding: 1mm 3.5mm; font-size: 10pt; font-weight: 600; }
+
+  /* Etapas */
+  .etapas { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+  .etapa { border-radius: 12px; padding: 5.5mm; }
+  .etapa.ahora { background: var(--primario); color: #fff; }
+  .etapa.ahora h3 { color: #fff; }
+  .etapa.ahora li::marker { color: var(--primario-fijo); }
+  .etapa.ahora .sub { color: var(--primario-fijo); }
+  .etapa.despues { border: 1px solid var(--borde); }
+  .etapa h3 { margin: 0 0 1mm; font-size: 14pt; }
+  .etapa .sub { font-size: 9.5pt; color: var(--texto-2); margin-bottom: 4mm; }
+  .etapa ul { margin: 0; padding-left: 5mm; font-size: 10.5pt; }
+  .etapa li { margin-bottom: 2mm; }
+  .etapa li > span:not(.pendiente) { display: block; font-size: 9.5pt; opacity: 0.8; }
+
+  /* Lista final */
+  .checklist { list-style: none; margin: 0 0 6mm; padding: 0; border-top: 1px solid var(--borde); }
+  .checklist li { display: grid; grid-template-columns: 7mm 1fr 30mm; gap: 3mm; align-items: start; padding: 2mm 0; border-bottom: 1px solid var(--borde); font-size: 11pt; line-height: 1.35; }
+  .checklist li::before { content: ''; width: 4.2mm; height: 4.2mm; border: 1.5px solid var(--primario); border-radius: 3px; margin-top: 0.8mm; }
+  .checklist .para { text-align: right; font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 9.5pt; color: var(--primario); }
+  .checklist small { display: block; color: var(--texto-2); font-size: 9pt; }
+
+  .contacto { display: grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 4mm; margin-top: auto; }
+  .contacto a { white-space: nowrap; }
+  .contacto > div { border: 1px solid var(--borde); border-radius: 12px; padding: 4.5mm; }
+  .contacto .que { font-size: 9pt; color: var(--texto-2); margin-bottom: 1mm; }
+  .contacto .como { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: 11.5pt; word-break: break-word; }
+</style>
+</head>
+<body>
+
+<!-- 1 · Tapa -->
+<section class="hoja tapa">
+  <img class="logo" src="../../public/logo.png" alt="Innercare">
+  <h1>Qué sigue<br>con la web</h1>
+  <p class="bajada">La página ya está hecha. Acá están los pasos para publicarla con dominio propio antes del congreso, qué necesito de ustedes y qué puede venir después.</p>
+  <div class="vitrina">
+    <div class="escritorio">
+      <div class="marco" data-tam="2880,1620" data-recorte="0,0,2840,1620"><img src="img/sitio-escritorio.jpg" alt="La primera pantalla de la web en la computadora"></div>
+    </div>
+    <div class="celular">
+      <div class="marco" data-tam="1206,2610" data-recorte="0,0,1206,2300"><img src="img/sitio-celular.jpg" alt="La primera pantalla de la web en el celular"></div>
+    </div>
+  </div>
+  <p class="tapa-enlace">Hoy se ve en <a href="https://innercare-web.vercel.app">innercare-web.vercel.app</a></p>
+  <div class="tapa-final"><span>7 de noviembre de 2026</span><span>Brian, para el equipo de Innercare</span></div>
+</section>
+
+<!-- 2 · En una página -->
+<section class="hoja">
+  <h2 class="titulo">En una página</h2>
+  <p class="entrada">La web está terminada y ya la vieron. Falta lo que la pone en marcha de verdad: su dirección propia, los últimos ajustes técnicos y las fotos reales donde hoy hay lugares reservados.</p>
+  <div class="pasos">
+    <div class="paso"><div class="n">1</div><h3>El dominio</h3><p>La dirección propia de la web, para usar en el congreso.</p><div class="cuando">Hasta el 13 de nov.</div></div>
+    <div class="paso"><div class="n">2</div><h3>Ajustes técnicos</h3><p>El formulario que llega a su correo, Google, las redes y las pruebas.</p><div class="cuando">11 al 18 de nov.</div></div>
+    <div class="paso"><div class="n">3</div><h3>Fotos y contenido</h3><p>Las imágenes que faltan y la decisión sobre los implantes.</p><div class="cuando">Hasta el 13 de nov.</div></div>
+    <div class="paso"><div class="n">4</div><h3>Publicación</h3><p>La web en su dominio, revisada por ustedes.</p><div class="cuando">19 de nov.</div></div>
+  </div>
+  <div class="fecha">
+    <span class="etiqueta">Publicación</span>
+    <span class="aclaracion">Con unos días de margen antes del congreso <span class="pendiente">[pendiente: fecha del congreso]</span>, por si hay que imprimir la dirección.</span>
+    <span class="dia">Jueves 19 de noviembre</span>
+  </div>
+  <div class="pedido">
+    <h3>Lo que necesito de ustedes, antes del martes 10</h3>
+    <ul class="lista">
+      <li><strong>El dominio:</strong> confirmar <span class="dato">innercare.com.ar</span> y quién lo registra (página 4).</li>
+      <li><strong>Los correos de las dos personas</strong> que van a editar los textos.</li>
+      <li><strong>El correo que recibe las consultas</strong> del formulario, y quién las responde.</li>
+      <li><strong>Los implantes del cuerpo 3D:</strong> si quedan los de ahora o van piezas suyas (página 7).</li>
+    </ul>
+    <p>Y hasta el viernes 13, las fotos en la carpeta compartida (página 6). La lista completa, para ir tildando, está en la última página.</p>
+  </div>
+  <div class="pie"><span>Qué sigue con la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 3 · Calendario -->
+<section class="hoja">
+  <h2 class="titulo">Cómo siguen estos días</h2>
+  <p class="entrada">Menos de dos semanas. Lo que depende de ustedes está marcado; lo demás lo hago yo y les aviso cuando esté.</p>
+  <ol class="calendario">
+    <li><div class="cuando">Sáb 7<span>noviembre</span></div><div><h3>Les mando esta guía</h3><p>Junto con la guía para editar los textos y su video.</p></div></li>
+    <li class="hito"><div class="cuando">Mar 10<span>ustedes</span></div><div><h3>Las cuatro decisiones</h3><p>Dominio, editores, correo del formulario e implantes. Alcanza con un mensaje.</p></div></li>
+    <li><div class="cuando">Mié 11 a vie 13<span>yo</span></div><div><h3>Dominio y puesta en marcha</h3><p>Registro y conecto el dominio, el formulario empieza a llegar a su correo y las dos personas que editan reciben su invitación.</p></div></li>
+    <li class="hito"><div class="cuando">Hasta el vie 13<span>ustedes</span></div><div><h3>Las fotos en la carpeta</h3><p>Sedes, planta, logo y lo que falte. Lo que no llegue, se suma después de la publicación.</p></div></li>
+    <li><div class="cuando">Lun 16 a mié 18<span>yo y ustedes</span></div><div><h3>Fotos, implantes y revisión</h3><p>Cargo las fotos y los cambios. Ustedes recorren la web en su dominio, en la computadora y en el celular, y me pasan lo que quieran cambiar.</p></div></li>
+    <li class="hito"><div class="cuando">Jue 19<span>noviembre</span></div><div><h3>Publicación</h3><p>La web queda abierta en su dominio y la empiezan a encontrar los buscadores.</p></div></li>
+    <li><div class="cuando"><span class="pendiente">[pendiente: fecha]</span><span>congreso</span></div><div><h3>El congreso</h3><p>La dirección ya sirve para folletos, tarjetas o un código QR en el stand.</p></div></li>
+    <li><div class="cuando">Después<span>de la publicación</span></div><div><h3>Ajustes y lo que siga</h3><p>Los textos los cambian ustedes desde el panel; el resto me lo piden a mí (página 8).</p></div></li>
+  </ol>
+  <div class="pie"><span>Qué sigue con la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 4 · El dominio -->
+<section class="hoja">
+  <div class="marca-paso">Paso 1 de 4</div>
+  <h2 class="titulo">El dominio<span class="quien ustedes">Decisión de ustedes</span></h2>
+  <p class="entrada">Es la dirección de la web. Va primero porque, si en el congreso quieren llevar la dirección impresa, la imprenta tiene sus propios tiempos. Su costo está en el presupuesto.</p>
+  <div class="opciones">
+    <div class="opcion elegida">
+      <span class="recomendado">Recomendado</span>
+      <div class="nombre">innercare.com.ar</div>
+      <div class="estado libre">Libre al 7 de noviembre</div>
+      <p>El que esperan hospitales y compras institucionales de Argentina, y el más fácil de recordar.</p>
+    </div>
+    <div class="opcion">
+      <div class="nombre">innercare.ar</div>
+      <div class="estado libre">Libre al 7 de noviembre</div>
+      <p>Más corto. Se puede registrar además del anterior y que lleve a la misma web.</p>
+    </div>
+    <div class="opcion">
+      <div class="nombre">innercare.com</div>
+      <div class="estado tomado">Ya tiene dueño</div>
+      <p>Lo registró otra persona y vence en 2027. No está disponible.</p>
+    </div>
+  </div>
+  <h3>Quién lo registra</h3>
+  <p>Los dominios <span class="dato">.ar</span> se registran en NIC Argentina (nic.ar) con la Clave Fiscal del titular. Conviene que el titular sea Innercare: el dominio es de la empresa, no mío. Hay dos maneras:</p>
+  <ul class="lista">
+    <li><strong>Lo registran ustedes</strong> en nic.ar, con la Clave Fiscal de la empresa, y me pasan el acceso para conectarlo. Les dejo los pasos si eligen esta.</li>
+    <li><strong>Lo registro yo</strong> con mis datos para no perder tiempo, y cuando quieran lo pasamos a nombre de Innercare.</li>
+  </ul>
+  <div class="nota">
+    <h3>¿Correos con el dominio?</h3>
+    <p>Con el dominio se pueden tener direcciones como <span class="dato">contacto@innercare.com.ar</span>. No es necesario para publicar la web y se configura aparte: si les interesa, avísenme y vemos qué servicio conviene.</p>
+  </div>
+  <div class="pedido">
+    <h3>Lo que necesito, antes del martes 10</h3>
+    <p>Si va <strong>innercare.com.ar</strong> (y si suman innercare.ar), y quién lo registra: ustedes o yo.</p>
+  </div>
+  <div class="pie"><span>Qué sigue con la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 5 · Ajustes técnicos -->
+<section class="hoja">
+  <div class="marca-paso">Paso 2 de 4</div>
+  <h2 class="titulo">Ajustes técnicos<span class="quien yo">Lo hago yo</span></h2>
+  <p class="entrada">No tienen que hacer nada en esta parte salvo pasarme dos datos. Se las cuento para que sepan qué se está haciendo.</p>
+  <h3>El dominio, conectado</h3>
+  <ul class="lista">
+    <li>La web pasa a su dirección, con conexión segura (el candado del navegador).</li>
+    <li>La dirección de prueba de hoy lleva sola a la nueva.</li>
+  </ul>
+  <h3>El formulario de contacto</h3>
+  <ul class="lista">
+    <li>Hoy el formulario «Plantear un caso» se completa pero no envía nada. Lo conecto para que cada consulta llegue al correo que me digan, con el motivo y los datos de quien escribe.</li>
+    <li>Por ahora no se adjuntan estudios de pacientes: son datos de salud y piden un canal seguro aparte. Mientras tanto, el cirujano escribe y ustedes le responden por su vía habitual.</li>
+  </ul>
+  <h3>Google y las redes</h3>
+  <ul class="lista">
+    <li>El título y la descripción que muestra Google, y la imagen que aparece al compartir el enlace por WhatsApp o LinkedIn.</li>
+    <li>El aviso a Google de que la web existe, para que empiece a aparecer en las búsquedas.</li>
+    <li>Si les interesa saber cuántas visitas tiene y de dónde llegan, activo las estadísticas: avísenme.</li>
+  </ul>
+  <h3>El editor de textos y las pruebas</h3>
+  <ul class="lista">
+    <li>Las dos personas que editan reciben su invitación por correo. La guía y el video les explican cómo entrar y cambiar un texto.</li>
+    <li>Pruebo la web en celulares y computadoras reales, y un guardado de punta a punta.</li>
+    <li>Saco de la web la radiografía del hombro, que muestra datos de una paciente, hasta tener una sin datos.</li>
+  </ul>
+  <div class="pedido">
+    <h3>Lo que necesito, antes del martes 10</h3>
+    <p>El <strong>correo que recibe las consultas</strong> del formulario y los <strong>correos de las dos personas</strong> que van a editar.</p>
+  </div>
+  <div class="pie"><span>Qué sigue con la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 6 · Fotos y contenido -->
+<section class="hoja">
+  <div class="marca-paso">Paso 3 de 4</div>
+  <h2 class="titulo">Las fotos que faltan<span class="quien ustedes">Lo mandan ustedes</span></h2>
+  <p class="entrada">Donde hoy dice «Foto pendiente» o hay una imagen provisoria, va la de ustedes. Lo que no llegue antes del viernes 13 se suma después de publicar, sin apuro.</p>
+  <table>
+    <thead><tr><th>Qué</th><th>Qué hace falta</th></tr></thead>
+    <tbody>
+      <tr><td>Sedes<span class="carpeta">Carpeta 1</span></td><td>Una foto del laboratorio de Caseros, una de la sucursal de Comodoro Rivadavia y una de la de Caleta Olivia. Del frente o del interior, horizontales.</td></tr>
+      <tr><td>Planta<span class="carpeta">Carpeta 2</span></td><td>Fotos con gente trabajando: planificación, control de calidad, embalaje. Y dos confirmaciones: si la foto de la impresora 3D es de su planta, y qué máquina es la que aparece como CNC.</td></tr>
+      <tr><td>Casos<span class="carpeta">Carpeta 3</span></td><td>Tres fotos en mejor calidad, porque hoy se ven borrosas: el cráneo en 3D, la segmentación del acetábulo y las guías del implante intercalar. Y la radiografía del hombro sin datos de la paciente.</td></tr>
+      <tr><td>Logo<span class="carpeta">Carpeta 4</span></td><td>La versión clara (para fondos oscuros) y una sin el lema. Mejor en PDF, SVG o AI; si no, PNG con fondo transparente.</td></tr>
+      <tr><td>Documentos<span class="carpeta">Carpeta 5</span></td><td>Las fichas técnicas en PDF de los productos que tengan (hoy solo está la del fémur). Estas las pueden subir ustedes mismos desde el panel.</td></tr>
+      <tr><td>Las manos</td><td>La foto de las manos del final de la página: confirmar que se puede usar, o pasarme otra.</td></tr>
+    </tbody>
+  </table>
+  <div class="pedido">
+    <h3>Dónde subirlas</h3>
+    <p>En esta carpeta compartida de Google Drive, que ya tiene las subcarpetas armadas: <a href="https://drive.google.com/drive/folders/1B0jzcFSm_xejKqeVlqRXL6JycIr10crJ"><strong>abrir la carpeta</strong></a>.</p>
+    <div class="carpetas">
+      <div><span>1</span>Sedes</div><div><span>2</span>Planta</div><div><span>3</span>Casos</div><div><span>4</span>Logo</div><div><span>5</span>Documentos</div>
+    </div>
+    <p><strong>Mándenlas como archivo, no por WhatsApp:</strong> WhatsApp las comprime y se ven peor. Desde el celular, con la app de Google Drive; desde la computadora, arrastrándolas a la carpeta. Tal como salen de la cámara, sin recortar.</p>
+  </div>
+  <div class="pie"><span>Qué sigue con la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 7 · Los implantes -->
+<section class="hoja">
+  <div class="marca-paso">Paso 3 de 4</div>
+  <h2 class="titulo">Los implantes del cuerpo 3D<span class="quien ustedes">Decisión de ustedes</span></h2>
+  <p class="entrada">Los seis implantes que se ven en el recorrido los modelé yo para la presentación, como referencia. No son sus piezas. Antes de publicar, conviene decidir si quedan así.</p>
+  <ul class="zonas">
+    <li>Cráneo</li><li>Maxilar</li><li>Hombro</li><li>Acetábulo</li><li>Fémur proximal</li><li>Diáfisis femoral</li>
+  </ul>
+  <div class="dos">
+    <div class="eleccion">
+      <div class="letra">A</div>
+      <h3>Quedan los de ahora</h3>
+      <p>La web sale así el 19. Más adelante se pueden cambiar de a uno, sin apuro.</p>
+    </div>
+    <div class="eleccion">
+      <div class="letra">B</div>
+      <h3>Van piezas suyas</h3>
+      <p>Me pasan el archivo de diseño (STEP o STL) de cada pieza, o fotos de la pieza real desde varios ángulos, con alguna medida, y hago el modelo para la web.</p>
+      <p>A la web no va su archivo: va una versión que hago yo para mostrar la pieza (ver abajo).</p>
+    </div>
+  </div>
+  <div class="nota">
+    <h3>Dos cosas a tener en cuenta</h3>
+    <ul class="lista">
+      <li><strong>Las piezas nuevas van en esos seis lugares.</strong> Cambiar una pieza por otra en el mismo lugar entra en esta etapa. Un implante en otra zona (columna, rodilla) cambia el recorrido entero: eso lo vemos como una etapa aparte.</li>
+      <li><strong>Sus piezas originales no se publican.</strong> Todo lo que se ve en una web se puede descargar, así que a la web no subo su archivo: hago una versión para mostrar, más liviana y modificada a propósito (sin las medidas exactas, sin la estructura interna y con menos detalle). Se ve como su pieza, pero no sirve para reproducirla ni fabricarla. Los archivos que me pasen quedan solo en la carpeta compartida.</li>
+    </ul>
+  </div>
+  <div class="pedido">
+    <h3>Lo que necesito, antes del martes 10</h3>
+    <p>A o B. Si es B, qué piezas, y los archivos o fotos en la carpeta 3. Y que me confirmen tres datos del recorrido: que la craneoplastía y la copa acetabular se hacen por impresión 3D, que el maxilar se desarrolla a pedido del médico, y las medidas de los implantes, sobre todo el del hombro.</p>
+  </div>
+  <div class="pie"><span>Qué sigue con la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 8 · Publicación y después -->
+<section class="hoja">
+  <div class="marca-paso">Paso 4 de 4</div>
+  <h2 class="titulo">La publicación y después</h2>
+  <p class="entrada">El jueves 19 la web queda en su dominio. De ahí en adelante, esto es lo que pasa con cada tipo de cambio.</p>
+  <h3>Antes de publicar, reviso</h3>
+  <ul class="lista">
+    <li>Que la web abra en su dominio, con el candado, en celulares y computadoras.</li>
+    <li>Que una consulta de prueba del formulario llegue a su correo.</li>
+    <li>Que el enlace compartido por WhatsApp muestre la imagen y el título correctos.</li>
+    <li>Que las dos personas que editan puedan entrar al panel.</li>
+  </ul>
+  <h3>Después de publicar</h3>
+  <ul class="lista">
+    <li><strong>Los textos los cambian ustedes,</strong> cuando quieran, desde el panel. Al guardar, se publican solos en unos minutos. Para eso está la guía «Cómo editar los textos de la web» y su <a href="https://youtu.be/30xwIKv05i8">video de dos minutos y medio</a>.</li>
+    <li><strong>Las fotos, el 3D y el diseño me los piden a mí:</strong> me mandan lo nuevo a la carpeta y me avisan. No hay un número fijo de rondas de cambios en esta etapa: lo vamos viendo.</li>
+    <li><strong>Si algo no se ve o no anda,</strong> me escriben. Cada cambio queda registrado, así que cualquier versión anterior se puede recuperar.</li>
+  </ul>
+  <div class="nota">
+    <h3>Lo que queda andando</h3>
+    <ul class="lista">
+      <li><strong>El dominio</strong> se renueva una vez por año. <span class="pendiente">[pendiente: quién lo renueva y cómo se cobra]</span></li>
+      <li><strong>El alojamiento de la web</strong> <span class="pendiente">[pendiente: dónde queda y si tiene costo para ellos]</span></li>
+      <li><strong>El mantenimiento después de la publicación</strong> <span class="pendiente">[pendiente: período de ajustes incluido y cómo se piden cambios después]</span></li>
+    </ul>
+  </div>
+  <div class="pie"><span>Qué sigue con la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 9 · Etapas -->
+<section class="hoja">
+  <h2 class="titulo">Esta etapa y las próximas</h2>
+  <p class="entrada">Esta primera etapa es la web de una sola página, publicada y lista para editar. Lo de la derecha son ideas para más adelante: se charlan y se presupuestan aparte, si las quieren.</p>
+  <div class="etapas">
+    <div class="etapa ahora">
+      <h3>Ahora</h3>
+      <div class="sub">Incluido en el presupuesto aceptado</div>
+      <ul>
+        <li>La web de una sola página<span>Recorrido 3D por el cuerpo, cómo trabajan, fabricación, habilitaciones, sedes y contacto.</span></li>
+        <li>El editor de textos<span>Para dos personas, con la guía y el video.</span></li>
+        <li>El dominio<span>Registrado y conectado.</span></li>
+        <li>La puesta en marcha<span>Formulario que llega a su correo, Google, redes y pruebas.</span></li>
+        <li>Sus fotos y sus implantes<span>En los lugares que ya existen.</span></li>
+        <li><span class="pendiente">[pendiente: revisar contra el presupuesto]</span></li>
+      </ul>
+    </div>
+    <div class="etapa despues">
+      <h3>Más adelante</h3>
+      <div class="sub">Opcional, cuando quieran</div>
+      <ul>
+        <li><strong>Páginas de producto</strong><span>Una página por implante, con fotos, especificaciones y su ficha. Ya hay una base hecha.</span></li>
+        <li><strong>La línea distribuida</strong><span>Los productos que distribuyen, cuando estén los permisos para mostrarlos.</span></li>
+        <li><strong>Envío de casos con estudios</strong><span>Que el cirujano adjunte tomografías desde la web, por un canal seguro para datos de salud.</span></li>
+        <li><strong>Implantes en otras zonas</strong><span>Columna, rodilla u otras, con su parada en el recorrido.</span></li>
+        <li><strong>Versión en inglés</strong><span>Para congresos y contactos del exterior.</span></li>
+        <li><strong>Correos con el dominio</strong><span>Como contacto@innercare.com.ar.</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="pie"><span>Qué sigue con la web</span><span class="pagina"></span></div>
+</section>
+
+<!-- 10 · Lista y contacto -->
+<section class="hoja">
+  <h2 class="titulo">Para tildar</h2>
+  <p class="entrada">Todo lo que necesito de ustedes, en orden. Pueden contestarme punto por punto en un solo mensaje.</p>
+  <ul class="checklist">
+    <li><div>El dominio: si va innercare.com.ar (y si suman innercare.ar), y quién lo registra<small>Página 4</small></div><span class="para">Mar 10</span></li>
+    <li><div>Los correos de las dos personas que van a editar<small>Página 5</small></div><span class="para">Mar 10</span></li>
+    <li><div>El correo que recibe las consultas y quién las responde<small>Página 5</small></div><span class="para">Mar 10</span></li>
+    <li><div>Los implantes: A (quedan) o B (van piezas suyas)<small>Página 7</small></div><span class="para">Mar 10</span></li>
+    <li><div>Tres datos del recorrido y las medidas de los implantes<small>Página 7</small></div><span class="para">Mar 10</span></li>
+    <li><div>Fotos de las tres sedes<small>Carpeta 1</small></div><span class="para">Vie 13</span></li>
+    <li><div>Fotos de la planta y las dos confirmaciones<small>Carpeta 2</small></div><span class="para">Vie 13</span></li>
+    <li><div>Fotos de casos en mejor calidad y la radiografía sin datos<small>Carpeta 3</small></div><span class="para">Vie 13</span></li>
+    <li><div>El logo en versión clara y sin lema<small>Carpeta 4</small></div><span class="para">Vie 13</span></li>
+    <li><div>Las fichas técnicas en PDF que tengan<small>Carpeta 5 o desde el panel</small></div><span class="para">Cuando estén</span></li>
+    <li><div>Revisar la web en su dominio y pasarme los cambios<small>Página 3</small></div><span class="para">Mié 18</span></li>
+  </ul>
+  <div class="contacto">
+    <div><div class="que">Correo</div><div class="como"><a href="mailto:brian.sittmann@gmail.com">brian.sittmann@gmail.com</a></div></div>
+    <div><div class="que">WhatsApp, para lo rápido</div><div class="como"><a href="https://wa.me/353851528917">+353 85 152 8917</a></div></div>
+    <div><div class="que">Archivos</div><div class="como"><a href="https://drive.google.com/drive/folders/1B0jzcFSm_xejKqeVlqRXL6JycIr10crJ">La carpeta compartida</a></div></div>
+  </div>
+  <div class="pie"><span>Qué sigue con la web</span><span class="pagina"></span></div>
+</section>
+
+<script>
+  for (const marco of document.querySelectorAll('.marco[data-recorte]')) {
+    const [W] = marco.dataset.tam.split(',').map(Number)
+    const [rx, ry, rw, rh] = marco.dataset.recorte.split(',').map(Number)
+    marco.style.aspectRatio = `${rw} / ${rh}`
+    const img = marco.querySelector('img')
+    img.style.width = `${(W / rw) * 100}%`
+    img.style.left = `${(-rx / rw) * 100}%`
+    img.style.top = `${(-ry / rh) * 100}%`
+  }
+  document.querySelectorAll('.hoja').forEach((h, i) => {
+    const p = h.querySelector('.pagina')
+    if (p) p.textContent = String(i + 1)
+  })
+</script>
+</body>
+</html>

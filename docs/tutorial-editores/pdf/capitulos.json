@@ -1,0 +1,111 @@
+{
+  "cliente": "innercare",
+  "duracion": 147.1,
+  "capitulos": [
+    {
+      "numero": 1,
+      "titulo": "Entrar al panel",
+      "inicio": 0,
+      "tiempo": "0:00",
+      "duracion": 22.3
+    },
+    {
+      "numero": 2,
+      "titulo": "El panel",
+      "inicio": 22.3,
+      "tiempo": "0:22",
+      "duracion": 6.3
+    },
+    {
+      "numero": 3,
+      "titulo": "Cambiar un texto",
+      "inicio": 28.6,
+      "tiempo": "0:28",
+      "duracion": 19.3
+    },
+    {
+      "numero": 4,
+      "titulo": "Guardar es publicar",
+      "inicio": 47.9,
+      "tiempo": "0:47",
+      "duracion": 19.8
+    },
+    {
+      "numero": 5,
+      "titulo": "Cuando un texto no entra",
+      "inicio": 67.7,
+      "tiempo": "1:07",
+      "duracion": 19.2
+    },
+    {
+      "numero": 6,
+      "titulo": "Listas",
+      "inicio": 86.9,
+      "tiempo": "1:26",
+      "duracion": 11.7
+    },
+    {
+      "numero": 7,
+      "titulo": "Archivos",
+      "inicio": 98.6,
+      "tiempo": "1:38",
+      "duracion": 13.5
+    },
+    {
+      "numero": 8,
+      "titulo": "Lo que no se toca",
+      "inicio": 112.1,
+      "tiempo": "1:52",
+      "duracion": 14.7
+    },
+    {
+      "numero": 9,
+      "titulo": "Si te equivocás",
+      "inicio": 126.8,
+      "tiempo": "2:06",
+      "duracion": 20.3
+    }
+  ],
+  "youtube": [
+    {
+      "titulo": "Entrar al panel",
+      "inicio": 0,
+      "tiempo": "0:00"
+    },
+    {
+      "titulo": "El panel y cambiar un texto",
+      "inicio": 22.3,
+      "tiempo": "0:22"
+    },
+    {
+      "titulo": "Guardar es publicar",
+      "inicio": 47.9,
+      "tiempo": "0:47"
+    },
+    {
+      "titulo": "Cuando un texto no entra",
+      "inicio": 67.7,
+      "tiempo": "1:07"
+    },
+    {
+      "titulo": "Listas",
+      "inicio": 86.9,
+      "tiempo": "1:26"
+    },
+    {
+      "titulo": "Archivos",
+      "inicio": 98.6,
+      "tiempo": "1:38"
+    },
+    {
+      "titulo": "Lo que no se toca",
+      "inicio": 112.1,
+      "tiempo": "1:52"
+    },
+    {
+      "titulo": "Si te equivocás",
+      "inicio": 126.8,
+      "tiempo": "2:06"
+    }
+  ]
+}
