@@ -1,5 +1,4 @@
 import Image, { getImageProps } from 'next/image'
-import Link from 'next/link'
 import { ContactLink } from '@/components/contact-link'
 import { contactHref, contactLabel } from '@/components/nav-links'
 import { cierreRecorrido, paradas, recorridoTextos, type Parada } from '@/content/recorrido'
@@ -13,7 +12,8 @@ const ancla = (parada: Parada) => `parada-${parada.id}`
 // (docs/landing/landing-borrador.html): las seis paradas, de la cabeza al
 // fémur, y el cierre. Cada tarjeta hace de ficha resumida (la landing es
 // también el catálogo y la galería de casos, AJUSTES.md): las de catálogo
-// llevan a su ficha; las a medida cuentan el caso y llevan al contacto.
+// ofrecen su ficha técnica en PDF; las a medida cuentan el caso y llevan al
+// contacto.
 //
 // El hero del borrador vive dentro de esta escena (cuerpo único, fase 3):
 // la sección empieza arriba de todo, por detrás del header, con el texto del
@@ -117,7 +117,7 @@ function TarjetaParada({ parada, indice }: { parada: Parada; indice: number }) {
       </p>
 
       {/* Specs: ocultas en el celular, donde la tarjeta es una hoja inferior
-          (borrador). La ficha completa está en la página del producto. */}
+          (borrador). */}
       <dl className="mb-md hidden border-t border-outline-variant min-[820px]:block">
         {parada.specs.map((spec) => (
           <div
@@ -130,12 +130,12 @@ function TarjetaParada({ parada, indice }: { parada: Parada; indice: number }) {
         ))}
       </dl>
 
+      {/* Sin enlace a las páginas de producto: las fichas se presupuestan
+          aparte y no entran al lanzamiento (docs/DECISIONES.md, 2026-11-08).
+          Las paradas de catálogo ofrecen solo su PDF; mientras no tengan uno
+          cargado en el panel, "Plantear un caso", como las a medida. */}
       <div className="flex flex-wrap gap-x-md gap-y-sm">
-        {parada.productoSlug ? (
-          <Link href={`/productos/${parada.productoSlug}`} className="enlace-marca">
-            Ver ficha del producto
-          </Link>
-        ) : (
+        {(parada.tipo === 'a-medida' || !parada.datasheetUrl) && (
           <ContactLink href={contactHref} className="enlace-marca">
             {contactLabel}
           </ContactLink>

@@ -978,3 +978,13 @@ Rama `textos-editables`. Decisiones del usuario del 2026-11-04 y el diseño de l
 - El plan gratis de Cloud queda justo en su tope de tres usuarios.
 
 **Pendiente.** Crear el equipo y el proyecto en Keystatic Cloud y poner `NEXT_PUBLIC_KEYSTATIC_PROYECTO` en Vercel; probar el modo Cloud en `next dev`; integrar la rama en `main` antes de que los editores empiecen (`CLAUDE.md`, "Pendiente").
+
+## 2026-11-08 · Sin enlaces a las páginas de producto
+
+**Decisión.** Las tarjetas de las paradas de catálogo del recorrido (hombro y fémur) dejan de llevar "Ver ficha del producto" a `/productos/<slug>`: ofrecen solo "Ficha técnica (PDF)", que se descarga. Si la parada no tiene PDF cargado (hoy, el hombro), la tarjeta muestra "Plantear un caso", como las a medida. Las páginas `/productos/[slug]` y `/productos` siguen en el código y compilan, pero nada de la home lleva a ellas.
+
+**Motivo.** Pedido del usuario: las páginas de producto se cobran aparte, según un presupuesto que Innercare todavía no aceptó. Mientras tanto no se muestran.
+
+**Descartado.** Borrar las páginas: si se aprueba el presupuesto, vuelven con sumar el enlace en `components/home/tour.tsx`. Dejar la tarjeta del hombro sin ningún enlace: quedaba sin salida.
+
+**Pendiente.** Si se aprueba el presupuesto, volver a enlazar las fichas desde las tarjetas y revisar `docs/EDITORES.md`. Si no, decidir si se borran las páginas antes del lanzamiento (hoy responden por URL directa) y no listarlas en el `sitemap`.

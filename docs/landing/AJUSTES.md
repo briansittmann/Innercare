@@ -32,7 +32,7 @@ Tres intenciones nada más: recorrer, ver ficha y contactar.
 
 - Contacto: **"Plantear un caso"** en todos lados (header, hero, tarjetas a medida, cierre del recorrido y CTA final). Reemplaza a "Contactar". Abre el panel de contacto existente (`/contacto`), con `?motivo=` o `?producto=` cuando corresponda.
 - Hero: el principal pasa a "Plantear un caso" (contacto) y el de vidrio (`BotonVidrio`) a "Recorrer los implantes" (`#recorrido`). Mismo diseño; solo cambian texto y destino.
-- Paradas de catálogo (hombro reverso, endoprótesis femoral): "Ver ficha del producto" a su ficha. La endoprótesis suma "Ficha técnica (PDF)", que ya está en `public/`.
+- Paradas de catálogo (hombro reverso, endoprótesis femoral): solo "Ficha técnica (PDF)", que se descarga; sin PDF cargado, "Plantear un caso". Hasta el 2026-11-08 llevaban "Ver ficha del producto" a su página; se quitó porque las páginas de producto se cobran aparte y ese presupuesto no está aceptado.
 - Paradas a medida (craneoplastía, maxilar, acetábulo, intercalar de fémur): sin "Ver el caso". La tarjeta cuenta el caso con los datos de `content/customCases.ts` y lleva "Plantear un caso" al contacto con el motivo de caso a medida precargado.
 - Cierre del recorrido: un solo botón, "Plantear un caso". Sin "Ver catálogo" ni "Ver casos a medida".
 - Los casos que no entran en el recorrido (biomodelos, corrección de desvío, estructura porosa, craneoplastía en PMMA) pueden ir como ejemplos en "Cómo trabajamos", sin página propia.

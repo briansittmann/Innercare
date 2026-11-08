@@ -18,7 +18,7 @@ El panel tiene a la izquierda un menú en tres grupos (**Portada**, **Secciones*
 |---|---|
 | Portada › **Hero** | La primera pantalla: titular, bajada, el botón «Recorrer los implantes», la línea de habilitaciones y el aviso para deslizar. El titular también va en el footer y en la tarjeta que aparece al compartir el enlace. |
 | Portada › **Recorrido de implantes** | El recorrido por el cuerpo: la tarjeta de cada una de las seis paradas, el índice de la izquierda y el cierre con el cuerpo entero. |
-| Portada › **Fichas técnicas (PDF)** | El PDF de cada parada: el enlace «Ficha técnica (PDF)» de su tarjeta y, en Hombro y Fémur proximal, el botón de la página del producto. |
+| Portada › **Fichas técnicas (PDF)** | El PDF de cada parada: el enlace «Ficha técnica (PDF)» de su tarjeta. En Hombro y Fémur proximal es el único enlace de la tarjeta; si no tienen PDF, muestran «Plantear un caso». |
 | Secciones › **Cómo trabajamos** | La sección «Cómo trabajamos»: el título, los tres pasos y la leyenda de colores debajo de la pieza. |
 | Secciones › **Fabricación** | La sección «Fabricación»: las dos tarjetas animadas y la tira de fotos de la planta. |
 | Secciones › **Habilitaciones** | La tabla de habilitaciones ANMAT y del Sistema Nacional de Trazabilidad. |
@@ -51,7 +51,7 @@ Los campos de **texto alternativo** y los grupos **Lectores de pantalla** no se 
 - **La cantidad de pasos, tarjetas y fotos:** Cómo trabajamos tiene tres pasos, Fabricación dos tarjetas y ocho fotos. La animación de cada sección está hecha para esa cantidad.
 - **Los enlaces del menú y las direcciones internas de cada sección:** otras páginas y los buscadores apuntan a ellas.
 - **El formulario de contacto:** los nombres de los campos y sus mensajes de error quedan fijos.
-- **Las fichas de producto** (la página de cada producto) y el botón «Ver ficha del producto»: quedan para una etapa posterior.
+- **Las páginas de producto:** quedan para una etapa posterior y hoy no se llega a ellas desde la web.
 - **Los identificadores** de las filas de Habilitaciones y de las sedes: no se ven en la página, pero el sistema los usa (el de cada sede elige su foto). No los cambies una vez creados.
 - El mapa, los colores y las tipografías.
 
@@ -84,7 +84,7 @@ Si alguno de estos no se cumple, el cambio se guarda pero **no se publica**: la 
 
 ## La ficha técnica en PDF
 
-Los PDF tienen su propia sección, Portada › **Fichas técnicas (PDF)**, con un campo por parada («Fémur proximal: ficha técnica», «Hombro: ficha técnica»…). Si una parada tiene archivo, su tarjeta en el recorrido muestra el enlace «Ficha técnica (PDF)»; en Hombro y Fémur proximal, la página del producto también lo ofrece. Están aparte de los textos del recorrido a propósito: así un guardado nunca mezcla archivos con las listas de datos técnicos.
+Los PDF tienen su propia sección, Portada › **Fichas técnicas (PDF)**, con un campo por parada («Fémur proximal: ficha técnica», «Hombro: ficha técnica»…). Si una parada tiene archivo, su tarjeta en el recorrido muestra el enlace «Ficha técnica (PDF)», que lo descarga. En Hombro y Fémur proximal es el único enlace de la tarjeta: si les quitás el PDF, muestran «Plantear un caso». Están aparte de los textos del recorrido a propósito: así un guardado nunca mezcla archivos con las listas de datos técnicos.
 
 - **Subir:** en Fichas técnicas (PDF), elegí el archivo en el campo de la parada y guardá.
 - **Reemplazar:** elegí el archivo nuevo en el mismo campo y guardá. Se guarda siempre con el mismo nombre, así que el enlace no cambia.
